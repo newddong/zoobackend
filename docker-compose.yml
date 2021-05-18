@@ -1,0 +1,15 @@
+version: '3.1'
+
+services: 
+    zoobackend:
+        image: zooback:v0.01
+        ports: 
+            - "3000:3000"
+        deploy:
+            labels: 
+                - traefik.http.services.zoobackend.loadbalancer.server.port=3000
+        networks: 
+            - traefiknet
+networks: 
+    traefiknet:
+        external: true
