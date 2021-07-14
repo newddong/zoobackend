@@ -4,12 +4,12 @@ var database;
 
 module.exports = () => {
 	function connectDB() {
-		var databaseUrl = "mongodb://root:zookeeper@zoodoongi.net:27017";
+		var databaseUrl = "mongodb://app:appkeeper!@zoodoongi.net:27017";
 
 		console.log("try to connect database.");
 
 		mongoose.Promise = global.Promise;
-		mongoose.connect(databaseUrl, (err) => {
+		mongoose.connect(databaseUrl,{dbName:'app'}, (err) => {
 			if (err) {
 				console.error("mongodb connection error", err);
 			}
