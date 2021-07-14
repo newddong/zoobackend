@@ -1,1 +1,2 @@
 docker build -t [imagename]:[tag] [locationDockerfile]
+docker save -o 
