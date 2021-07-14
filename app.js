@@ -11,6 +11,7 @@ var expressSession = require("express-session");
 
 var app = express();
 var userRoute = require('./router/user');
+var loginRoute = require('./router/login');
 var database = require('./database/database');
 database();
 
@@ -48,7 +49,7 @@ var router = express.Router();
 // 	});
 // 	res.redirect("/showcookie");
 // });
-
+app.use("/login",loginRoute);
 app.use("/user",userRoute);
 app.use("/", router);
 

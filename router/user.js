@@ -19,8 +19,6 @@ router.post("/add", (req, res) => {
         shelter_foundation_date:req.body.shelter_foundation_date,
         reg_date:req.body.reg_date,
         upd_date:req.body.upd_date,
-        
-    
     });
 	user.save((err) => {
 		if (err) {
