@@ -5,6 +5,7 @@ var database;
 module.exports = () => {
 	function connectDB() {
 		var databaseUrl = "mongodb://app:appkeeper!@zoodoongi.net:27017";
+		// var databaseUrl = "mongodb://app:appkeeper!@10.0.21.4:27017"; //서버측 주소(AWS 네트워크 내부에 속해있어야함)
 
 		console.log("try to connect database.");
 

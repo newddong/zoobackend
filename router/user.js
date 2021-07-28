@@ -1,32 +1,45 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../schema/user");
+const uploadS3 = require("../common/uploadS3");
 
-router.post("/add", (req, res) => {
+router.post("/test",uploadS3.single('imgfile'),(req,res)=>{
+	console.log(req.file.location);
+	if(req.file){
+		res.json({status:200,msg:'sucess'});
+	}else{
+		res.json({status:400,msg:'fail'});
+	}
+})
+
+router.post("/add",uploadS3.single('imgfile'),(req, res) => {
 	console.log("add user => " + req.body.id);
-	var user = new User({ 
-        id: req.body.id,
-        password: req.body.password,
-        name: req.body.name,
-        userType:req.body.userType,
-        idType:req.body.idType,
-        nickname:req.body.nickname,
-        shelter_name:req.body.shelter_name,
-        shelter_addr:req.body.shelter_addr,
-        shelter_phone:req.body.shelter_phone,
-        shelter_email:req.body.shelter_email,
-        shelter_url:req.body.shelter_url,
-        shelter_foundation_date:req.body.shelter_foundation_date,
-        reg_date:req.body.reg_date,
-        upd_date:req.body.upd_date,
-    });
+	console.log("img location uri  => " + req.file.location);
+	var user = new User({
+		id: req.body.id,
+		password: req.body.password,
+		name: req.body.name,
+		userType: req.body.userType,
+		idType: req.body.idType,
+		nickname: req.body.nickname,
+		shelter_name: req.body.shelter_name,
+		shelter_addr: req.body.shelter_addr,
+		shelter_phone: req.body.shelter_phone,
+		shelter_email: req.body.shelter_email,
+		shelter_url: req.body.shelter_url,
+		shelter_foundation_date: req.body.shelter_foundation_date,
+		reg_date: req.body.reg_date,
+		upd_date: req.body.upd_date,
+		profileImgUri: req.file.location,
+	});
+
 	user.save((err) => {
 		if (err) {
-			console.log("error during add user " + err);
+			console.log("error during add user to DB", err);
 			res.json({ status: 400, msg: err });
 			// return;
 		}
-		console.log("successfully added user " + req.body.id);
+		console.log("successfully added user to DB " + req.body.id);
 		res.json({ status: 200, msg: "successed" });
 	});
 });

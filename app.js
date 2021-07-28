@@ -49,6 +49,10 @@ var router = express.Router();
 // 	});
 // 	res.redirect("/showcookie");
 // });
+
+
+
+
 app.use("/login",loginRoute);
 app.use("/user",userRoute);
 app.use("/", router);

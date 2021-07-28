@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema({
     userType:{type:String},
     idType:{type:String},
     nickname:{type:String},
+    mobilecompany:{type:String},
     shelter_name:{type:String},
     shelter_addr:{type:String},
     shelter_phone:{type:String},
@@ -14,6 +15,7 @@ const UserSchema = new mongoose.Schema({
     shelter_foundation_date:{type:Date,default:Date.now},
     reg_date:{type:Date,default:Date.now},
     upd_date:{type:Date,default:Date.now},
+    profileImgUri:{type:String},
 });
 
 module.exports = mongoose.model("user", UserSchema);
