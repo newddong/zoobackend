@@ -1,2 +1,6 @@
 docker build -t [imagename]:[tag] [locationDockerfile]
 docker save -o 
+
+docker build -t zoobackend:v0.01 .
+docker save -o zb.tar zoobackend:v0.01
+docker load -i zb.tar
