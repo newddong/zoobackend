@@ -1,19 +1,23 @@
 var express = require("express"),
 	http = require("http"),
 	path = require("path");
-
+var cors = require("cors");
 var cookieParser = require("cookie-parser"),
 	static = require("serve-static"),
 	errorHandler = require("errorhandler");
 
 var expressErrorHandler = require("express-error-handler");
 var expressSession = require("express-session");
+var MongoStore = require("connect-mongo");
 
 var app = express();
 var userRoute = require('./router/user');
-var loginRoute = require('./router/login');
+var postRoute = require('./router/post');
+var appauth = require('./router/appauth');
 var database = require('./database/database');
-database();
+
+var dbconnection;
+dbconnection = database();
 
 app.set("port", process.env.PORT || 3000);
 
@@ -24,12 +28,16 @@ app.use(express.json());
 // app.use('/public',static(path.join(__dirname,'public')));
 
 app.use(cookieParser());
-
+app.use(cors());
 app.use(
 	expressSession({
-		secret: "my key",
-		resave: true,
+		secret: "zoodoongi.pinetree.gylee",
+		resave: false,
 		saveUninitialized: true,
+		store:MongoStore.create({
+			mongoUrl:"mongodb://app:appkeeper!@zoodoongi.net:27017",
+			dbName:'app'
+		})
 	})
 );
 
@@ -53,8 +61,9 @@ var router = express.Router();
 
 
 
-app.use("/login",loginRoute);
+app.use("/auth",appauth);
 app.use("/user",userRoute);
+app.use("/post",postRoute);
 app.use("/", router);
 
 var errorHandler = expressErrorHandler({

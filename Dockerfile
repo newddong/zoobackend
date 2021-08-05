@@ -8,7 +8,8 @@ WORKDIR /app
 ADD . .
 
 RUN npm install
+RUN npm install -g nodemon
 
 EXPOSE 3000
 
-ENTRYPOINT ["node", "app.js"]
+ENTRYPOINT ["nodedemon","./" ,"./","./app.js"]

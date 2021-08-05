@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 var database;
 
-module.exports = () => {
+module.exports = async () => {
 	function connectDB() {
 		var databaseUrl = "mongodb://app:appkeeper!@zoodoongi.net:27017";
 		// var databaseUrl = "mongodb://app:appkeeper!@10.0.21.4:27017"; //서버측 주소(AWS 네트워크 내부에 속해있어야함)
@@ -20,6 +20,7 @@ module.exports = () => {
 		database = mongoose.connection;
 
 		database.on("error", console.error.bind(console, "mongoose connection error."));
+		
 	}
 	connectDB();
 
@@ -27,4 +28,5 @@ module.exports = () => {
 		console.log("disconnected from database. try to connect again after 5s");
 		setInterval(connectDB, 5000);
 	});
+	return await database;
 };

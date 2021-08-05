@@ -15,7 +15,7 @@ router.post("/test",uploadS3.single('imgfile'),(req,res)=>{
 router.post("/add",uploadS3.single('imgfile'),(req, res) => {
 	console.log("add user => " + req.body.id);
 	console.log("img location uri  => " + req.file.location);
-	var user = new User({
+	var user = new User.model({
 		id: req.body.id,
 		password: req.body.password,
 		name: req.body.name,
@@ -44,27 +44,52 @@ router.post("/add",uploadS3.single('imgfile'),(req, res) => {
 	});
 });
 
+router.get("/getMyProfile",(req,res)=>{
+	if(req.session.user){
+		console.log("%s %s [%s] %s %s %s | get user profile %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
+		User.model.findOne()
+			.where("id").equals(req.session.user).select('id name useType nickname profileImgUri')
+			.exec((err, result)=>{
+				if(err){
+					console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+					res.json({status:500, msg: err});
+				}
+				res.json({status: 200, msg: result});
+			})
+	}
+	else{
+		console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+		res.json({status: 401, msg: "Unauthorized"})
+	}
+
+});
+
+router.post("/getUserProfile",(req,res)=>{
+	// if(req.session.user){
+		console.log("%s %s [%s] %s %s %s | get user profile %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
+		User.model.findOne()
+			.where("nickname").equals(req.body.nickname).select('id name useType nickname profileImgUri belonged_pets volunteeractivity postList')
+			.exec((err, result)=>{
+				if(err){
+					console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+					res.json({status:500, msg: err});
+				}
+				res.json({status: 200, msg: result});
+			})
+	// }
+	// else{
+	// 	console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+	// 	res.json({status: 401, msg: "Unauthorized"})
+	// }
+
+
+});
+
+
+
 router.post("/update", (req, res) => {});
 
 router.post("/delete", (req, res) => {});
 
 module.exports = router;
 
-var authUser = (database, id, password, callback) => {
-	console.log("authUser 호출됨 : " + id + ", " + password);
-	UserModel.find({ id: id, password: password }, (err, results) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-		console.log("아이디 [%s], 비밀번호 [%s]로 사용자 검색 결과", id, password);
-		console.dir(results);
-		if (results.length > 0) {
-			console.log("일치하는 사용자 찾음", id, password);
-			callback(null, results);
-		} else {
-			console.log("일치하는 사용자를 찾지 못함");
-			callback(null, null);
-		}
-	});
-};
