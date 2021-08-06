@@ -7,9 +7,10 @@ WORKDIR /app
 #COPY /package*.json .
 ADD . .
 
-RUN npm install
+# RUN npm install
 RUN npm install -g nodemon
 
 EXPOSE 3000
 
-ENTRYPOINT ["nodemon","-w" ,"./","./app.js"]
+# ENTRYPOINT ["nodemon","-w" ,"./","./app.js"]
+ENTRYPOINT ["node","./app.js"]

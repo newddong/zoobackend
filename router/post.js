@@ -32,7 +32,7 @@ router.get("/getPostList", (req, res) => {
 	Post.model
 		.find()
 		.where("id")
-		.ne("")
+		.ne("").sort("-_id")
 		.exec((err, result) => {
 			if (err) {
 				console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
