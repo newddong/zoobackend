@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 const User = require("./user");
 
 const PostSchema = new mongoose.Schema({
-	user: {type:Schema.Types.ObjectId, ref:'user'},
+	user: {type:Schema.Types.ObjectId},
     user_id:{type:String},
     photo_user:{type:String},
     location:{type:String},

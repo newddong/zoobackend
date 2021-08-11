@@ -29,6 +29,7 @@ router.post("/login", (req, res) => {
 				if (result.length > 0) {
 					console.log("%s %s [%s] %s %s %s | successfully login user => %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.body.id); // prettier-ignore
 					req.session.user = req.body.id; //save user to session.
+					req.session.user_id = result[0]._id;
 					req.session.sid = req.signedCookies['connect.sid'];
 					res.status(200);
 					res.json({ status: 200, msg: req.body.id, sid: req.session.sid });

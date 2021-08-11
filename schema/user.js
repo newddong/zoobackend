@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const Post = require("./post");
+
 const UserSchema = new mongoose.Schema({
 	id: {type:String},
 	password: {type:String},
@@ -20,13 +23,16 @@ const UserSchema = new mongoose.Schema({
     reg_date:{type:Date,default:Date.now},
     upd_date:{type:Date,default:Date.now},
     
-    count:{type:String},
+    count:{
+        upload:{type:Number,default:10},
+        follower:{type:Number,default:12},
+        following:{type:Number,default:11},
+    },
     text_intro:{type:String},
     profileImgUri:{type:String},
     
-    belonged_pets:[{type:String}],
-    volunteeractivity:[{type:String}],
-    postList:[{type:String}]
+    belonged_pets:[{type:Schema.Types.ObjectId}],
+    volunteeractivity:[{type:Schema.Types.ObjectId}],
 });
 
 module.exports.schema = UserSchema;

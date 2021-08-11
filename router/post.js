@@ -32,7 +32,8 @@ router.get("/getPostList", (req, res) => {
 	Post.model
 		.find()
 		.where("id")
-		.ne("").sort("-_id")
+		.ne("")
+		.sort("-_id")
 		.exec((err, result) => {
 			if (err) {
 				console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
@@ -47,33 +48,105 @@ router.get("/getPostList", (req, res) => {
 	// }
 });
 
-router.post("/createPost",uploadS3.array('imgfile',99), (req, res) => {
-	if (req.session.user) {
-        console.log("%s %s [%s] %s %s %s | createPost by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
+router.post("/getPostListById", (req, res) => {
+	// if(req.session.user){
+	Post.model
+		.find()
+		.where("user")
+		.equals(req.body.user)
+		.lte("_id", req.body.post_id)
+		.sort("-_id")
+		.limit(20)
+		.exec((err, result) => {
+			if (err) {
+				console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+				res.json({ status: 500, msg: err });
+			}
+			// res.json({ status: 200, msg: result });
+			res.json({ status: 200, msg: result, lastid: result[result.length-1]._id });
+		});
+
+	// }
+	// else{
+	// 	console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+	// 	res.json({status: 401, msg: "Unauthorized"})
+	// }
+});
+
+router.post("/getPrePostList",(req,res)=>{
+	Post.model
+		.find()
+		.where("user")
+		.equals(req.body.user)
+		.gt("_id", req.body.post_id)
+		.sort("-_id")
+		.limit(20)
+		.exec((err, result) => {
+			if (err) {
+				console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+				res.json({ status: 500, msg: err });
+			}
+			res.json({ status: 200, msg: result });
+			// res.json({ status: 200, msg: result, lastid: result[result.length-1]._id });
+		});
+
+})
+
+router.post("/getAfterPostList",(req,res)=>{
+	Post.model
+		.find()
+		.where("user")
+		.equals(req.body.user)
+		.lt("_id", req.body.post_id)
+		.sort("-_id")
+		.limit(20)
+		.exec((err, result) => {
+			if (err) {
+				console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+				res.json({ status: 500, msg: err });
+			}
+			res.json({ status: 200, msg: result });
+			// res.json({ status: 200, msg: result, lastid: result[result.length-1]._id });
+		});
+})
+
+router.post("/createPost", uploadS3.array("imgfile", 99), (req, res) => {
+	if (req.session.user_id) {
+		console.log("%s %s [%s] %s %s %s | createPost by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
 		User.model
-			.find()
-			.where("id")
-			.equals(req.session.user)
+			.findById(req.session.user_id)
+			// .where("id")
+			// .equals(req.session.user)
 			.exec((err, user) => {
 				console.log(user);
-                console.log(req.files);
+				console.log(req.files);
 				var post = new Post.model({
-					user: user[0],
-					user_id: user[0].nickname,
-					photo_user: user[0].profileImgUri,
+					user: user._id,
+					user_id: user.nickname,
+					photo_user: user.profileImgUri,
 					location: req.body.location,
 					time: req.body.time,
-					images: req.files.map((v,i)=>v.location),
+					images: req.files.map((v, i) => v.location),
 					content: req.body.content,
 					like: req.body.like,
 					count_comment: req.body.count_comment,
 				});
+
+				// user.postList.push(post._id);
+				// user.save((err)=>{
+				// 	console.log("successfully create post by " + req.session.user);
+				// 	res.json({ status: 200, msg: "successed" });
+				// })
 				post.save((err) => {
 					if (err) {
 						console.log("error during add user to DB", err);
 						res.json({ status: 400, msg: err });
 						// return;
 					}
+					// user[0].postList.push(post);
+					// user[0].save((err) => {
+					// 	console.log(err);
+					// });
 					console.log("successfully added user to DB " + req.body.id);
 					res.json({ status: 200, msg: "successed" });
 				});
@@ -84,35 +157,6 @@ router.post("/createPost",uploadS3.array('imgfile',99), (req, res) => {
 	}
 });
 
-router.post("/test", (req, res) => {
-	console.log(req.body.test);
-	User.model
-		.find()
-		.where("id")
-		.equals(req.session.user)
-		.exec((err, user) => {
-			console.log(user);
-			var post = new Post.model({
-				user: user[0],
-				user_id: user[0].nickname,
-				photo_user: user[0].profileImgUri,
-				location: req.body.location,
-				time: req.body.time,
-				images: req.body.images,
-				content: req.body.content,
-				like: req.body.like,
-				count_comment: req.body.count_comment,
-			});
-			post.save((err) => {
-				if (err) {
-					console.log("error during add user to DB", err);
-					res.json({ status: 400, msg: err });
-					// return;
-				}
-				console.log("successfully added user to DB " + req.body.id);
-				res.json({ status: 200, msg: "successed" });
-			});
-		});
-});
+router.post("/test", (req, res) => {});
 
 module.exports = router;
