@@ -82,10 +82,9 @@ router.post("/getPostListById", async (req, res) => {
 			if (!Array.isArray(prev) || prev.length === 0) {
 				res.json({ status: 200, msg: next, index: 0, firstId: next[0]._id, lastId: next[next.length - 1]._id });
 			} else {
-				//prev를 id역순으로 정렬
 				res.json({
 					status: 200,
-					msg: prev.reverse().concat(next),
+					msg: prev.reverse().concat(next), //prev를 id역순으로 정렬
 					index: prev.length,
 					firstId: prev[0]._id,
 					lastId: next[next.length - 1]._id,
@@ -101,7 +100,7 @@ router.post("/getPostListById", async (req, res) => {
 router.post("/getMorePostList", async (req, res) => {
 	//Scroll 시 Post의 리스트를 req.body.post_id기준으로 req.body.number개수만큼 더 불러옴
 	//req.body.direction에 따라 post_id기준으로 이전, 이후로 나누어짐
-	console.log("%s %s [%s] %s %s %s | getMorePostList by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
+	console.log("%s %s [%s] %s %s %s | getMorePostList %s by %s, post_ID : %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol,req.body.option, req.session.user,req.body.post_id); // prettier-ignore
 	try {
 		let result = [];
 		if (req.body.option === "prev") {
@@ -125,14 +124,11 @@ router.post("/getMorePostList", async (req, res) => {
 				.exec();
 		}
 
-		if (Array.isArray(result) && result.length > 1) {
-			if (req.body.option === "prev") {
-				res.json({ status: 200, msg: result, firstId: result[0]._id });
-			} else {
-				res.json({ status: 200, msg: result, lastId: result[result.length - 1]._id });
-			}
-		} else {
-			res.json({ status: 200, msg: result, firstId: result._id, lastId: result._id });
+		if (Array.isArray(result)&&result.length>=1) {
+			res.json({ status: 200, msg: result, firstId: result[0]._id, lastId: result[result.length - 1]._id,length:result.length });
+		} 
+		else {
+			res.json({ status: 200, msg: [], firstId: result._id, lastId: result._id,length:1});
 		}
 	} catch (err) {
 		console.error("%s %s [%s] %s %s %s | database error : %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, JSON.stringify(err)); // prettier-ignore
