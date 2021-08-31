@@ -14,6 +14,7 @@ var app = express();
 var userRoute = require('./router/user');
 var postRoute = require('./router/post');
 var appauth = require('./router/appauth');
+var comment = require('./router/comment');
 var database = require('./database/database');
 
 var dbconnection;
@@ -64,6 +65,7 @@ var router = express.Router();
 app.use("/auth",appauth);
 app.use("/user",userRoute);
 app.use("/post",postRoute);
+app.use("/comment",comment);
 app.use("/", router);
 
 var errorHandler = expressErrorHandler({
