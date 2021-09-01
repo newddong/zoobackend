@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../schema/user");
 const Post = require("../schema/post");
+const Like = require("../schema/like");
 const uploadS3 = require("../common/uploadS3");
 
 router.post("/getPost", (req, res) => {
@@ -124,11 +125,10 @@ router.post("/getMorePostList", async (req, res) => {
 				.exec();
 		}
 
-		if (Array.isArray(result)&&result.length>=1) {
-			res.json({ status: 200, msg: result, firstId: result[0]._id, lastId: result[result.length - 1]._id,length:result.length });
-		} 
-		else {
-			res.json({ status: 200, msg: [], firstId: result._id, lastId: result._id,length:1});
+		if (Array.isArray(result) && result.length >= 1) {
+			res.json({ status: 200, msg: result, firstId: result[0]._id, lastId: result[result.length - 1]._id, length: result.length });
+		} else {
+			res.json({ status: 200, msg: [], firstId: result._id, lastId: result._id, length: 1 });
 		}
 	} catch (err) {
 		console.error("%s %s [%s] %s %s %s | database error : %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, JSON.stringify(err)); // prettier-ignore
@@ -152,6 +152,37 @@ router.post("/getAfterPostList", (req, res) => {
 			// res.json({ status: 200, msg: result });
 			res.json({ status: 200, msg: result, lastId: result[result.length - 1]?._id });
 		});
+});
+
+router.post("/likePost", async (req, res) => {
+	try {
+		let result = await Like.model("likepost").findOneAndUpdate(
+			{ user: req.body.user_id, target: req.body.post_id },
+			{ $set: { target: req.body.post_id, upd_date: new Date(), deleted: false } },
+			{ new: false, upsert: true, setDefaultsOnInsert: true }
+		);
+		if (result.deleted) {
+			await Post.model.findOneAndUpdate({ _id: req.body.post_id }, { $inc: { like: 1 } });
+		}
+		res.json({ status: 200, msg: result });
+	} catch (err) {
+		console.error("%s %s [%s] %s %s %s | database error : %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, JSON.stringify(err)); // prettier-ignore
+		res.json({ status: 500, msg: err });
+	}
+});
+
+router.post("/dislikePost", async (req, res) => {
+	try {
+		let result = await Like.model("likepost").findOneAndUpdate(
+			{ user: req.body.user_id, target: req.body.post_id },
+			{ $set: { target: req.body.post_id, upd_date: new Date(), deleted: true } },
+			{ new: true, upsert: true, setDefaultsOnInsert: true }
+		);
+		res.json({ status: 200, msg: result });
+	} catch (err) {
+		console.error("%s %s [%s] %s %s %s | database error : %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, JSON.stringify(err)); // prettier-ignore
+		res.json({ status: 500, msg: err });
+	}
 });
 
 router.post("/createPost", uploadS3.array("imgfile", 99), (req, res) => {

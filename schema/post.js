@@ -12,7 +12,6 @@ const PostSchema = new mongoose.Schema({
     content:{type:String},
     like:{type:Number},
     count_comment:{type:Number},
-    comment:[{type:String}],
     reg_date:{type:Date,default:Date.now},
     upd_date:{type:Date,default:Date.now},
 });
