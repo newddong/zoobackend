@@ -5,21 +5,26 @@ const Post = require("../schema/post");
 const Like = require("../schema/like");
 const uploadS3 = require("../common/uploadS3");
 
-router.post("/getPost", (req, res) => {
+router.post("/getLikedPostId", async (req, res) => {
 	// if(req.session.user){
-	console.log("%s %s [%s] %s %s %s | get user profile of %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
-	Post.model
-		.find()
-		.where("id")
-		.equals(req.session.user)
-		.select("id name useType nickname profileImgUri")
-		.exec((err, result) => {
-			if (err) {
-				console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-				res.json({ status: 500, msg: err });
-			}
-			res.json({ status: 200, msg: result });
+	console.log("%s %s [%s] %s %s %s | getLikedPostId by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
+	try {
+		let likedPost = await Like.model("likepost")
+			.find()
+			.where("user", req.session.user_id)
+			.where("target")
+			.lte(req.body.start_id)
+			.gte(req.body.end_id)
+			.where("deleted", false)
+			.exec();
+		res.json({
+			status: 200,
+			likedPost: likedPost?.map((v, i) => v.target),
 		});
+	} catch (err) {
+		console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+		res.json({ status: 500, msg: err });
+	}
 	// }
 	// else{
 	// 	console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
@@ -104,7 +109,6 @@ router.post("/getMorePostList", async (req, res) => {
 				msg: result,
 				firstId: result[0]._id,
 				lastId: result[result.length - 1]._id,
-				length: result.length,
 				likedPost: likedPost.map((v, i) => v.target),
 			});
 		} else {
