@@ -259,7 +259,7 @@ router.post("/likePost", async (req, res) => {
 			{ new: false, upsert: true, setDefaultsOnInsert: true }
 		);
 		if (result === null || result.deleted) {
-			await Post.model.findOneAndUpdate({ _id: req.body.post_id }, { $inc: { like: 1 } });
+			await Post.model.findOneAndUpdate({ _id: req.body.post_id }, { $inc: { like_count: 1 } });
 		}
 		res.json({ status: 200, msg: result });
 	} catch (err) {
@@ -280,7 +280,7 @@ router.post("/dislikePost", async (req, res) => {
 			res.json({ status: 400, msg: "bad request" });
 		}
 		if (!result.deleted) {
-			await Post.model.findOneAndUpdate({ _id: req.body.post_id }, { $inc: { like: -1 } });
+			await Post.model.findOneAndUpdate({ _id: req.body.post_id }, { $inc: { like_count: -1 } });
 		}
 		res.json({ status: 200, msg: result });
 	} catch (err) {

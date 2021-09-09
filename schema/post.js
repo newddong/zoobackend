@@ -10,8 +10,10 @@ const PostSchema = new mongoose.Schema({
     time:{type:String},
     images:[{type:String}],
     content:{type:String},
-    like:{type:Number},
-    count_comment:{type:Number},
+    comment:[{type:Object}],
+    // like:{type:Number},
+    like_count:{type:Number,default:0},
+    count_comment:{type:Number,default:0},
     reg_date:{type:Date,default:Date.now},
     upd_date:{type:Date,default:Date.now},
 });
