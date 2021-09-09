@@ -51,7 +51,7 @@ router.post("/getCommentList", (req, res) => {
 	// }
 });
 
-router.post("/createComment", uploadS3.array("imgfile", 99), (req, res) => {
+router.post("/createComment", uploadS3.array("imgfile", 99), async (req, res) => {
 	if (req.session.user_id) {
 		console.log("%s %s [%s] %s %s %s | createComment by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
 
@@ -79,7 +79,8 @@ router.post("/createComment", uploadS3.array("imgfile", 99), (req, res) => {
 						res.json({ status: 400, msg: err });
 					}
 					console.log("successfully added comment to DB " + req.body.id);
-					res.json({ status: 200, msg: comment });
+					
+					res.json({ status: 200, msg: comment, user:{_id:req.session.user_id,profileImgUri:req.session.profileImgUri,nickname:req.session.nickname} });
 				});
 			});
 		});
