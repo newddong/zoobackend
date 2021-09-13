@@ -2,14 +2,14 @@ const express = require("express");
 const router = express.Router();
 const User = require("../schema/user");
 const Post = require("../schema/post");
-const Like = require("../schema/like");
+const Like = require("../schema/likepost");
 const uploadS3 = require("../common/uploadS3");
 
 router.post("/getLikedPostId", async (req, res) => {
 	// if(req.session.user){
 	console.log("%s %s [%s] %s %s %s | getLikedPostId by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
 	try {
-		let likedPost = await Like.model("likepost")
+		let likedPost = await Like.model
 			.find()
 			.where("user", req.session.user_id)
 			.where("target")
@@ -45,7 +45,7 @@ router.post("/getPostList", async (req, res) => {
 			.limit(parseInt(req.body.number) || 2)
 			.exec();
 		if (Array.isArray(postList) && postList.length >= 1) {
-			let likedPost = await Like.model("likepost")
+			let likedPost = await Like.model
 				.find()
 				.where("user", req.session.user_id)
 				.where("target")
@@ -95,7 +95,7 @@ router.post("/getMorePostList", async (req, res) => {
 			.exec();
 
 		if (Array.isArray(result) && result.length >= 1) {
-			let likedPost = await Like.model("likepost")
+			let likedPost = await Like.model
 				.find()
 				.where("user", req.session.user_id)
 				.where("target")
@@ -153,7 +153,7 @@ router.post("/getPostListByUserId", async (req, res) => {
 			res.json({ status: 500, msg: "no result" });
 		} else {
 			if (!Array.isArray(prev) || prev.length === 0) {
-				let likedPost = await Like.model("likepost")
+				let likedPost = await Like.model
 					.find()
 					.where("user", req.session.user_id)
 					.where("target")
@@ -171,7 +171,7 @@ router.post("/getPostListByUserId", async (req, res) => {
 					likedPost: likedPost.map((v, i) => v.target),
 				});
 			} else {
-				let likedPost = await Like.model("likepost")
+				let likedPost = await Like.model
 					.find()
 					.where("user", req.session.user_id)
 					.where("target")
@@ -224,7 +224,7 @@ router.post("/getMorePostListByUserId", async (req, res) => {
 		}
 
 		if (Array.isArray(result) && result.length >= 1) {
-			let likedPost = await Like.model("likepost")
+			let likedPost = await Like.model
 				.find()
 				.where("user", req.session.user_id)
 				.where("target")
@@ -253,7 +253,7 @@ router.post("/getMorePostListByUserId", async (req, res) => {
 //게시물에 좋아요를 누름
 router.post("/likePost", async (req, res) => {
 	try {
-		let result = await Like.model("likepost").findOneAndUpdate(
+		let result = await Like.model.findOneAndUpdate(
 			{ user: req.session.user_id, target: req.body.post_id },
 			{ $set: { target: req.body.post_id, upd_date: new Date(), deleted: false } },
 			{ new: false, upsert: true, setDefaultsOnInsert: true }
@@ -271,7 +271,7 @@ router.post("/likePost", async (req, res) => {
 //게시물의 좋아요 취소
 router.post("/dislikePost", async (req, res) => {
 	try {
-		let result = await Like.model("likepost").findOneAndUpdate(
+		let result = await Like.model.findOneAndUpdate(
 			{ user: req.session.user_id, target: req.body.post_id },
 			{ $set: { target: req.body.post_id, upd_date: new Date(), deleted: true } },
 			{ new: false, upsert: true, setDefaultsOnInsert: true }
