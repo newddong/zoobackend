@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require("../schema/user");
 const Post = require("../schema/post");
 const Comment = require("../schema/comment");
+const Like = require("../schema/likepostcomment");
 const uploadS3 = require("../common/uploadS3");
 
 router.post("/getChildCommentList", (req, res) => {
@@ -41,7 +42,16 @@ router.post(
 				.populate("user", "nickname profileImgUri")
 				.sort("-_id")
 				.exec();
-			res.json({ status: 200, msg: commentList });
+			let likedList = await Like.model.find()
+				.where("user")
+				.equals(req.session.user_id)
+				.where("target")
+				.lte(commentList[0]._id).gte(commentList[commentList.length-1]._id)
+				.where("deleted")
+				.equals(false)
+				.exec();
+
+			res.json({ status: 200, msg: commentList, liked:likedList.map((v,i)=>v.target)});
 			
 		} catch (err) {
 			console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
@@ -101,13 +111,14 @@ router.post("/createComment", uploadS3.array("imgfile", 99), async (req, res) =>
 //댓글에 좋아요를 누름
 router.post("/likeComment", async (req, res) => {
 	try {
-		let result = await Like.model("likecomment").findOneAndUpdate(
+		console.log("%s %s [%s] %s %s %s | likeComment by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
+		let result = await Like.model.findOneAndUpdate(
 			{ user: req.session.user_id, target: req.body.comment_id },
 			{ $set: { target: req.body.comment_id, upd_date: new Date(), deleted: false } },
 			{ new: false, upsert: true, setDefaultsOnInsert: true }
 		);
 		if (result === null || result.deleted) {
-			await Post.model.findOneAndUpdate({ _id: req.body.comment_id }, { $inc: { like_count: 1 } });
+			await Comment.model.findOneAndUpdate({ _id: req.body.comment_id }, { $inc: { like_count: 1 } });
 		}
 		res.json({ status: 200, msg: result });
 	} catch (err) {
@@ -119,7 +130,8 @@ router.post("/likeComment", async (req, res) => {
 //댓글의 좋아요 취소
 router.post("/dislikeComment", async (req, res) => {
 	try {
-		let result = await Like.model("likecomment").findOneAndUpdate(
+		console.log("%s %s [%s] %s %s %s | dislikeComment by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
+		let result = await Like.model.findOneAndUpdate(
 			{ user: req.session.user_id, target: req.body.comment_id },
 			{ $set: { target: req.body.comment_id, upd_date: new Date(), deleted: true } },
 			{ new: false, upsert: true, setDefaultsOnInsert: true }
@@ -128,7 +140,7 @@ router.post("/dislikeComment", async (req, res) => {
 			res.json({ status: 400, msg: "bad request" });
 		}
 		if (!result.deleted) {
-			await Post.model.findOneAndUpdate({ _id: req.body.comment_id }, { $inc: { like_count: -1 } });
+			await Comment.model.findOneAndUpdate({ _id: req.body.comment_id }, { $inc: { like_count: -1 } });
 		}
 		res.json({ status: 200, msg: result });
 	} catch (err) {
