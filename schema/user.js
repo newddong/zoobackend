@@ -33,6 +33,8 @@ const UserSchema = new mongoose.Schema({
     
     belonged_pets:[{type:Schema.Types.ObjectId}],
     volunteeractivity:[{type:Schema.Types.ObjectId}],
+
+    deleted:{type:Boolean,default:false}
 });
 
 module.exports.schema = UserSchema;
