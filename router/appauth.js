@@ -6,7 +6,7 @@ router.post("/login", (req, res) => {
 	console.log("%s %s [%s] %s %s %s | try to login %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.body.id); // prettier-ignore
 	if (req.session.user !== undefined) {
 		res.status(200);
-		res.json({ status: 200, msg: req.session.user });
+		res.json({ status: 200, msg: req.session.user, user_id: req.session.user_id });
 	} else {
 		User.model.find()
 			.where("id")
@@ -34,7 +34,7 @@ router.post("/login", (req, res) => {
 					req.session.nickname = result[0].nickname;
 					req.session.sid = req.signedCookies['connect.sid'];
 					res.status(200);
-					res.json({ status: 200, msg: req.body.id, sid: req.session.sid });
+					res.json({ status: 200, msg: req.body.id, sid: req.session.sid, user_id:req.session.user_id });
 				} else {
 					console.log("%s %s [%s] %s %s %s | cannot find user => %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.body.id); // prettier-ignore
 					res.status(200);
