@@ -41,6 +41,7 @@ router.post("/getPostList", async (req, res) => {
 			.find()
 			.where("id")
 			.ne("")
+			.where("deleted",false)
 			.sort("-_id")
 			.limit(parseInt(req.body.number) || 2)
 			.exec();
@@ -90,6 +91,7 @@ router.post("/getMorePostList", async (req, res) => {
 		let result = await Post.model
 			.find()
 			.lt("_id", req.body.post_id)
+			.where("deleted",false)
 			.sort("-_id")
 			.limit(parseInt(req.body.number) || 2)
 			.exec();
@@ -134,6 +136,7 @@ router.post("/getPostListByUserId", async (req, res) => {
 			.equals(req.body.user)
 			.where("_id")
 			.lte(req.body.post_id)
+			.where("deleted",false)
 			.sort("-_id")
 			.limit(parseInt(req.body.number) || 2)
 			.exec();
@@ -208,6 +211,7 @@ router.post("/getMorePostListByUserId", async (req, res) => {
 				.where("user")
 				.equals(req.body.user)
 				.gt("_id", req.body.post_id)
+				.where("deleted",false)
 				.sort("_id")
 				.limit(parseInt(req.body.number) || 2)
 				.exec();
@@ -218,6 +222,7 @@ router.post("/getMorePostListByUserId", async (req, res) => {
 				.where("user")
 				.equals(req.body.user)
 				.lt("_id", req.body.post_id)
+				.where("deleted",false)
 				.sort("-_id")
 				.limit(parseInt(req.body.number) || 2)
 				.exec();
