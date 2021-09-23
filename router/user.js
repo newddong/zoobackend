@@ -4,16 +4,16 @@ const User = require("../schema/user");
 const Post = require("../schema/post");
 const uploadS3 = require("../common/uploadS3");
 
-router.post("/test",uploadS3.single('imgfile'),(req,res)=>{
+router.post("/test", uploadS3.single("imgfile"), (req, res) => {
 	console.log(req.file.location);
-	if(req.file){
-		res.json({status:200,msg:'sucess'});
-	}else{
-		res.json({status:400,msg:'fail'});
+	if (req.file) {
+		res.json({ status: 200, msg: "sucess" });
+	} else {
+		res.json({ status: 400, msg: "fail" });
 	}
-})
+});
 
-router.post("/add",uploadS3.single('imgfile'),(req, res) => {
+router.post("/add", uploadS3.single("imgfile"), (req, res) => {
 	console.log("add user => " + req.body.id);
 	console.log("img location uri  => " + req.file.location);
 	var user = new User.model({
@@ -45,69 +45,89 @@ router.post("/add",uploadS3.single('imgfile'),(req, res) => {
 	});
 });
 
-router.get("/getMyProfile",(req,res)=>{
-	if(req.session.user){
+router.get("/getMyProfile", (req, res) => {
+	if (req.session.user) {
 		console.log("%s %s [%s] %s %s %s | get user profile %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
-		User.model.findOne()
-			.where("id").equals(req.session.user).select('id name useType nickname profileImgUri')
-			.exec((err, result)=>{
-				if(err){
+		User.model
+			.findOne()
+			.where("id")
+			.equals(req.session.user)
+			.select("id name useType nickname profileImgUri")
+			.exec((err, result) => {
+				if (err) {
 					console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-					res.json({status:500, msg: err});
+					res.json({ status: 500, msg: err });
 				}
-				res.json({status: 200, msg: result});
-			})
-	}
-	else{
+				res.json({ status: 200, msg: result });
+			});
+	} else {
 		console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-		res.json({status: 401, msg: "Unauthorized"})
+		res.json({ status: 401, msg: "Unauthorized" });
 	}
-
 });
 
-router.post("/getUserProfile",(req,res)=>{
+router.post("/getUserProfile", (req, res) => {
 	// if(req.session.user){
-		console.log("%s %s [%s] %s %s %s | get user profile %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.body.user); // prettier-ignore
-		if(req.body.user){
-			User.model.findById(req.body.user)
-				// .where("nickname")
-				// .equals(req.body.nickname)
-				.select('id name useType nickname profileImgUri belonged_pets volunteeractivity text_intro')
-				.exec((err, user)=>{
-					if(err){
-						console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-						res.json({status:500, msg: err});
-					}
+	console.log("%s %s [%s] %s %s %s | get user profile %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.body.user); // prettier-ignore
+	if (req.body.user) {
+		User.model
+			.findById(req.body.user)
+			// .where("nickname")
+			// .equals(req.body.nickname)
+			.select("id name useType nickname profileImgUri belonged_pets volunteeractivity text_intro")
+			.exec((err, user) => {
+				if (err) {
+					console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+					res.json({ status: 500, msg: err });
+				}
 
-					Post.model.find()
-						.where("user")
-						.equals(user._id)
-						.sort("-_id")
-						.exec((err, postList)=>{
-							if(err){
-								console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-							}
-							res.json({status: 200, msg: {user:user, postList:postList}});
-						})
-				})
-		}
-		else{
-			res.json({status:400, msg:'Bad Request'});
-		}
+				Post.model
+					.find()
+					.where("user")
+					.equals(user._id)
+					.sort("-_id")
+					.exec((err, postList) => {
+						if (err) {
+							console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+						}
+						res.json({ status: 200, msg: { user: user, postList: postList } });
+					});
+			});
+	} else {
+		res.json({ status: 400, msg: "Bad Request" });
+	}
 	// }
 	// else{
 	// 	console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
 	// 	res.json({status: 401, msg: "Unauthorized"})
 	// }
-
-
 });
 
+router.post("/getUserList", async (req, res) => {
+	console.log("%s %s [%s] %s %s %s | getUserList by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
+	// if (req.session.user_id) {
+		try {
+			let result = await User.model.find().where("nickname").regex(req.body.nickname)
+			.select("_id id name userType nickname profileImgUri text_intro")
+			.sort("nickname")
+			.exec();
 
+			res.json({
+				status:200,
+				msg: result,
+			})
+		} catch (err) {
+			console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+			res.json({ status: 500, msg: err });
+		}
+	// } else {
+	// 	console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+	// 	res.json({ status: 401, msg: "Unauthorized" });
+	// }
+});
 
 router.post("/update", (req, res) => {});
 
 router.post("/delete", (req, res) => {});
 
 module.exports = router;
-

@@ -8,7 +8,16 @@ const PostSchema = new mongoose.Schema({
     photo_user:{type:String},
     location:{type:String},
     time:{type:String},
-    images:[{type:String}],
+    images:[{
+        isVideo:{type:Boolean},
+        uri:{type:String},
+        tags:[{
+            x:{type:Number},
+            y:{type:Number},
+            nickname:{type:String},
+            user_id:{type:String}
+        }]
+    }],
     content:{type:String},
     comment:[{type:Object}],
     like_count:{type:Number,default:0},

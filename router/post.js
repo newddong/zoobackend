@@ -67,8 +67,8 @@ router.post("/getPostList", async (req, res) => {
 				status: 200,
 				msg: postList,
 				index: 0,
-				firstId: postList[0]._id,
-				lastId: postList[postList.length - 1]._id,
+				firstId: postList._id,
+				lastId: postList._id,
 				likedPost: [],
 			});
 		}
@@ -300,8 +300,6 @@ router.post("/createPost", uploadS3.array("imgfile", 99), (req, res) => {
 		console.log("%s %s [%s] %s %s %s | createPost by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
 		User.model
 			.findById(req.session.user_id)
-			// .where("id")
-			// .equals(req.session.user)
 			.exec((err, user) => {
 				console.log(user);
 				console.log(req.files);
@@ -317,21 +315,11 @@ router.post("/createPost", uploadS3.array("imgfile", 99), (req, res) => {
 					count_comment: req.body.count_comment,
 				});
 
-				// user.postList.push(post._id);
-				// user.save((err)=>{
-				// 	console.log("successfully create post by " + req.session.user);
-				// 	res.json({ status: 200, msg: "successed" });
-				// })
 				post.save((err) => {
 					if (err) {
 						console.log("error during add user to DB", err);
 						res.json({ status: 400, msg: err });
-						// return;
 					}
-					// user[0].postList.push(post);
-					// user[0].save((err) => {
-					// 	console.log(err);
-					// });
 					console.log("successfully added user to DB " + req.body.id);
 					res.json({ status: 200, msg: "successed" });
 				});
