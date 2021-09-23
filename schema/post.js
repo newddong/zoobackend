@@ -14,8 +14,7 @@ const PostSchema = new mongoose.Schema({
         tags:[{
             x:{type:Number},
             y:{type:Number},
-            nickname:{type:String},
-            user_id:{type:String}
+            user:{type:Object}
         }]
     }],
     content:{type:String},

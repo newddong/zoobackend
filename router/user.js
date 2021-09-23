@@ -5,12 +5,15 @@ const Post = require("../schema/post");
 const uploadS3 = require("../common/uploadS3");
 
 router.post("/test", uploadS3.single("imgfile"), (req, res) => {
-	console.log(req.file.location);
-	if (req.file) {
-		res.json({ status: 200, msg: "sucess" });
-	} else {
-		res.json({ status: 400, msg: "fail" });
-	}
+	console.log(req.body.array);
+	res.json({status:200,msg:req.body.array});
+	
+	// console.log(req.file.location);
+	// if (req.file) {
+	// 	res.json({ status: 200, msg: "sucess" });
+	// } else {
+	// 	res.json({ status: 400, msg: "fail" });
+	// }
 });
 
 router.post("/add", uploadS3.single("imgfile"), (req, res) => {
