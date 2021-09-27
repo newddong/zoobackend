@@ -301,28 +301,34 @@ router.post("/createPost", uploadS3.array("imgfile", 99), (req, res) => {
 		User.model
 			.findById(req.session.user_id)
 			.exec((err, user) => {
-				console.log(user);
-				console.log(req.files);
+				// console.log(user);
+				console.log(req.body.images);
+				
+				let imageList = req.body.images?.map(v=>JSON.parse(v));
+				imageList?.forEach((v,i,a)=>{
+					a[i].uri = req.files[i].location;
+				})
+
 				var post = new Post.model({
 					user: user._id,
 					user_id: user.nickname,
 					photo_user: user.profileImgUri,
 					location: req.body.location,
 					time: req.body.time,
-					images: req.files.map((v, i) => v.location),
+					// images: req.files.map((v, i) => v.location),
+					images: imageList,
 					content: req.body.content,
-					like: req.body.like,
-					count_comment: req.body.count_comment,
 				});
 
 				post.save((err) => {
 					if (err) {
-						console.log("error during add user to DB", err);
+						console.log("error during createPost to DB", err);
 						res.json({ status: 400, msg: err });
 					}
-					console.log("successfully added user to DB " + req.body.id);
+					console.log("successfully createPost to DB " + req.body.id);
 					res.json({ status: 200, msg: "successed" });
 				});
+				// res.json({status:200,msg:'successed'});
 			});
 	} else {
 		console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
