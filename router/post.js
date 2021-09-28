@@ -41,7 +41,7 @@ router.post("/getPostList", async (req, res) => {
 			.find()
 			.where("id")
 			.ne("")
-			.where("deleted",false)
+			.where("deleted", false)
 			.sort("-_id")
 			.limit(parseInt(req.body.number) || 2)
 			.exec();
@@ -91,7 +91,7 @@ router.post("/getMorePostList", async (req, res) => {
 		let result = await Post.model
 			.find()
 			.lt("_id", req.body.post_id)
-			.where("deleted",false)
+			.where("deleted", false)
 			.sort("-_id")
 			.limit(parseInt(req.body.number) || 2)
 			.exec();
@@ -136,7 +136,7 @@ router.post("/getPostListByUserId", async (req, res) => {
 			.equals(req.body.user)
 			.where("_id")
 			.lte(req.body.post_id)
-			.where("deleted",false)
+			.where("deleted", false)
 			.sort("-_id")
 			.limit(parseInt(req.body.number) || 2)
 			.exec();
@@ -211,7 +211,7 @@ router.post("/getMorePostListByUserId", async (req, res) => {
 				.where("user")
 				.equals(req.body.user)
 				.gt("_id", req.body.post_id)
-				.where("deleted",false)
+				.where("deleted", false)
 				.sort("_id")
 				.limit(parseInt(req.body.number) || 2)
 				.exec();
@@ -222,7 +222,7 @@ router.post("/getMorePostListByUserId", async (req, res) => {
 				.where("user")
 				.equals(req.body.user)
 				.lt("_id", req.body.post_id)
-				.where("deleted",false)
+				.where("deleted", false)
 				.sort("-_id")
 				.limit(parseInt(req.body.number) || 2)
 				.exec();
@@ -298,42 +298,83 @@ router.post("/dislikePost", async (req, res) => {
 router.post("/createPost", uploadS3.array("imgfile", 99), (req, res) => {
 	if (req.session.user_id) {
 		console.log("%s %s [%s] %s %s %s | createPost by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
-		User.model
-			.findById(req.session.user_id)
-			.exec((err, user) => {
-				// console.log(user);
-				console.log(req.body.images);
-				
-				let imageList = req.body.images?.map(v=>JSON.parse(v));
-				imageList?.forEach((v,i,a)=>{
-					a[i].uri = req.files[i].location;
-				})
+		User.model.findById(req.session.user_id).exec((err, user) => {
+			// console.log(user);
+			console.log(req.body.images);
 
-				var post = new Post.model({
-					user: user._id,
-					user_id: user.nickname,
-					photo_user: user.profileImgUri,
-					location: req.body.location,
-					time: req.body.time,
-					// images: req.files.map((v, i) => v.location),
-					images: imageList,
-					content: req.body.content,
-				});
-
-				post.save((err) => {
-					if (err) {
-						console.log("error during createPost to DB", err);
-						res.json({ status: 400, msg: err });
-					}
-					console.log("successfully createPost to DB " + req.body.id);
-					res.json({ status: 200, msg: "successed" });
-				});
-				// res.json({status:200,msg:'successed'});
+			let imageList = req.body.images?.map((v) => JSON.parse(v));
+			imageList?.forEach((v, i, a) => {
+				a[i].uri = req.files[i].location;
 			});
+
+			var post = new Post.model({
+				user: user._id,
+				user_id: user.nickname,
+				photo_user: user.profileImgUri,
+				location: req.body.location,
+				time: req.body.time,
+				// images: req.files.map((v, i) => v.location),
+				images: imageList,
+				content: req.body.content,
+			});
+
+			post.save((err) => {
+				if (err) {
+					console.log("error during createPost to DB", err);
+					res.json({ status: 400, msg: err });
+				}
+				console.log("successfully createPost to DB " + req.body.id);
+				res.json({ status: 200, msg: "successed" });
+			});
+			// res.json({status:200,msg:'successed'});
+		});
 	} else {
 		console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
 		res.json({ status: 401, msg: "Unauthorized" });
 	}
 });
 
+//게시물 편집
+router.post("/editPost", uploadS3.array("imgfile", 99), async (req, res) => {
+	if (req.session.user_id) {
+		console.log("%s %s [%s] %s %s %s | editPost by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
+
+		try {
+			console.log(JSON.stringify(req.body));
+			// let imageList = req.body.images?.map((v) => JSON.parse(v));
+			// imageList?.forEach((v, i, a) => {
+			// 	a[i].uri = req.files[i].location;
+			// });
+
+			// let result = await Post.model.findOneAndUpdate(
+			// 	{
+			// 		_id:req.body.post_id
+			// 	},
+			// 	{
+			// 		$set: {
+			// 			content: req.body.content,
+			// 			location: req.body.location,
+			// 			time:req.body.time,
+			// 			images: imageList,
+			// 		}
+			// 	},
+			// 	{ new: true, upsert: false }
+			// );
+			
+			res.json({
+				status:200,
+				// msg: result,
+			});
+
+
+
+		} catch (err) {
+			console.log('error during edit post on DB', err);
+			res.json({status: 400, msg : err});
+		}
+	} else {
+		console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
+		res.json({ status: 401, msg: "Unauthorized" });
+	}
+});
 module.exports = router;
