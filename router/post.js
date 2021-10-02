@@ -340,30 +340,49 @@ router.post("/editPost", uploadS3.array("imgfile", 99), async (req, res) => {
 		console.log("%s %s [%s] %s %s %s | editPost by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
 
 		try {
-			console.log(JSON.stringify(req.body));
-			// let imageList = req.body.images?.map((v) => JSON.parse(v));
-			// imageList?.forEach((v, i, a) => {
-			// 	a[i].uri = req.files[i].location;
-			// });
+			let httpImages = [];
+			let localImages = [];
+			console.log('---------------------------\n');
+			if(Array.isArray(req.body.httpImages)){
+				req.body.httpImages?.forEach((v,i)=>{
+					httpImages.push(JSON.parse(v));
+					console.log(`httpImages ${i} ===>  `+ v+'\n');
+				});
+			}else{
+				req.body.httpImages&&httpImages.push(JSON.parse(req.body.httpImages));
+				console.log('httpImages  object ===>  '+req.body.httpImages+'\n');
+			}
+			console.log('---------------------------\n');
+			if(Array.isArray(req.body.localImages)){
+				req.body.localImages?.forEach((v,i)=>{
+					localImages.push(JSON.parse(v));
+					localImages[i].uri=req.files[i].location;
+					console.log(`localImages ${i} ===>  `+ v+'\n');
+				});
+			}else{
+				req.body.localImages&&localImages.push(JSON.parse(req.body.localImages));
+				console.log('localImages  object ===>  '+req.body.localImages+'\n');
+			}
+			console.log('---------------------------\n');
 
-			// let result = await Post.model.findOneAndUpdate(
-			// 	{
-			// 		_id:req.body.post_id
-			// 	},
-			// 	{
-			// 		$set: {
-			// 			content: req.body.content,
-			// 			location: req.body.location,
-			// 			time:req.body.time,
-			// 			images: imageList,
-			// 		}
-			// 	},
-			// 	{ new: true, upsert: false }
-			// );
+			let result = await Post.model.findOneAndUpdate(
+				{
+					_id:req.body.post_id
+				},
+				{
+					$set: {
+						content: req.body.content,
+						location: req.body.location,
+						time:req.body.time,
+						images: httpImages.concat(localImages),
+					}
+				},
+				{ new: true, upsert: false }
+			);
 			
 			res.json({
 				status:200,
-				// msg: result,
+				msg: result,
 			});
 
 
