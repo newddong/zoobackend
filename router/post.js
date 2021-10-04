@@ -86,7 +86,7 @@ router.post("/getPostList", async (req, res) => {
 router.post("/getMorePostList", async (req, res) => {
 	//Scroll 시 Post의 리스트를 req.body.post_id기준으로 req.body.number개수만큼 더 불러옴
 	//req.body.direction에 따라 post_id기준으로 이전, 이후로 나누어짐
-	console.log("%s %s [%s] %s %s %s | getMorePostList %s by %s, post_ID : %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol,req.body.option, req.session.user,req.body.post_id); // prettier-ignore
+	console.log("%s %s [%s] %s %s %s | getMorePostList %s by %s, post_ID : %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol,req.body.post_id, req.session.user,req.body.post_id); // prettier-ignore
 	try {
 		let result = await Post.model
 			.find()
@@ -133,7 +133,7 @@ router.post("/getPostListByUserId", async (req, res) => {
 		let next = await Post.model
 			.find()
 			.where("user")
-			.equals(req.body.user)
+			.equals(req.body.user_id)
 			.where("_id")
 			.lte(req.body.post_id)
 			.where("deleted", false)
@@ -144,7 +144,7 @@ router.post("/getPostListByUserId", async (req, res) => {
 		let prev = await Post.model
 			.find()
 			.where("user")
-			.equals(req.body.user)
+			.equals(req.body.user_id)
 			.where("_id")
 			.gt(req.body.post_id)
 			.sort("_id")
@@ -209,7 +209,7 @@ router.post("/getMorePostListByUserId", async (req, res) => {
 			result = await Post.model
 				.find()
 				.where("user")
-				.equals(req.body.user)
+				.equals(req.body.user_id)
 				.gt("_id", req.body.post_id)
 				.where("deleted", false)
 				.sort("_id")
@@ -220,7 +220,7 @@ router.post("/getMorePostListByUserId", async (req, res) => {
 			result = await Post.model
 				.find()
 				.where("user")
-				.equals(req.body.user)
+				.equals(req.body.user_id)
 				.lt("_id", req.body.post_id)
 				.where("deleted", false)
 				.sort("-_id")
@@ -309,7 +309,7 @@ router.post("/createPost", uploadS3.array("imgfile", 99), (req, res) => {
 
 			var post = new Post.model({
 				user: user._id,
-				user_id: user.nickname,
+				user_nickname: user.nickname,
 				photo_user: user.profileImgUri,
 				location: req.body.location,
 				time: req.body.time,

@@ -6,6 +6,7 @@ const CommentSchema = new mongoose.Schema({
     post: {type:Schema.Types.ObjectId,ref:'post'},
     parent: {type:Schema.Types.ObjectId,ref:'comment'},
     comment:{type:String},
+    nickname:{type:String},
     images:[{type:String}],
     like_count:{type:Number,default:0},
     reg_date:{type:Date,default:Date.now},

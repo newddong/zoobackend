@@ -3,11 +3,17 @@ const Schema = mongoose.Schema;
 const User = require("./user");
 
 const PostSchema = new mongoose.Schema({
-	user: {type:Schema.Types.ObjectId},
+	
+    user: {type:Schema.Types.ObjectId},
+    pet:{type:Schema.Types.ObjectId}, //주인공 팻(글쓰기시 등록가능)
+    
+    user_nickname:{type:String},
     user_id:{type:String},
     photo_user:{type:String},
+    
     location:{type:String},
     time:{type:String},
+    
     images:[{
         isVideo:{type:Boolean},
         uri:{type:String},
@@ -17,10 +23,14 @@ const PostSchema = new mongoose.Schema({
             user:{type:Object}
         }]
     }],
+
     content:{type:String},
-    comment:[{type:Object}],
+    
+    comment:[{type:Object}], //최근 댓글
+    
     like_count:{type:Number,default:0},
     count_comment:{type:Number,default:0},
+    
     reg_date:{type:Date,default:Date.now},
     upd_date:{type:Date,default:Date.now},
     deleted:{type:Boolean,default:false}

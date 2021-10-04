@@ -110,6 +110,7 @@ router.post("/createComment", uploadS3.array("imgfile", 99), async (req, res) =>
 			parent: req.body.parent_id !== "" && req.body.parent_id !== "undefined" ? req.body.parent_id : undefined,
 			comment: req.body.comment,
 			images: req.files.map((v, i) => v.location),
+			nickname: req.session.nickname,
 		});
 		comment.save((err) => {
 			if (err) {
@@ -119,7 +120,7 @@ router.post("/createComment", uploadS3.array("imgfile", 99), async (req, res) =>
 			Post.model.findOne({ _id: req.body.post_id }).exec((err, post) => {
 				post.comment.shift();
 				post.comment.unshift(comment);
-        post.count_comment++;
+				post.count_comment++;
 
 				console.log(post);
 				post.save((err) => {
@@ -247,7 +248,7 @@ router.post("/deleteComment", async (req, res) => {
 			{ $set: { deleted: true } },
 			{ new: false, upsert: true, setDefaultsOnInsert: true }
 		);
-    // Post.model.findOneAndUpdate({_id:})
+		// Post.model.findOneAndUpdate({_id:})
 		if (result.deleted === null) {
 			res.json({ status: 400, msg: "bad request" });
 		}
