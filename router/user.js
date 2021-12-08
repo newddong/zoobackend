@@ -130,6 +130,11 @@ router.post('/getUserProfile', (req, res) => {
 	// }
 });
 
+/**
+   * POST /user/getUserList
+   * @param {string} request.body.required - name body description
+   * @return {object} 200 - song response
+   */
 router.post('/getUserList', async (req, res) => {
 	console.log("%s %s [%s] %s %s %s | getUserList by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
 	// if (req.session.user_id) {

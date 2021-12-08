@@ -1,82 +1,92 @@
-var express = require("express"),
-	http = require("http"),
-	path = require("path");
-var cors = require("cors");
-var cookieParser = require("cookie-parser"),
-	static = require("serve-static"),
-	errorHandler = require("errorhandler");
+const express = require('express');
+const http = require('http');
+const path = require('path');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const static = require('serve-static');
+const errorHandler = require('errorhandler');
+const expressErrorHandler = require('express-error-handler');
+const expressSession = require('express-session');
+const MongoStore = require('connect-mongo');
+const expressJSDocSwagger = require('express-jsdoc-swagger');
 
-var expressErrorHandler = require("express-error-handler");
-var expressSession = require("express-session");
-var MongoStore = require("connect-mongo");
+/** Swagger 옵션 */
+const options = {
+	info: {
+		version: '1.0.0',
+		title: 'Albums store',
+		license: {
+			name: 'MITT',
+		},
+	},
+	security: {
+		BasicAuth: {
+			type: 'http',
+			scheme: 'basic',
+		},
+	},
+	baseDir: __dirname,
+	// Glob pattern to find your jsdoc files (multiple patterns can be added in an array)
+	// Ant format
+	filesPattern: './**/*.js',
+	// URL where SwaggerUI will be rendered
+	swaggerUIPath: '/api-docs',
+	// Expose OpenAPI UI
+	exposeSwaggerUI: true,
+	// Expose Open API JSON Docs documentation in `apiDocsPath` path.
+	exposeApiDocs: false,
+	// Open API JSON Docs endpoint.
+	apiDocsPath: '/v3/api-docs',
+	// Set non-required fields as nullable by default
+	notRequiredAsNullable: false,
+	// You can customize your UI options.
+	// you can extend swagger-ui-express config. You can checkout an example of this
+	// in the `example/configuration/swaggerOptions.js`
+	swaggerUiOptions: {},
+};
 
-var app = express();
-var userRoute = require('./router/user');
-var postRoute = require('./router/post');
-var appauth = require('./router/appauth');
-var comment = require('./router/comment');
-var database = require('./database/database');
+const app = express();
+app.set('port', process.env.PORT || 3000); //Port 설정
 
-var dbconnection;
-dbconnection = database();
 
-app.set("port", process.env.PORT || 3000);
 
-app.use(express.urlencoded({ extended: false }));
-
+app.use(express.urlencoded({extended: false}));
 app.use(express.json());
-
-// app.use('/public',static(path.join(__dirname,'public')));
-
 app.use(cookieParser());
 app.use(cors());
 app.use(
 	expressSession({
-		secret: "zoodoongi.pinetree.gylee",
+		secret: 'zoodoongi.pinetree.gylee',
 		resave: false,
 		saveUninitialized: true,
-		store:MongoStore.create({
-			mongoUrl:"mongodb://app:appkeeper!@zoodoongi.net:27017",
-			dbName:'app'
-		})
-	})
+		store: MongoStore.create({
+			mongoUrl: 'mongodb://app:appkeeper!@zoodoongi.net:27017',
+			dbName: 'app',
+		}),
+	}),
 );
 
-var router = express.Router();
+expressJSDocSwagger(app)(options);
 
-// router.route("/showcookie").get(function (req, res) {
-// 	console.log("showcookie호출");
-// 	res.json(req.cookies);
-// });
-
-// router.route("/setcookie").get(function (req, res) {
-// 	console.log("set cookie");
-// 	res.cookie("user", {
-// 		id: "mike",
-// 		name: "lky",
-// 		authorized: true,
-// 	});
-// 	res.redirect("/showcookie");
-// });
+//Routers
+const userRoute = require('./router/user');
+const postRoute = require('./router/post');
+const appauth = require('./router/appauth');
+const comment = require('./router/comment');
+const database = require('./database/database');
+const router = express.Router();
 
 
+const dbconnection = database();
 
+//Api routes
+app.use('/auth', appauth);
+app.use('/user', userRoute);
+app.use('/post', postRoute);
+app.use('/comment', comment);
+app.use('/', router);
 
-app.use("/auth",appauth);
-app.use("/user",userRoute);
-app.use("/post",postRoute);
-app.use("/comment",comment);
-app.use("/", router);
-
-var errorHandler = expressErrorHandler({
-	static: {
-		404: "./public/404.html",
-	},
-});
-
-app.use(expressErrorHandler.httpError(404));
-app.use(errorHandler);
-
-http.createServer(app).listen(app.get("port"), function () {
-	console.log("서버가 시작되었습니다. 포트 : " + app.get("port"));
+//Launch Server
+http.createServer(app).listen(app.get('port'), function () {
+	console.log('서버가 %d포트에서 시작되었습니다. ', app.get('port'));
 });

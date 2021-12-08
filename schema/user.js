@@ -54,7 +54,12 @@ const ShelterAddress = {
 	detail: {type: String},
 };
 
-/** 스키마 명세 */
+
+
+
+/** 스키마 명세 
+ * 
+*/ 
 const UserObject = {
 	/** @type {'user'|'shelter'|'pet'} 유저 타입정보 '일반유저|보호소|반려동물'로 구분됨 */
 	user_type: {type: String},
@@ -155,6 +160,7 @@ const UserObject = {
 	/** @type {String} 반려동물 임시보호자 */
 	pet_protector: {type: Schema.Types.ObjectId, ref:'UserObject'},
 };
+
 
 /** @type {mongoose.Schema} */
 const UserSchema = new mongoose.Schema(UserObject);

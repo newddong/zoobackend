@@ -83,6 +83,8 @@ router.post("/getPostList", async (req, res) => {
 	// }
 });
 
+
+
 router.post("/getMorePostList", async (req, res) => {
 	//Scroll 시 Post의 리스트를 req.body.post_id기준으로 req.body.number개수만큼 더 불러옴
 	//req.body.direction에 따라 post_id기준으로 이전, 이후로 나누어짐
