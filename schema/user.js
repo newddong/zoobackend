@@ -150,14 +150,14 @@ const UserObject = {
 	pet_status: {type: String},
 
 	/** @type {String } 반려동물 입양자 */
-	pet_adopter: {type: Schema.Types.ObjectId},
+	pet_adopter: {type: Schema.Types.ObjectId, ref:'UserObject'},
 
 	/** @type {String} 반려동물 임시보호자 */
-	pet_protector: {type: Schema.Types.ObjectId},
+	pet_protector: {type: Schema.Types.ObjectId, ref:'UserObject'},
 };
 
 /** @type {mongoose.Schema} */
-const UserSchema = new mongoose.Schema(SchemaDef);
+const UserSchema = new mongoose.Schema(UserObject);
 
 const model = mongoose.model('UserObject', UserSchema);
 
