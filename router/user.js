@@ -3,6 +3,81 @@ const router = express.Router();
 const User = require('../schema/user');
 const Post = require('../schema/post');
 const uploadS3 = require('../common/uploadS3');
+const { procedure, sessionProcedure } = require('./procedure');
+
+/**
+ * A song
+ * @typedef {object} Song
+ * @property {string} title.required - The title
+ * @property {string} artist - The artist
+ * @property {string} cover - image cover - binary
+ * @property {integer} year - The year - int64
+ */
+
+/**
+ * POST /user/test
+ * @tags User
+ * @param {string} title.form - The title - multipart/form-data
+ * @param {string} artist.form - The artist - multipart/form-data
+ * @param {string}  cover.form - image cover - binary - multipart/form-data
+ * @param {integer}  year.form - The year - multipart/form-data
+ * @return {object} 200 - User created
+ */
+router.post('/test',uploadS3.array('cover',99),(req,res)=>{
+	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s", req.ip, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, req.session.user); // prettier-ignore
+	// console.log('test activity   ',req);
+	res.json({status: 200, msg: req.body});
+
+});
+
+
+
+/**
+ * 유저 동의 정보
+ * @typedef {object} UserAgreement
+ * @property {boolean} is_over_fourteen - (동의)14살 이상
+ * @property {boolean} is_service - (동의)서비스 동의
+ * @property {boolean} is_personal_info - (동의)개인정보제공
+ * @property {boolean} is_location_service_info - (동의)위치정보제공
+ * @property {boolean} is_donation_info - (동의)기부정보
+ * @property {boolean} is_marketting_info - (동의)마케팅정보
+ */
+
+/**
+ * 유저의 지역
+ * @typedef {object} UserAddress
+ * @property {string} city - 유저의 지역(시,군,도)
+ * @property {string} district - 유저의 지역2(시,구)
+ * @property {string} neighbor - 유저의 지역3(읍,면,동)
+ */
+
+/**
+ * 유저 등록에 필요한 항목 정의
+ * @typedef {object} UserAssign
+ * @property {UserAgreement} user_agreement - 가입항목 동의
+ * @property {UserAddress} user_address - 유저 지역
+ * @property {string} user_mobile_company - 이동통신사
+ * @property {string} user_name - 유저 이름(실명)
+ * @property {string} user_password - 유저 패스워드
+ * @property {string} user_phone_number - 유저 핸드폰 번호
+ * @property {boolean} user_is_verified_phone_number - 핸드폰 인증여부
+ */
+
+
+/**
+ * POST /user/assignUser
+ * @tags User
+ * @summary 유저를 등록
+ * @param {UserAssign} request.body.required - 유저 동의 정보 - multipart/form-data
+ * @return {object} 200 - 유저 생성 응답
+ */
+router.post('/assignUser',uploadS3.single('imgfile'),(req,res)=>{
+	procedure(req,res,()=>{
+		res.json({status:200,msg:req.body})
+	})
+})
+
+
 
 router.post('/add', uploadS3.single('imgfile'), (req, res) => {
 	console.log('add user => ' + req.body.id);
@@ -130,11 +205,7 @@ router.post('/getUserProfile', (req, res) => {
 	// }
 });
 
-/**
-   * POST /user/getUserList
-   * @param {string} request.body.required - name body description
-   * @return {object} 200 - song response
-   */
+
 router.post('/getUserList', async (req, res) => {
 	console.log("%s %s [%s] %s %s %s | getUserList by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
 	// if (req.session.user_id) {

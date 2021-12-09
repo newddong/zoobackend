@@ -4,29 +4,29 @@ const Schema = mongoose.Schema;
 /** 동의사항 */
 const UserAgreement = {
 	/** @type {boolean} 14세 이상 */
-	is_over_fourteen: {type: Boolean},
+	is_over_fourteen: {type: Boolean, default: false},
 	/** @type {boolean} 서비스 이용동의 */
-	is_service: {type: Boolean},
+	is_service: {type: Boolean, default: false},
 	/** @type {boolean} 개인정보 제공동의 */
-	is_personal_info: {type: Boolean},
+	is_personal_info: {type: Boolean, default : false},
 	/** @type {boolean} 위치정보 제공동의 */
-	is_location_service_info: {type: Boolean},
+	is_location_service_info: {type: Boolean, default : false},
 	/** @type {boolean} 기부정보 제공동의 */
-	is_donation_info: {type: Boolean},
+	is_donation_info: {type: Boolean, default : false},
 	/** @type {boolean} 메케팅 활용 동의 */
-	is_marketting_info: {type: Boolean},
+	is_marketting_info: {type: Boolean, default : false},
 };
 
 /** 유저 주소 */
 const UserAddress = {
 	/** @type {String} 시,도  */
-	city: String,
+	city: {type : String},
 
 	/** @type {String} 군,구 */
-	district: String,
+	district: {type : String},
 
 	/** @type {String} 동,읍,면 */
-	neighbor: String,
+	neighbor: {type : String},
 }; //회원주소
 
 /** 관심사 항목 키워드 */
@@ -62,7 +62,7 @@ const ShelterAddress = {
 */ 
 const UserObject = {
 	/** @type {'user'|'shelter'|'pet'} 유저 타입정보 '일반유저|보호소|반려동물'로 구분됨 */
-	user_type: {type: String},
+	user_type: {type: String, default: 'user'},
 	/** @type {UserAgreement} 가입시 동의사항 */
 	user_agreement: UserAgreement,
 	/** @type {string} 실명 */
@@ -75,13 +75,13 @@ const UserObject = {
 	user_mobile_company: {type: String},
 
 	/** @type { Boolean} 폰번호 인증여부 */
-	user_is_verified_phone_number: {type: Boolean},
+	user_is_verified_phone_number: {type: Boolean, default : false},
 
 	/** @type { String} 이메일 */
 	user_email: {type: String},
 
 	/** @type { Boolean} 이메일 인증여부 */
-	user_is_verified_email: {type: Boolean},
+	user_is_verified_email: {type: Boolean, default : false},
 
 	/** @type { String} 패스워드 */
 	user_password: {type: String},
@@ -100,19 +100,19 @@ const UserObject = {
 	user_interests: UserInterest,
 
 	/** @type { Number} 업로드 게시물 숫자 */
-	user_upload_count: {type: Number},
+	user_upload_count: {type: Number, default : 0},
 
 	/** @type { Number} 팔로우 숫자 */
-	user_follow_count: {type: Number},
+	user_follow_count: {type: Number, default : 0},
 
 	/** @type { Number} 팔로워 숫자 */
-	user_follower_count: {type: Number},
+	user_follower_count: {type: Number, default : 0},
 
 	/** @type { Boolean} 유저의 차단여부 */
-	user_denied: {type: Boolean},
+	user_denied: {type: Boolean, default : false},
 
 	/** @type { Date} 가입일 */
-	user_register_date: {type: Date},
+	user_register_date: {type: Date, default : Date.now},
 
 	/** @type {'private'|'public'} 보호소 유형, 공립(public), 사립(private)로 나뉨 */
 	shelter_type: {type: String},

@@ -3,19 +3,19 @@ const Schema = mongoose.Schema;
 
 const CheckList = {
 	/** @type { Boolean} 성인여부 */
-	is_adult: {type: Boolean},
+	is_adult: {type: Boolean, default : false},
 
 	/** @type { Boolean} 보호지 근처의 동물병원 여부 */
-	is_near_veterinary: {type: Boolean},
+	is_near_veterinary: {type: Boolean, default : false},
 
 	/** @type { Boolean} 가족, 동거인의 동의 여부 */
-	is_agreed_housemate: {type: Boolean},
+	is_agreed_housemate: {type: Boolean, default : false},
 
 	/** @type { Boolean} 배변훈련 지식여부 */
-	is_experience_defecate: {type: Boolean},
+	is_experience_defecate: {type: Boolean, default : false},
 
 	/** @type { Boolean} 반려동물 미용,위생 지식여부 */
-	is_knowledge_sanitation: {type: Boolean},
+	is_knowledge_sanitation: {type: Boolean, default : false},
 };
 
 const Address = {
@@ -40,7 +40,7 @@ const CompanionHistory = {
 	companion_pet_period: {type: String},
 
 	/** @type { 'living'|'died'|'adopted'} 상태정보 카테고리 정해야함 */
-	companion_pet_current_status: {type: String},
+	companion_pet_current_status: {type: String, default : 'living'},
 };
 
 const ProtectionActivityApplicantObject = {

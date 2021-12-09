@@ -9,7 +9,7 @@ const ProtectRequestObject = {
 	protect_request_photo_thumbnail: {type: String},
 
 	/** @type { String} 보호요청할 동물 */
-	protect_animal_id: {type: Schema.Types.ObjectId},
+	protect_animal_id: {type: Schema.Types.ObjectId, ref: 'ShelterProtectAnimalObject'},
 
 	/** @type { String} 보호요청 게시물의 제목 */
 	protect_request_title: {type: String},
@@ -18,25 +18,25 @@ const ProtectRequestObject = {
 	protect_request_content: {type: String},
 
 	/** @type { String} 보호요청 게시물 작성자 */
-	protect_request_writer_id: {type: Schema.Types.ObjectId},
+	protect_request_writer_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
 
 	/** @type { Number} 보호요청 게시물 조회수 */
-	protect_request_hit: {type: Number},
+	protect_request_hit: {type: Number, default : 0},
 
 	/** @type { Number} 보호요청 게시물을 즐겨찾기 한 숫자 */
-	protect_request_favorite_count: {type: Number},
+	protect_request_favorite_count: {type: Number, default : 0},
 
-	/** @type { 'rescue'} 항목 추가 필요 입양가능(rescue), 보호소에서 구조가 이루어졌으므로 입양가능한 상태임, 협의중(discuss) 안락사 임박(nearrainbow) 완료(complete), 입양, 임시보호가 되면 보호요청 게시글은 완료 상태로 변경됨, 해당 동물은(adopt,protect)가 됨 사망(rainbowbridge) */
-	protect_request_status: {type: String},
+	/** @type { 'rescue'|'discuss'|'nearrainbow'|'complete'} 항목 추가 필요 입양가능(rescue), 보호소에서 구조가 이루어졌으므로 입양가능한 상태임, 협의중(discuss) 안락사 임박(nearrainbow) 완료(complete), 입양, 임시보호가 되면 보호요청 게시글은 완료 상태로 변경됨, 해당 동물은(adopt,protect)가 됨 사망(rainbowbridge) */
+	protect_request_status: {type: String, default: 'rescue'},
 
 	/** @type { Date} 보호요청 게시글 작성일시 */
-	protect_request_date: {type: Date},
+	protect_request_date: {type: Date, default: Date.now},
 
 	/** @type { Date} 보호요청 게시글 수정일시 */
-	protect_request_update_date: {type: Date},
+	protect_request_update_date: {type: Date, default : Date.now},
 
 	/** @type { Number} 보호요청 게시물 댓글의 수 */
-	protect_request_comment_count: {type: Number},
+	protect_request_comment_count: {type: Number, default:0},
 };
 
 

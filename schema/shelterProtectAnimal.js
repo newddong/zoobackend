@@ -20,19 +20,19 @@ protect_animal_species  : {type :  String},
 protect_animal_species_detail  : {type :  String},
 
 /** @type { 'male'|'female'|'unknown'} 보호중인 동물의 성별 */
-protect_animal_sex  : {type : String},
+protect_animal_sex  : {type : String, default : 'unknown'},
 
 /** @type { 'yes'|'no'|'unknown'} 중성화 여부 */
-protect_animal_neutralization  : {type :  String},
+protect_animal_neutralization  : {type :  String, default : 'unknown'},
 
 /** @type { String} 보호중인 동물의 추정 연령 */
 protect_animal_estimate_age  : {type :  String},
 
-/** @type { String} 몸무게 */
-protect_animal_weight  : {type :  String},
+/** @type { Number} 몸무게 */
+protect_animal_weight  : {type :  Number, default : 0},
 
 /** @type { 'rescue'|'adopt'|'protect'|'rainbowbridge'|'discuss'} 보호중인 동물의 상태 기본상태는 rescue임 (동물이 구조되어 보호소로 들어온 최초 상태) 임시보호가 되면 protect로 변경 입양을 가게 되면 상태가 adopt로 변경 임시보호, 입양 협의중이면 discuss로 변경 안락사, 혹은 폐사상태가 되면 rainbowbridge로 변경 */
-protect_animal_status  : {type :  String},
+protect_animal_status  : {type :  String, default: 'rescue'},
 
 
 /** @type { String} 보호요청을 작성한 작성자(보호소) */

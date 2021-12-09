@@ -8,50 +8,50 @@ const errorHandler = require('errorhandler');
 const expressErrorHandler = require('express-error-handler');
 const expressSession = require('express-session');
 const MongoStore = require('connect-mongo');
-const expressJSDocSwagger = require('express-jsdoc-swagger');
+const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
 
-/** Swagger 옵션 */
 const options = {
-	info: {
-		version: '1.0.0',
-		title: 'Albums store',
-		license: {
-			name: 'MITT',
+	definition: {
+		openapi: '3.0.0',
+		info: {
+			title: '애니로그 API 테스트 페이지',
+			version: '0.1.0',
+			description: '애니로그 API 테스트 페이지입니다.',
+			license: {
+				name: 'MIT',
+			},
+			contact: {
+				name: 'PineFriends',
+			},
 		},
+		servers: [
+			{
+				url: 'http://localhost:3000',
+			},
+		],
 	},
-	security: {
-		BasicAuth: {
-			type: 'http',
-			scheme: 'basic',
-		},
-	},
-	baseDir: __dirname,
-	// Glob pattern to find your jsdoc files (multiple patterns can be added in an array)
-	// Ant format
-	filesPattern: './**/*.js',
-	// URL where SwaggerUI will be rendered
-	swaggerUIPath: '/api-docs',
-	// Expose OpenAPI UI
-	exposeSwaggerUI: true,
-	// Expose Open API JSON Docs documentation in `apiDocsPath` path.
-	exposeApiDocs: false,
-	// Open API JSON Docs endpoint.
-	apiDocsPath: '/v3/api-docs',
-	// Set non-required fields as nullable by default
-	notRequiredAsNullable: false,
-	// You can customize your UI options.
-	// you can extend swagger-ui-express config. You can checkout an example of this
-	// in the `example/configuration/swaggerOptions.js`
-	swaggerUiOptions: {},
+	apis: ['./router/*.js'],
 };
 
+const specs = swaggerJsdoc(options);
+
 const app = express();
+
 app.set('port', process.env.PORT || 3000); //Port 설정
 
-
-
-app.use(express.urlencoded({extended: false}));
-app.use(express.json());
+app.use(
+	express.json({
+		limit: '100mb',
+	}),
+);
+app.use(
+	express.urlencoded({
+		extended: false,
+		limit: '100mb',
+		parameterLimit: 1000000,
+	}),
+);
 app.use(cookieParser());
 app.use(cors());
 app.use(
@@ -65,8 +65,11 @@ app.use(
 		}),
 	}),
 );
+app.use("/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(specs)
+);
 
-expressJSDocSwagger(app)(options);
 
 //Routers
 const userRoute = require('./router/user');
@@ -75,7 +78,6 @@ const appauth = require('./router/appauth');
 const comment = require('./router/comment');
 const database = require('./database/database');
 const router = express.Router();
-
 
 const dbconnection = database();
 
