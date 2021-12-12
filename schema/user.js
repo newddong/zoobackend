@@ -91,7 +91,7 @@ const UserObject = {
 	user_profile_uri: {type: String},
 
 	/** @type { String} 프로필에 노출될 자기소개 */
-	user_introduction: {type: String},
+	user_introduction: {type: String, default: ''},
 
 	/** @type { String} 필요한지 검토 필요 */
 	user_birthday: {type: String},

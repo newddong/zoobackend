@@ -296,6 +296,33 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /user/getUserProfile:
+    post:
+      tags:
+        - user
+      summary: 유저(반려동물,보호소,일반유저) 프로필
+      description: 유저의 프로필을 가져온다
+      operationId: getUserProfile
+      requestBody:
+        description: 프로필을 가져올 유저의 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  description : 프로필을 얻어올 유저의 아이디(DB아이디)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+
 
 
 #jsdoc을 yaml으로 변환
