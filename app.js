@@ -13,14 +13,11 @@ const swaggerUi = require("swagger-ui-express");
 
 const options = {
 	definition: {
-		openapi: '3.0.0',
+		openapi: '3.0.3',
 		info: {
 			title: '애니로그 API 테스트 페이지',
 			version: '0.1.0',
 			description: '애니로그 API 테스트 페이지입니다.',
-			license: {
-				name: 'MIT',
-			},
 			contact: {
 				name: 'PineFriends',
 			},
@@ -28,10 +25,15 @@ const options = {
 		servers: [
 			{
 				url: 'http://localhost:3000',
+				description : 'local environment'
 			},
+			{
+				url: 'https://api.zoodoongi.net',
+				description : 'dev server'
+			}
 		],
 	},
-	apis: ['./router/*.js'],
+	apis: ['./router/*.js','./swagger/*.yaml'],
 };
 
 const specs = swaggerJsdoc(options);
@@ -76,6 +78,7 @@ const userRoute = require('./router/user');
 const postRoute = require('./router/post');
 const appauth = require('./router/appauth');
 const comment = require('./router/comment');
+const feedRoute = require('./router/feed');
 const database = require('./database/database');
 const router = express.Router();
 
@@ -86,6 +89,7 @@ app.use('/auth', appauth);
 app.use('/user', userRoute);
 app.use('/post', postRoute);
 app.use('/comment', comment);
+app.use('/feed', feedRoute);
 app.use('/', router);
 
 //Launch Server

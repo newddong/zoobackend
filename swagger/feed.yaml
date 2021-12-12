@@ -1,0 +1,225 @@
+paths:
+  /feed/createFeed:
+    post:
+      tags:
+        - feed
+      summary: 피드 게시물 신규 작성
+      description: 피드 게시물을 작성하고, 첨부파일(그림/동영상)을 등록한다.
+      operationId: createFeed
+      requestBody:
+        description: 피드 게시물 정보
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                feed_content:
+                  type: string
+                  description: 피드 텍스트 내용
+                feed_location:
+                  type: string
+                  description: 피드 작성 지역
+                feed_avatar_id:
+                  type: string
+                  description: 피드의 작성자로 지정하고 싶은 반려동물 ID
+                feed_attachments:
+                  type: array
+                  description: 피드 첨부파일 uri리스트
+                  items:
+                    type: string
+                    format: binary
+                feed_medias:
+                  type: array
+                  description: 첨부 객체정보 리스트
+                  items:
+                    type: object
+                    properties:
+                      is_video:
+                        type: boolean
+                        description: 동영상 여부
+                      duration:
+                        type: integer
+                        description: 동영상 재생 시간
+                      media_uri:
+                        type: string
+                        description: 미디어의 uri(서버에서 처리)
+                      tags:
+                        type: array
+                        description: 미디어의 태그 목록
+                        items:
+                          type: object
+                          properties:
+                            tag_user_id:
+                              type: string
+                              description: 태그된 유저의 아이디
+                            position_x:
+                              type: integer
+                              description: 태그의 사진 프레임에서 x좌표
+                            position_y:
+                              type: integer
+                              description: 태그의 사진 프레임에서 y좌표 
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /feed/createMissing:
+    post:
+      tags:
+        - feed
+      summary: 실종 게시물 신규 작성
+      description: 실종 게시물을 작성하고, 첨부파일(그림/동영상)을 등록한다.
+      operationId: createMissing
+      requestBody:
+        description: 실종 게시물 정보
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                feed_content:
+                  type: string
+                  description: 실종 게시물 텍스트 내용
+                feed_location:
+                  type: string
+                  description: 실종 게시물 작성 지역
+                feed_attachments:
+                  type: array
+                  description: 실종 게시물 첨부파일 uri리스트
+                  items:
+                    type: string
+                    format: binary
+                feed_medias:
+                  type: array
+                  description: 첨부 객체정보 리스트
+                  items:
+                    type: object
+                    properties:
+                      is_video:
+                        type: boolean
+                        description: 동영상 여부
+                      duration:
+                        type: integer
+                        description: 동영상 재생 시간
+                      media_uri:
+                        type: string
+                        description: 미디어의 uri(서버에서 처리)
+                      tags:
+                        type: array
+                        description: 미디어의 태그 목록
+                        items:
+                          type: object
+                          properties:
+                            tag_user_id:
+                              type: string
+                              description: 태그된 유저의 아이디
+                            position_x:
+                              type: integer
+                              description: 태그의 사진 프레임에서 x좌표
+                            position_y:
+                              type: integer
+                              description: 태그의 사진 프레임에서 y좌표 
+                missing_animal_age:
+                  type: integer
+                  description: 실종 동물 나이
+                missing_animal_features:
+                  type: string
+                  description: 실종 동물 특징
+                missing_animal_contact:
+                  type: string
+                  description: 실종 동물의 주인 연락처
+                missing_animal_lost_location:
+                  type: string
+                  description: 실종 동물 실종 지점
+                missing_animal_sex:
+                  type: string
+                  description: 실종 동물 성별
+                missing_animal_species:
+                  type: string
+                  description: 실종 동물 종류(개, 고양이, 새)
+                missing_animal_species_detail:
+                  type: string
+                  description: 실종 동물 세부 종류(리트리버,푸들,말티즈)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /feed/createReport:
+    post:
+      tags:
+        - feed
+      summary: 제보 게시물 신규 작성
+      description: 제보 게시물을 작성하고, 첨부파일(그림/동영상)을 등록한다.
+      operationId: createReport
+      requestBody:
+        description: 제보 게시물 정보
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                feed_content:
+                  type: string
+                  description: 제보 텍스트 내용
+                feed_location:
+                  type: string
+                  description: 제보 작성 지역
+                feed_attachments:
+                  type: array
+                  description: 제보 첨부파일 uri리스트
+                  items:
+                    type: string
+                    format: binary
+                feed_medias:
+                  type: array
+                  description: 첨부 객체정보 리스트
+                  items:
+                    type: object
+                    properties:
+                      is_video:
+                        type: boolean
+                        description: 동영상 여부
+                      duration:
+                        type: integer
+                        description: 동영상 재생 시간
+                      media_uri:
+                        type: string
+                        description: 미디어의 uri(서버에서 처리)
+                      tags:
+                        type: array
+                        description: 미디어의 태그 목록
+                        items:
+                          type: object
+                          properties:
+                            tag_user_id:
+                              type: string
+                              description: 태그된 유저의 아이디
+                            position_x:
+                              type: integer
+                              description: 태그의 사진 프레임에서 x좌표
+                            position_y:
+                              type: integer
+                              description: 태그의 사진 프레임에서 y좌표
+                report_witness_date:
+                  type: string
+                  description: 제보일자
+                report_witness_location:
+                  type: string
+                  description: 제보장소
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+
+
+ #jsdoc을 yaml으로 변환
+#.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
+#$2:\n  type: $1\n  description: $3

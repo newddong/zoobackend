@@ -22,7 +22,7 @@ const CommentObject = {
 	comment_report_block: {type: Boolean, default:false},
 
 	/** @type { String} 대댓글이 달린 댓글의 ID */
-	comment_parent: {type: Schema.Types.ObjectId, ref:'CommentObject'},
+	comment_parent: {type: Schema.Types.ObjectId,  ref:'CommentObject'},
 
 	/** @type { String} 부모 댓글의 작성자 ID */
 	comment_parent_writer_id: {type: Schema.Types.ObjectId, ref:'UserObejct'},

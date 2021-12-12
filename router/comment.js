@@ -1,10 +1,56 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../schema/user");
-const Post = require("../schema/post");
+const Feed = require('../schema/feed');
 const Comment = require("../schema/comment");
 const Like = require("../schema/likepostcomment");
 const uploadS3 = require("../common/uploadS3");
+const {controller, controllerLoggedIn} = require('./controller');
+
+//댓글 대댓글 작성
+router.post('/createComment',uploadS3.single('comment_photo_uri'),(req,res)=>{
+	controllerLoggedIn(req,res,async ()=> {
+		let comment = await Comment.makeNewdoc({
+			comment_photo_uri: req.file?.location,
+			comment_contents: req.body.comment_contents,
+			comment_is_secure: req.body.comment_is_secure,
+			comment_writer_id: req.session.loginUser,
+		});
+
+		if(req.body.comment_parent&&req.body.comment_parent.length>0){
+			let parentComment = await Comment.model.findById(req.body.comment_parent);
+			if(parentComment)comment.comment_parent_writer_id = parentComment.comment_writer_id;
+			comment.comment_parent = req.body.comment_parent;
+		}//부모 코멘트의 작성자를 설정(Secure기능을 이용하기 위함)
+
+		if(req.body.comment_feed_id&&req.body.comment_feed_id.length>0){
+			comment.comment_feed_id = req.body.comment_feed_id;
+			let targetFeed = await Feed.model.findById(req.body.comment_feed_id);
+			if(targetFeed){
+				targetFeed.feed_recent_comment.comment_id = comment._id;//게시물에 달린 최신 댓글 설정
+				targetFeed.feed_recent_comment.comment_user_nickname = req.session.user_nickname;//코멘트 작성자의 닉네임
+				targetFeed.feed_recent_comment.comment_contents = comment.comment_contents;
+				
+				comment.comment_feed_writer_id = targetFeed.feed_writer_id;//댓글이 달린 피드의 작성자를 설정(Secure기능을 이용하기 위함)
+			}
+			await targetFeed.save();
+		}
+
+
+		// comment_protect_request_id: req.body.comment_protect_request_id,
+		//TODO : 댓글이 달린 보호요청 게시물의 작성자 설정(Secure기능을 이용하기 위함)
+
+		let newComment = await comment.save();
+		res.status(200);
+		res.json({status: 200, msg: newComment});
+	})
+
+})
+
+
+
+
+//이전 router code --
 
 router.post(
 	"/getChildCommentList",

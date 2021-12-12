@@ -1,0 +1,71 @@
+tags:
+  - name: 'user'
+    description: '유저 관련 API'
+  - name: 'feed'
+    description: '피드 관련 API'
+  - name: 'comment'
+    description: '댓글 관련 API'
+externalDocs:
+  description: 'Find out more about Swagger'
+  url: 'http://swagger.io'
+components:
+  schemas:
+    UserObject:
+      type: object
+  responses:
+    200:
+      description: 성공 코드
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                description: 성공 코드
+                default : 200
+              msg:
+                type: object
+                description: 응답 메세지 객체
+    400:
+      description: '에러 응답'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                description: 에러 코드
+                default : 400
+              msg:
+                type: object
+                description: 응답 메세지 객체
+    404:
+      description: '에러 응답'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                description: 에러 코드
+                default : 404
+              msg:
+                type: object
+                description: 응답 메세지 객체
+    500:
+      description: '서버 에러 응답'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                description: 에러 코드
+                default : 500
+              msg:
+                type: object
+                description: 응답 메세지 객체

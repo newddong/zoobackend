@@ -1,0 +1,47 @@
+paths:
+  /comment/createComment:
+    post:
+      tags:
+        - comment
+      summary: 댓글/대댓글 작성
+      description: 댓글을 작성하고, 첨부파일(그림)을 등록한다. (동영상은 추가 논의 필요)
+      operationId: createComment
+      requestBody:
+        description: 등록할 댓글의 정보
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                comment_photo_uri:
+                  type: string
+                  format: binary
+                  description: 댓글 첨부 이미지 uri
+                comment_contents:
+                  type: string
+                  description: 댓글 내용
+                comment_parent:
+                  type: string
+                  description: 대댓글이 달린 댓글의 ID
+                comment_feed_id:
+                  type: string
+                  description: 댓글이 작성된 피드 게시물
+                comment_protect_request_id:
+                  type: string
+                  description: 댓글이 작성된 동물보호 요청 게시물
+                comment_is_secure:
+                  type: boolean
+                  description: true일때는 writer와 댓글이 달린 게시글 작성자만 볼수있음
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+
+
+
+ #jsdoc을 yaml으로 변환
+#.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
+#$2:\n  type: $1\n  description: $3

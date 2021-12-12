@@ -1,0 +1,304 @@
+paths:
+  /user/assignUser:
+    post:
+      tags:
+        - user
+      summary: 신규 유저(user)를 등록
+      description: 신규 유저를 등록하고 결과를 클라이언트에 통보
+      operationId: assignUser
+      requestBody:
+        description: 신규 유저 정보
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                user_agreement:
+                  type: object
+                  description: 사용자 동의여부 JSON객체
+                  properties:
+                    is_over_fourteen:
+                      type: boolean
+                      description: (동의)14살 이상
+                    is_service:
+                      type: boolean
+                      description: (동의)서비스 동의
+                    is_personal_info:
+                      type: boolean
+                      description: (동의)개인정보제공
+                    is_location_service_info:
+                      type: boolean
+                      description: (동의)위치정보제공
+                    is_donation_info:
+                      type: boolean
+                      description: (동의)기부정보
+                    is_marketting_info:
+                      type: boolean
+                      description: (동의)마케팅정보
+                user_address:
+                  type: object
+                  description: 사용자 주소 JSON객체
+                  properties:
+                    city:
+                      type: string
+                      description: 사용자 주소(시,도,군)
+                    district:
+                      type: string
+                      description: 사용자 주소(군,구)
+                    neighbor:
+                      type: string
+                      description: 사용자 주소(동,읍,면)
+                user_mobile_company:
+                  type: string
+                  description: 이동통신사
+                user_name:
+                  type: string
+                  description: 유저 이름(실명)
+                user_password:
+                  type: string
+                  description: 유저 패스워드
+                user_phone_number:
+                  type: string
+                  description: 유저 핸드폰 번호
+                user_nickname:
+                  type: string
+                  description: 유저저 닉네임
+                user_profile_uri:
+                  type: string
+                  format: binary
+                  description: 유저 프로필 사진
+                user_is_verified_phone_number:
+                  type: boolean
+                  description: 핸드폰 인증여부
+            encoding:
+              user_agreement:
+                contentType: application/json
+              user_address:
+                contentType: application/json
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/assignPet:
+    post:
+      tags:
+        - user
+      summary: 신규 반려동물(pet)을 등록
+      description: 신규 반려동물을 등록하고 결과를 클라이언트에 통보
+      operationId: assignPet
+      requestBody:
+        description: 신규 반려동물 정보
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  description: 등록하고 있는 유저 ID(몽고디비 오브젝트 아이디), 반려동물의 주인 ID
+                pet_birthday:
+                  type: string
+                  description: 동물 생일
+                pet_is_temp_protection:
+                  type: boolean
+                  description: 임시보호 여부
+                pet_neutralization:
+                  type: string
+                  description: 중성화 여부 {'yes'|'no'|'unknown'}
+                pet_sex:
+                  type: string
+                  description: 성별 { 'male'|'female'|'unknown'} 
+                pet_species:
+                  type: string
+                  description: 반려동물의 종류(ex 개, 고양이, 토끼 등)
+                pet_species_detail:
+                  type: string
+                  description: 반려동물의 종류(ex 리트리버, 불독, 진돗개 등)
+                pet_status:
+                  type: string
+                  description: 반려동물의 상태, 임시보호중(protect), 입양됨(adopt), 반려동물(companion) {'protect'|'adopt'|'companion'}
+                pet_weight:
+                  type: string
+                  description: 반려동물 몸무게
+                user_nickname:
+                  type: string
+                  description: 반려동물 닉네임
+                user_profile_uri:
+                  type: string
+                  format: binary
+                  description: 반려동물 프로필 사진
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/assignShelter:
+    post:
+      tags:
+        - user
+      summary: 신규 보호소(Shelter)를 등록
+      description: 신규 보호소를 등록하고 결과를 클라이언트에 통보
+      operationId: assignShelter
+      requestBody:
+        description: 신규 보호소 정보
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                shelter_address:
+                  type: object
+                  description: 보호소 주소 Json객체
+                  properties:
+                    brief:
+                      type: string
+                      description: 보호소 주소
+                    detail:
+                      type: string
+                      description: 보호소 상세 주소
+                shelter_delegate_contact_number:
+                  type: string
+                  description: 보호소 대표전화번호
+                shelter_foundation_date:
+                  type: string
+                  description: 보호소 설립일자
+                shelter_homepage:
+                  type: string
+                  description: 보호소 홈페이지 uri
+                shelter_name:
+                  type: string
+                  description: 보호소 이름
+                shleter_type:
+                  type: string
+                  description: 보호소 타잎 ('private'|'public')
+                user_email:
+                  type: string
+                  description: 보호소 이메일
+                user_password:
+                  type: string
+                  description: 보호소 접속 패스워드
+                user_profile_uri:
+                  type: string
+                  format: binary
+                  description: 보호소 프로필 사진 uri
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/checkProtectPet:
+    post:
+      tags:
+        - user
+      summary: 유저가 보호요청을 한 동물이 있는지 여부를 검색
+      description: 동물보호 요청을 한 동물이 있을때 해당 동물의 정보를 클라이언트에 돌려줌
+      operationId: checkProtectPet
+      requestBody:
+        description: 체크할 유저의 ID(MongoDB의 UserObject Document ID)
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  description: 체크할 유저의 ID(MongoDB의 UserObject Document ID)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/checkShelterCode:
+    post:
+      tags:
+        - user
+      summary: 보호소 코드 체크
+      description: 보호소 코드 체크
+      operationId: checkShelterCode
+      requestBody:
+        description: 클라이언트에서 입력한 보호소의 코드
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                shelter_code:
+                  type: string
+                  description: 체크할 보호소의 코드
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/userLogin:
+    post:
+      tags:
+        - user
+      summary: 로그인
+      description: 로그인
+      operationId: userLogin
+      requestBody:
+        description: 유저 아이디와 비밀번호
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                login_id:
+                  type: string
+                  description: 로그인할 아이디
+                login_password:
+                  type: string
+                  description: 로그인할 비밀번호
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/userLogout:
+    post:
+      tags:
+        - user
+      summary: 로그아웃
+      description: 유저 로그아웃
+      operationId: userLogout
+      requestBody:
+        description: 로그아웃할 유저 아이디
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                logout_id:
+                  type: string
+                  description : 로그아웃할 유저 아이디
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+
+
+#jsdoc을 yaml으로 변환
+#.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
+#$2:\n  type: $1\n  description: $3
+

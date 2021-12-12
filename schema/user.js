@@ -97,7 +97,7 @@ const UserObject = {
 	user_birthday: {type: String},
 
 	/** @type {Array.<UserInterest>} 유저의 관심사*/
-	user_interests: UserInterest,
+	user_interests: [UserInterest],
 
 	/** @type { Number} 업로드 게시물 숫자 */
 	user_upload_count: {type: Number, default : 0},
@@ -113,6 +113,9 @@ const UserObject = {
 
 	/** @type { Date} 가입일 */
 	user_register_date: {type: Date, default : Date.now},
+
+	/** @type {Array.<String>} 내 반려동물들들 */
+	user_my_pets: [{type: Schema.Types.ObjectId, ref:'UserObject'}],
 
 	/** @type {'private'|'public'} 보호소 유형, 공립(public), 사립(private)로 나뉨 */
 	shelter_type: {type: String},
@@ -133,8 +136,8 @@ const UserObject = {
 	/** @type { Boolean} 반려동물이 임시보호 중인지 여부 */
 	pet_is_temp_protection: {type: Boolean},
 
-	/** @type { Boolean} 반려동물의 종류(ex 개, 고양이, 토끼 등) */
-	pet_species: {type: Boolean},
+	/** @type { String} 반려동물의 종류(ex 개, 고양이, 토끼 등) */
+	pet_species: {type: String},
 
 	/** @type { String} 반려동물의 종류(ex 리트리버, 불독, 진돗개 등) */
 	pet_species_detail: {type: String},
@@ -159,6 +162,9 @@ const UserObject = {
 
 	/** @type {String} 반려동물 임시보호자 */
 	pet_protector: {type: Schema.Types.ObjectId, ref:'UserObject'},
+
+	/** @type {Array.<String>} 반려동물 가족계정 */
+	pet_family: [{type: Schema.Types.ObjectId, ref:'UserObject'}],
 };
 
 
