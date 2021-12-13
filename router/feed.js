@@ -88,4 +88,20 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 	});
 });
 
+//특정 유저가 작성한 피드 리스트를 불러온다.
+router.post('/getFeedListByUserId',(req,res)=>{
+	controller(req,res,async ()=>{
+		//TODO:유저의 존재여부 검사
+		//TODO:아바타 아이디는 어떻게 처리할건지?
+		let feedList = await Feed.model.find({feed_writer_id: req.body.userobject_id});
+		console.log(feedList);
+
+
+		res.status(200);
+		res.json({status: 200, msg:[]});
+
+	})
+})
+
+
 module.exports = router;

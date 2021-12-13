@@ -138,7 +138,7 @@ router.post('/checkShelterCode', (req, res) => {
 router.post('/getUserProfile', (req, res) => {
 	controller(req, res, async () => {
 		const userInfo = await User.model
-			.findById(req.body.user_id)
+			.findById(req.body.userobject_id)
 			.select('user_nickname user_profile_uri user_upload_count user_follow_count user_follower_count user_denied user_my_pets user_introduction')
 			.populate('user_my_pets', 'user_nickname user_profile_uri')
 			.exec();
@@ -175,7 +175,7 @@ router.post('/nicknameDuplicationCheck', (req, res) => {
 //유저 정보를 수정
 router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		let userInfo = await User.model.findById(req.body.user_id).exec();
+		let userInfo = await User.model.findById(req.body.userobject_id).exec();
 		if (userInfo == null) {
 			res.status(400);
 			res.json({status: 400, msg: '유효한 유저 ID가 아니거나 해당 ID와 일치하는 유저가 없습니다.'});
@@ -207,13 +207,20 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 //유저 상세 정보를 수정
 router.post('/updateUserDetailInformation', (req, res)=>{
 	controllerLoggedIn(req, res, async ()=> {
-		let userInfo = await User.model.findById(req.body.user_id).exec();
+		let userInfo = await User.model.findById(req.body.userobject_id).exec();
 		if(userInfo == null){
 			res.status(400);
 			res.json({status:400, msg:'유효한 유저 ID가 아니거나 해당 ID와 일치하는 유저가 없습니다.'});
 			return;
 		}
-		
+		userInfo.user_birthday = req.body.user_birthday;
+		userInfo.user_sex = req.body.user_sex;
+		userInfo.user_interests = JSON.parse('['+req.body.user_interests+']');
+		userInfo.user_address = JSON.parse(req.body.user_address);
+
+		await userInfo.save();
+		res.status(200);
+		res.json({status:200, msg:userInfo});
 	})
 })
 

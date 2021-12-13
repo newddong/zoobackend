@@ -225,9 +225,9 @@ paths:
             schema:
               type: object
               required:
-                - user_id
+                - userobject_id
               properties:
-                user_id:
+                userobject_id:
                   type: string
                   description: 체크할 유저의 ID(MongoDB의 UserObject Document ID)
       responses:
@@ -331,9 +331,9 @@ paths:
             schema:
               type: object
               required:
-                - user_id
+                - userobject_id
               properties:
-                user_id:
+                userobject_id:
                   type: string
                   description : 프로필을 얻어올 유저의 아이디(DB아이디)
       responses:
@@ -387,9 +387,9 @@ paths:
             schema:
               type: object
               required:
-                - user_id
+                - userobject_id
               properties:
-                user_id:
+                userobject_id:
                   type: string
                   description: 정보를 수정할 유저의 몽고디비 도큐먼트 ID
                 user_nickname:
@@ -408,8 +408,76 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /user/updateUserDetailInformation:
+    post:
+      tags:
+        - user
+      summary: 유저 상세정보(성별,생일,지역,관심사)를 업데이트
+      description: 유저 상세정보(성별,생일,지역,관심사)를 업데이트
+      operationId: updateUserDetailInformation
+      requestBody:
+        description: 유저 상세정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - userobject_id
+              properties:
+                user_birthday:
+                  type: string
+                  description: 유저 생일, 마이메뉴-프로필 상세정보에서 수정
+                user_sex:
+                  type: string
+                  description: 유저 성별, 마이메뉴-프로필 상세정보에서 수정('male'|'female')
+                user_interests:
+                  type: array
+                  description: 유저의 관심사, 마이메뉴-프로필 상세정보에서 수정
+                  items:
+                    type: object
+                    properties:
+                      location:
+                        type: string
+                        description: 지역 관심사 
+                      activity:
+                        type: string
+                        description: 활동 관심사
+                user_address:
+                  type: object
+                  description: 유저 지역정보
+                  properties: 
+                    city:
+                      type: string
+                      description: 시,도
+                    district:
+                      type: string
+                      description: 군,구
+                    neighbor:
+                      type: string
+                      description: 동,읍,면
+                    brief:
+                      type: string
+                      description: 검색주소
+                    detail:
+                      type: string
+                      description: 검색주소(자세히)
+                userobject_id:
+                  type: string
+                  description: 정보를 수정할 유저의 몽고디비 도큐먼트 ID
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+
+
 
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
+# .*?\{(.*?)\} (.*?) - (.*?)$
 #$2:\n  type: $1\n  description: $3
 
