@@ -5,6 +5,7 @@ const Post = require('../schema/post');
 const Feed = require('../schema/feed');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
+const {nicknameDuplicationCheck} = require('./utilfunction');
 
 //로그인
 router.post('/userLogin', (req, res) => {
@@ -53,6 +54,13 @@ router.post('/userLogout', (req, res) => {
 //유저 생성
 router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 	controller(req, res, async () => {
+		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
+		if (duplicateNickname != null) {
+			res.status(400);
+			res.json({status: 400, msg: '중복된 닉네임을 입력하셨습니다.'});
+			return;
+		}
+
 		const user = await User.makeNewdoc({
 			user_agreement: JSON.parse(req.body.user_agreement),
 			user_address: JSON.parse(req.body.user_address),
@@ -64,6 +72,7 @@ router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 			user_profile_uri: req.file?.location,
 			user_is_verified_phone_number: true,
 		});
+
 		const newUser = await user.save();
 		res.json({status: 200, msg: newUser});
 	});
@@ -131,150 +140,85 @@ router.post('/getUserProfile', (req, res) => {
 		const userInfo = await User.model
 			.findById(req.body.user_id)
 			.select('user_nickname user_profile_uri user_upload_count user_follow_count user_follower_count user_denied user_my_pets user_introduction')
-			.populate('user_my_pets','user_nickname user_profile_uri').exec();
+			.populate('user_my_pets', 'user_nickname user_profile_uri')
+			.exec();
+
 		if (!userInfo) {
 			res.status(404);
 			res.json({status: 404, msg: '해당 유저가 없습니다'});
 			return;
 		}
-		const feedList = await Feed.model
-			.find().where('feed_writer_id').select('feed_thumbnail')
-		
+
+		const feedList = await Feed.model.find().where('feed_writer_id').select('feed_thumbnail');
+
 		const profile = {
-			...userInfo,
-			feedList:feedList
+			...userInfo._doc,
+			feedList: feedList,
 		};
+
+		// const profile = Object.assign({},userInfo,feedList);
+
 		res.status(200);
 		res.json({status: 200, msg: profile});
 	});
 });
 
+//유저 닉네임 중복체크
+router.post('/nicknameDuplicationCheck', (req, res) => {
+	controller(req, res, async () => {
+		const duplicateUser = await User.model.findOne({user_nickname: req.body.user_nickname});
+		const isDuplicate = duplicateUser != null;
+		res.json({status: 200, msg: isDuplicate});
+	});
+});
+
+//유저 정보를 수정
+router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let userInfo = await User.model.findById(req.body.user_id).exec();
+		if (userInfo == null) {
+			res.status(400);
+			res.json({status: 400, msg: '유효한 유저 ID가 아니거나 해당 ID와 일치하는 유저가 없습니다.'});
+			return;
+		}
+		// if (userInfo.user_type != 'user') {
+		// 	res.status(400);
+		// 	res.json({status: 400, msg: '대상이 유저가 아닙니다.'});
+		// 	return;
+		// }
+		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
+		if (duplicateNickname != null) {
+			res.status(400);
+			res.json({status: 400, msg: '중복된 닉네임을 입력하셨습니다.'});
+			return;
+		}
+		userInfo.user_nickname = req.body.user_nickname;
+
+		if (req.file) {
+			userInfo.user_profile_uri = req.file?.location;
+		}
+		await userInfo.save();
+
+		res.status(200);
+		res.json({status: 200, msg: userInfo});
+	});
+});
+
+//유저 상세 정보를 수정
+router.post('/updateUserDetailInformation', (req, res)=>{
+	controllerLoggedIn(req, res, async ()=> {
+		let userInfo = await User.model.findById(req.body.user_id).exec();
+		if(userInfo == null){
+			res.status(400);
+			res.json({status:400, msg:'유효한 유저 ID가 아니거나 해당 ID와 일치하는 유저가 없습니다.'});
+			return;
+		}
+		
+	})
+})
+
+
 //이전 router code --
-
-router.post('/add', uploadS3.single('imgfile'), (req, res) => {
-	console.log('add user => ' + req.body.id);
-	console.log('img location uri  => ' + req.file.location);
-	var user = User.makeNewdoc({
-		id: req.body.id,
-		password: req.body.password,
-		name: req.body.name,
-		userType: req.body.userType,
-		idType: req.body.idType,
-		nickname: req.body.nickname,
-		shelter_name: req.body.shelter_name,
-		shelter_addr: req.body.shelter_addr,
-		shelter_phone: req.body.shelter_phone,
-		shelter_email: req.body.shelter_email,
-		shelter_url: req.body.shelter_url,
-		shelter_foundation_date: req.body.shelter_foundation_date,
-		reg_date: req.body.reg_date,
-		upd_date: req.body.upd_date,
-		profileImgUri: req.file?.location,
-	});
-
-	user.save(err => {
-		if (err) {
-			console.log('error during add user to DB', err);
-			res.json({status: 400, msg: err});
-			// return;
-		}
-		console.log('successfully added user to DB ' + req.body.id);
-		res.json({status: 200, msg: 'successed'});
-	});
-});
-
-router.post('/addPet', uploadS3.single('imgfile'), async (req, res) => {
-	console.log("%s %s [%s] %s %s %s | addPet by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
-	if (req.session.user_id) {
-		try {
-			let pet = new User.model({
-				sex: req.body.sex,
-				adoptionType: req.body.adoptionType,
-				animalKind: req.body.animalKind,
-				animalKindDetail: req.body.animalKindDetail,
-				animalNo: req.body.animalNo,
-				nickname: req.body.nickname,
-				userType: 'pet',
-				profileImgUri: req.file?.location,
-				owner: req.session.user_id,
-			});
-			let petResult = await pet.save();
-			let userResult = await User.model.findByIdAndUpdate(req.session.user_id, {
-				$push: {belonged_pets: petResult._id},
-			});
-
-			res.json({
-				status: 200,
-				msg: 'successed',
-			});
-		} catch (err) {
-			console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-			console.log(err);
-			res.json({status: 500, msg: err});
-		}
-	} else {
-		console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-		res.json({status: 401, msg: 'Unauthorized'});
-	}
-});
-
-router.get('/getMyProfile', (req, res) => {
-	if (req.session.user) {
-		console.log("%s %s [%s] %s %s %s | get user profile %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
-		User.model
-			.findOne()
-			.where('id')
-			.equals(req.session.user)
-			.select('id name useType nickname profileImgUri')
-			.exec((err, result) => {
-				if (err) {
-					console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-					res.json({status: 500, msg: err});
-				}
-				res.json({status: 200, msg: result});
-			});
-	} else {
-		console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-		res.json({status: 401, msg: 'Unauthorized'});
-	}
-});
-
-router.post('/getUserProfile', (req, res) => {
-	// if(req.session.user){
-	console.log("%s %s [%s] %s %s %s | get user profile %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.body.user_id); // prettier-ignore
-	if (req.body.user_id) {
-		User.model
-			.findById(req.body.user_id)
-			// .where("nickname")
-			// .equals(req.body.nickname)
-			.select('id name userType nickname profileImgUri belonged_pets volunteeractivity text_intro count deleted')
-			.exec((err, user) => {
-				if (err) {
-					console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-					res.json({status: 500, msg: err});
-				}
-
-				Post.model
-					.find()
-					.where('user')
-					.equals(user._id)
-					.sort('-_id')
-					.exec((err, postList) => {
-						if (err) {
-							console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-						}
-						res.json({status: 200, msg: {user: user, postList: postList}});
-					});
-			});
-	} else {
-		res.json({status: 400, msg: 'Bad Request'});
-	}
-	// }
-	// else{
-	// 	console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-	// 	res.json({status: 401, msg: "Unauthorized"})
-	// }
-});
 
 router.post('/getUserList', async (req, res) => {
 	console.log("%s %s [%s] %s %s %s | getUserList by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore

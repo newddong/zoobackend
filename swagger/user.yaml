@@ -12,6 +12,11 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - user_password
+                - user_nickname
+                - user_phone_number
+                - user_name
               properties:
                 user_agreement:
                   type: object
@@ -62,7 +67,7 @@ paths:
                   description: 유저 핸드폰 번호
                 user_nickname:
                   type: string
-                  description: 유저저 닉네임
+                  description: 유저 닉네임
                 user_profile_uri:
                   type: string
                   format: binary
@@ -95,6 +100,14 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - user_id
+                - pet_is_temp_protection
+                - pet_sex
+                - pet_species
+                - pet_species_detail
+                - pet_status
+                - user_nickname
               properties:
                 user_id:
                   type: string
@@ -150,6 +163,11 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - shelter_delegate_contact_number
+                - shelter_name
+                - shleter_type
+                - user_password
               properties:
                 shelter_address:
                   type: object
@@ -206,6 +224,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
+              required:
+                - user_id
               properties:
                 user_id:
                   type: string
@@ -230,6 +250,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
+              required:
+                - shelter_code
               properties:
                 shelter_code:
                   type: string
@@ -254,6 +276,9 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
+              required:
+                - login_id
+                - login_password
               properties:
                 login_id:
                   type: string
@@ -283,10 +308,6 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties:
-                logout_id:
-                  type: string
-                  description : 로그아웃할 유저 아이디
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -309,6 +330,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
+              required:
+                - user_id
               properties:
                 user_id:
                   type: string
@@ -322,8 +345,69 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-
-
+  /user/nicknameDuplicationCheck:
+    post:
+      tags:
+        - user
+      summary: 유저 닉네임 중복체크
+      description: 유저 등록 및 수정시 닉네임이 다른 유저에 의해 사용되고 있는지 검사한다.
+      operationId: nicknameDuplicationCheck
+      requestBody:
+        description: 검사할 닉네임
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - user_nickname
+              properties:
+                user_nickname:
+                  type: string
+                  description : 중복체크를 수행할 닉네임
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/updateUserInformation:
+    post:
+      tags:
+        - user
+      summary: 유저(일반유저,펫,보호소) 정보(사진,닉네임)를 업데이트
+      description: 유저 정보(프로필 사진, 닉네임을 업데이트한다.)
+      operationId: updateUserInformation
+      requestBody:
+        description: 검사할 닉네임
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: string
+                  description: 정보를 수정할 유저의 몽고디비 도큐먼트 ID
+                user_nickname:
+                  type: string
+                  description : 수정할 닉네임
+                user_profile_uri:
+                  type: string
+                  format: binary
+                  description: 교체할 프로필 이미지 로컬(디바이스)경로
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$

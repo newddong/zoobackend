@@ -6,7 +6,7 @@ const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 
 //피드 글쓰기
-router.post('/createFeed', uploadS3.array('feed_attachments'), (req, res) => {
+router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let feed = await Feed.makeNewdoc({
 			feed_content: req.body.feed_content,
@@ -30,7 +30,7 @@ router.post('/createFeed', uploadS3.array('feed_attachments'), (req, res) => {
 });
 
 //실종 게시물 쓰기
-router.post('/createMissing', uploadS3.array('feed_attachments'), (req, res) => {
+router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let missing = await Feed.makeNewdoc({
 			feed_content: req.body.feed_content,
@@ -62,7 +62,7 @@ router.post('/createMissing', uploadS3.array('feed_attachments'), (req, res) => 
 });
 
 //제보 게시물 쓰기
-router.post('/createReport', uploadS3.array('feed_attachments'), (req, res) => {
+router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let report = await Feed.makeNewdoc({
 			feed_content: req.body.feed_content,

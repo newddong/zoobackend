@@ -12,6 +12,8 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - feed_content
               properties:
                 feed_content:
                   type: string
@@ -22,7 +24,7 @@ paths:
                 feed_avatar_id:
                   type: string
                   description: 피드의 작성자로 지정하고 싶은 반려동물 ID
-                feed_attachments:
+                media_uri:
                   type: array
                   description: 피드 첨부파일 uri리스트
                   items:
@@ -40,9 +42,9 @@ paths:
                       duration:
                         type: integer
                         description: 동영상 재생 시간
-                      media_uri:
-                        type: string
-                        description: 미디어의 uri(서버에서 처리)
+                      # media_uri:
+                      #   type: string
+                      #   description: 미디어의 uri(서버에서 처리)
                       tags:
                         type: array
                         description: 미디어의 태그 목록
@@ -78,6 +80,13 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - feed_content
+                - missing_animal_features
+                - missing_animal_contact
+                - missing_animal_lost_location
+                - missing_animal_species
+                - missing_animal_species_detail
               properties:
                 feed_content:
                   type: string
@@ -85,7 +94,7 @@ paths:
                 feed_location:
                   type: string
                   description: 실종 게시물 작성 지역
-                feed_attachments:
+                media_uri:
                   type: array
                   description: 실종 게시물 첨부파일 uri리스트
                   items:
@@ -103,9 +112,9 @@ paths:
                       duration:
                         type: integer
                         description: 동영상 재생 시간
-                      media_uri:
-                        type: string
-                        description: 미디어의 uri(서버에서 처리)
+                      # media_uri:
+                      #   type: string
+                      #   description: 미디어의 uri(서버에서 처리)
                       tags:
                         type: array
                         description: 미디어의 태그 목록
@@ -169,7 +178,7 @@ paths:
                 feed_location:
                   type: string
                   description: 제보 작성 지역
-                feed_attachments:
+                media_uri:
                   type: array
                   description: 제보 첨부파일 uri리스트
                   items:
@@ -187,9 +196,9 @@ paths:
                       duration:
                         type: integer
                         description: 동영상 재생 시간
-                      media_uri:
-                        type: string
-                        description: 미디어의 uri(서버에서 처리)
+                      # media_uri:
+                      #   type: string
+                      #   description: 미디어의 uri(서버에서 처리)
                       tags:
                         type: array
                         description: 미디어의 태그 목록
