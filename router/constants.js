@@ -13,4 +13,5 @@ module.exports = Object.freeze({
     ALERT_NOT_VALID_OBJECT_ID:'유효한 오브젝트ID가 아니거나 해당 ID와 일치하는 도큐먼트가 없습니다',
     ALERT_NOt_VALID_TARGER_OBJECT_ID:'대상이 유효한 오브젝트ID가 아니거나 해당 ID와 일치하는 도큐먼트가 없습니다.',
     ALERT_NO_RESULT: '검색 결과가 없습니다.',
+    
 });

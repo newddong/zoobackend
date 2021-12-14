@@ -53,11 +53,53 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /shelter/createProtectRequest:
+    post:
+      tags:
+        - shelter
+      summary: 동물보호 요청 게시물을 작성한다.
+      description: 동물보호 요청 게시물을 작성한다. 로그인한 유저의 유저 타잎이 shelter일 경우만 동작한다.
+      operationId: createProtectRequest
+      requestBody:
+        description: 동물보호 요청 게시물의 작성정보
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - shelter_protect_animal_object_id
+                - protect_request_title
+                - protect_request_content
+              type: object
+              properties:
+                protect_request_photos:
+                  type: array
+                  description: 보호요청 게시물의 첨부사진 uri
+                  items:
+                    type: string
+                    format: binary
+                shelter_protect_animal_object_id:
+                  type: string
+                  description: 보호요청할 동물 ID
+                protect_request_title:
+                  type: string
+                  description: 보호요청 게시물의 제목
+                protect_request_content:
+                  type: string
+                  description: 보호요청 게시물 내용 
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 
 
 
 
-
- #jsdoc을 yaml으로 변환
+#jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
+# .*?\{(.*?)\} (.*?) - (.*?)$
 #$2:\n  type: $1\n  description: $3

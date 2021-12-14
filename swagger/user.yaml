@@ -545,6 +545,38 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /user/changeUserPassword:
+    post:
+      tags:
+        - user
+      summary: 유저의 패스워드를 변경
+      description: 유저의 패스워드를 변경
+      operationId: changeUserPassword
+      requestBody:
+        description: 유저의 현재 비밀번호와, 바꿀 새 비밀번호
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - user_password
+                - new_user_password
+              properties:
+                user_password:
+                  type: string
+                  description: 유저의 현재 비밀번호
+                new_user_password:
+                  type: string
+                  description: 새로운 유저의 비밀번호
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$

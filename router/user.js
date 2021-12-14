@@ -301,6 +301,23 @@ router.post('/addUserToFamily',(req,res)=>{
 });
 
 
+//유저의 패스워드를 변경
+router.post('/changeUserPassword',(req,res)=>{
+	controllerLoggedIn(req,res, async ()=> {
+		let user = await User.model.findById(req.session.loginUser).exec();
+		if(user.user_password!=req.body.user_password){
+			res.status(400);
+			res.json({status:400,msg:USER_PASSWORD_NOT_VALID});
+			return;
+		}
+		user.user_password = req.body.new_user_password;
+		await user.save();
+		res.status(200);
+		res.json({status:200,msg:user});
+	})
+})
+
+
 //=================================이전 router code =============================================================================
 
 router.post('/getUserList', async (req, res) => {
