@@ -50,7 +50,7 @@ router.post('/createComment',uploadS3.single('comment_photo_uri'),(req,res)=>{
 
 
 
-//이전 router code --
+//=================================이전 router code =============================================================================
 
 router.post(
 	"/getChildCommentList",

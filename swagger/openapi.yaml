@@ -5,6 +5,8 @@ tags:
     description: '피드 관련 API'
   - name: 'comment'
     description: '댓글 관련 API'
+  - name: 'shelter'
+    description: '보호소/동물보호 관련 API'
 externalDocs:
   description: 'Find out more about Swagger'
   url: 'http://swagger.io'
@@ -42,7 +44,7 @@ components:
                 type: object
                 description: 응답 메세지 객체
     404:
-      description: '에러 응답'
+      description: '찾을수 없음 에러 응답'
       content:
         application/json:
           schema:

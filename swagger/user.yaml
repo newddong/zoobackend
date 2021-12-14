@@ -473,8 +473,78 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-
-
+  /user/updatePetDetailInformation:
+    post:
+      tags:
+        - user
+      summary: 반려동물 상세 정보를 수정
+      description: 반려동물 상세 정보(생일, 몸무게, 성별, 중성화 여부)를 수정
+      operationId: updatePetDetailInformation
+      requestBody:
+        description: 반려동물 상세 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - userobject_id
+              properties:
+                userobject_id:
+                  type: string
+                  description: 정보를 수정할 반려동물의 몽고디비 도큐먼트 ID
+                pet_sex:
+                  type: string
+                  description: 반려동물의 성별 
+                pet_neutralization:
+                  type: string
+                  description: 반려동물 중성화 여부 
+                pet_birthday:
+                  type: string
+                  description: 반려동물 생일 
+                pet_weight:
+                  type: string
+                  description: 반려동물 몸무게 
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/addUserToFamily:
+    post:
+      tags:
+        - user
+      summary: 반려동물의 가족계정에 유저를 추가
+      description: 반려동물의 가족계정에 유저를 추가
+      operationId: addUserToFamily
+      requestBody:
+        description: 가족계정으로 묶을 유저 ID와 펫 ID
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - userobject_id
+                - family_userobject_id
+              properties:
+                userobject_id:
+                  type: string
+                  description: 반려동물 유저 객체 ID
+                family_userobject_id:
+                  type: string
+                  description: 반려동물의 가족 계정에 추가할 유저의 ID
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$

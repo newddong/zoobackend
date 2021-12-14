@@ -5,6 +5,18 @@ const Post = require('../schema/post');
 const Feed = require('../schema/feed');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
+const {
+	ALREADY_LOGIN,
+	USER_NOT_FOUND,
+	USER_PASSWORD_NOT_VALID,
+	LOGOUT_FAILED,
+	LOGOUT_SUCCESS,
+	USER_NOT_VALID,
+	ALERT_DUPLICATE_NICKNAME,
+	ALERT_NOT_VALID_USEROBJECT_ID,
+	ALERT_NOT_VALID_OBJECT_ID,
+	ALERT_NOt_VALID_TARGER_OBJECT_ID
+} = require('./constants');
 const {nicknameDuplicationCheck} = require('./utilfunction');
 
 //로그인
@@ -12,7 +24,7 @@ router.post('/userLogin', (req, res) => {
 	controller(req, res, async () => {
 		if (req.session?.loginUser) {
 			res.status(200);
-			res.json({status: 200, msg: '이미 로그인된 상태입니다'});
+			res.json({status: 200, msg: ALREADY_LOGIN});
 			return;
 		}
 
@@ -20,17 +32,18 @@ router.post('/userLogin', (req, res) => {
 
 		if (!loginUser) {
 			res.status(404);
-			res.json({status: 404, msg: '등록된 유저가 없습니다'});
+			res.json({status: 404, msg: USER_NOT_FOUND});
 			return;
 		}
 		let isValidPassword = loginUser.user_password == req.body.login_password;
 		if (!isValidPassword) {
 			res.status(404);
-			res.json({status: 404, msg: '유효하지 않은 비밀번호입니다'});
+			res.json({status: 404, msg: USER_PASSWORD_NOT_VALID});
 			return;
 		}
 
 		req.session.loginUser = loginUser._id;
+		req.session.user_type = loginUser.user_type;
 		req.session.user_nickname = loginUser.user_nickname;
 		res.status(200);
 		res.json({status: 200, msg: loginUser});
@@ -43,10 +56,10 @@ router.post('/userLogout', (req, res) => {
 		try {
 			req.session.destroy();
 			res.status(200);
-			res.json({status: 200, msg: '로그아웃 성공'});
+			res.json({status: 200, msg: LOGOUT_SUCCESS});
 		} catch (err) {
 			res.status(500);
-			res.json({status: 500, msg: '로그아웃 실패'});
+			res.json({status: 500, msg: LOGOUT_FAILED});
 		}
 	});
 });
@@ -57,7 +70,7 @@ router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
 		if (duplicateNickname != null) {
 			res.status(400);
-			res.json({status: 400, msg: '중복된 닉네임을 입력하셨습니다.'});
+			res.json({status: 400, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
 		}
 
@@ -139,13 +152,15 @@ router.post('/getUserProfile', (req, res) => {
 	controller(req, res, async () => {
 		const userInfo = await User.model
 			.findById(req.body.userobject_id)
-			.select('user_nickname user_profile_uri user_upload_count user_follow_count user_follower_count user_denied user_my_pets user_introduction')
+			.select(
+				'user_type user_nickname user_profile_uri user_upload_count user_follow_count user_follower_count user_denied user_my_pets user_introduction',
+			)
 			.populate('user_my_pets', 'user_nickname user_profile_uri')
 			.exec();
 
 		if (!userInfo) {
 			res.status(404);
-			res.json({status: 404, msg: '해당 유저가 없습니다'});
+			res.json({status: 404, msg: USER_NOT_FOUND});
 			return;
 		}
 
@@ -178,7 +193,7 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 		let userInfo = await User.model.findById(req.body.userobject_id).exec();
 		if (userInfo == null) {
 			res.status(400);
-			res.json({status: 400, msg: '유효한 유저 ID가 아니거나 해당 ID와 일치하는 유저가 없습니다.'});
+			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
 		// if (userInfo.user_type != 'user') {
@@ -189,7 +204,7 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
 		if (duplicateNickname != null) {
 			res.status(400);
-			res.json({status: 400, msg: '중복된 닉네임을 입력하셨습니다.'});
+			res.json({status: 400, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
 		}
 		userInfo.user_nickname = req.body.user_nickname;
@@ -205,27 +220,88 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 });
 
 //유저 상세 정보를 수정
-router.post('/updateUserDetailInformation', (req, res)=>{
-	controllerLoggedIn(req, res, async ()=> {
+router.post('/updateUserDetailInformation', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
 		let userInfo = await User.model.findById(req.body.userobject_id).exec();
-		if(userInfo == null){
+		if (userInfo == null) {
 			res.status(400);
-			res.json({status:400, msg:'유효한 유저 ID가 아니거나 해당 ID와 일치하는 유저가 없습니다.'});
+			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
 		userInfo.user_birthday = req.body.user_birthday;
 		userInfo.user_sex = req.body.user_sex;
-		userInfo.user_interests = JSON.parse('['+req.body.user_interests+']');
+		userInfo.user_interests = JSON.parse('[' + req.body.user_interests + ']');
 		userInfo.user_address = JSON.parse(req.body.user_address);
 
 		await userInfo.save();
 		res.status(200);
-		res.json({status:200, msg:userInfo});
+		res.json({status: 200, msg: userInfo});
+	});
+});
+
+//반려동물 상세 정보를 수정
+router.post('/updatePetDetailInformation', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let pet = await User.model.findById(req.body.userobject_id).exec();
+		if (!pet) {
+			res.status(404);
+			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
+			return;
+		}
+
+		let isFamily = pet.pet_family.includes(req.session.loginUser);
+		if(!isFamily){
+			res.status(400);
+			res.json({status: 400, msg: USER_NOT_VALID})
+			return;
+		}
+
+		pet.pet_sex = req.body.pet_sex;
+		pet.pet_neutralization = req.body.pet_neutralization;
+		pet.pet_birthday = req.body.pet_birthday;
+		pet.pet_weight = req.body.pet_weight;
+		await pet.save();
+
+		res.json({status: 200, msg: pet});
+	});
+});
+
+//반려동물의 가족계정에 유저를 추가
+router.post('/addUserToFamily',(req,res)=>{
+	controllerLoggedIn(req, res, async () => {
+		let pet = await User.model.findById(req.body.userobject_id).exec();
+		if (!pet) {
+			res.status(404);
+			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
+			return;
+		}
+
+		let isFamily = pet.pet_family.includes(req.session.loginUser);
+		if(!isFamily){
+			res.status(400);
+			res.json({status: 400, msg: USER_NOT_VALID})
+			return;
+		}
+
+		let targetUser = await User.model.findById(req.body.family_userobject_id).exec();
+		if (!targetUser) {
+			res.status(404);
+			res.json({status: 404, msg: ALERT_NOt_VALID_TARGER_OBJECT_ID});
+			return;
+		}
+
+		pet.pet_family.push(targetUser._id);
+		await pet.save();
+		targetUser.user_my_pets.push(pet._id);
+		await targetUser.save();
+
+		res.status(200);
+		res.json({status:200, pet: pet, targetUser: targetUser});
 	})
-})
+});
 
 
-//이전 router code --
+//=================================이전 router code =============================================================================
 
 router.post('/getUserList', async (req, res) => {
 	console.log("%s %s [%s] %s %s %s | getUserList by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore

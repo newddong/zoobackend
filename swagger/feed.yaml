@@ -151,6 +151,9 @@ paths:
                 missing_animal_species_detail:
                   type: string
                   description: 실종 동물 세부 종류(리트리버,푸들,말티즈)
+                missing_animal_date:
+                  type: string
+                  description: 실종 추정일
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -242,6 +245,7 @@ paths:
               required:
                 - userobject_id
                 - request_number
+                # - user_type
               type: object
               properties:
                 userobject_id:
@@ -250,11 +254,16 @@ paths:
                 request_number:
                   type: interger
                   description: 요청할 리스트의 갯수
+                # user_type:
+                #   type: string
+                #   description: 유저의 유형('user'|'shelter'|'pet')
       responses:
         '200':
           $ref: '#/components/responses/200'
         '400':
           $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
 

@@ -1,0 +1,63 @@
+paths:
+  /shelter/assignShelterAnimal:
+    post:
+      tags:
+        - shelter
+      summary: 보호소가 보호중인 동물을 등록한다.
+      description: 보호소가 보호중인 동물을 등록한다. 로그인한 유저의 유저 타잎이 shelter일 경우만 동작한다.
+      operationId: assignShelterAnimal
+      requestBody:
+        description: 보호소에 등록할 동물의 정보
+        content:
+          multipart/form-data:
+            schema:
+              # required:
+              type: object
+              properties:
+                protect_animal_photo_uri_list:
+                  type: array
+                  description: 보호중인 동물의 사진 로컬 경로 목록
+                  items:
+                    type: string
+                    format: binary
+                protect_animal_rescue_date:
+                  type: string
+                  description: 보호중인 동물의 구조날자
+                protect_animal_rescue_location:
+                  type: string
+                  description: 보호중인 동물의 구조장소
+                protect_animal_species:
+                  type: string
+                  description: 보호중인 동물의 종류(ex 개, 고양이, 토끼)
+                protect_animal_species_detail:
+                  type: string
+                  description: 보호중인 동물의 종류(ex 리트리버, 푸들, 진돗개)
+                protect_animal_neutralization:
+                  type: string
+                  description: 중성화 여부 {'yes'|'no'|'unknown'}
+                protect_animal_sex:
+                  type: string
+                  description: 보호중인 동물의 성별 {'male'|'female'|'unknown'}
+                protect_animal_estimate_age:
+                  type: string
+                  description: 보호중인 동물의 예상 연령
+                protect_animal_weight:
+                  type: integer
+                  description: 보호중인 동물의 몸무게
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+
+
+
+
+
+ #jsdoc을 yaml으로 변환
+#.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
+#$2:\n  type: $1\n  description: $3

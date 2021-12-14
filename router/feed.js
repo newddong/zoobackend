@@ -4,6 +4,7 @@ const User = require('../schema/user');
 const Feed = require('../schema/feed');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
+const {USER_NOT_FOUND,ALERT_NOT_VALID_USEROBJECT_ID,ALERT_NO_RESULT} = require('./constants');
 
 //피드 글쓰기
 router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
@@ -46,6 +47,7 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 			missing_animal_sex: req.body.missing_animal_sex,
 			missing_animal_species: req.body.missing_animal_species,
 			missing_animal_species_detail: req.body.missing_animal_species_detail,
+			missing_animal_date: req.body.missing_animal_date,
 		});
 
 		if (req.files.length > 0) {
@@ -91,15 +93,33 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 //특정 유저가 작성한 피드 리스트를 불러온다.
 router.post('/getFeedListByUserId',(req,res)=>{
 	controller(req,res,async ()=>{
-		//TODO:유저의 존재여부 검사
-		//TODO:아바타 아이디는 어떻게 처리할건지?
-		let feedList = await Feed.model.find({feed_writer_id: req.body.userobject_id});
-		console.log(feedList);
-
-
-		res.status(200);
-		res.json({status: 200, msg:[]});
-
+		let user = await User.model.findById(req.body.userobject_id);
+		if(!user){
+			res.status(400);
+			res.json({status:400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
+			return;
+		};
+		if(user.user_type=='pet'){
+			let petFeeds = await Feed.model.find({feed_avatar_id: req.body.userobject_id}).limit(req.body.request_number).exec();
+			if(petFeeds.length<1){
+				res.status(404);
+				res.json({status:404,user_type:'pet',msg:ALERT_NO_RESULT});
+				return;
+			}
+			res.status(200);
+			res.json({status:200,user_type:'pet',msg:petFeeds});
+			return;
+		}else{
+			let userFeeds = await Feed.model.find({feed_writer_id: req.body.userobject_id}).limit(req.body.request_number).exec();
+			if(userFeeds<1){
+				res.status(404);
+				res.json({status:404,user_type:user.user_type,msg:ALERT_NO_RESULT});
+				return;
+			}
+			res.status(200);
+			res.json({status:200,user_type:user.user_type,msg:userFeeds});
+			return;
+		}
 	})
 })
 

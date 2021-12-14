@@ -79,6 +79,7 @@ const postRoute = require('./router/post');
 const appauth = require('./router/appauth');
 const comment = require('./router/comment');
 const feedRoute = require('./router/feed');
+const shelterRoute = require('./router/shelter');
 const database = require('./database/database');
 const router = express.Router();
 
@@ -90,6 +91,7 @@ app.use('/user', userRoute);
 app.use('/post', postRoute);
 app.use('/comment', comment);
 app.use('/feed', feedRoute);
+app.use('/shelter',shelterRoute);
 app.use('/', router);
 
 //Launch Server

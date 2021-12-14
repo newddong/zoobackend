@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const ShelterProtectAnimalObject = {
 /** @type { Array.<String>} 보호중인 동물 사진 */
-protect_animal_photos  : [{type :  String}],
+protect_animal_photo_uri_list : [{type :  String}],
 
 
 /** @type { Date} 보호중인 동물의 구조일자(보호소가 동물을 맡은 일자) */
@@ -37,6 +37,8 @@ protect_animal_status  : {type :  String, default: 'rescue'},
 
 /** @type { String} 보호요청을 작성한 작성자(보호소) */
 protect_animal_writer_id  : { type : Schema.Types.ObjectId, ref: 'UserObject'},
+/** @type { String} Mongodb_ID(ref:UserObject), //보호중인 동물이 속한 보호소 */
+protect_animal_belonged_shelter_id : { type : Schema.Types.ObjectId, ref: 'UserObject'},
 
 
 /** @type { String} 보호요청 게시물 */
@@ -48,8 +50,8 @@ protect_animal_adoptor_id  : { type : Schema.Types.ObjectId, ref: 'UserObject'},
 /** @type { String} 임시보호자 */
 protect_animal_protector_id  : { type : Schema.Types.ObjectId, ref: 'UserObject'},
 
-/** @type { String} 입양, 임시보호 협의중인 유저 */
-protect_animal_protector_discussion_id  : { type : Schema.Types.ObjectId, ref:'UserObject'},
+/** @type { Array.<String>} 입양, 임시보호 협의중인 유저 목록 */
+protect_animal_protector_discussion_id  : [{ type : Schema.Types.ObjectId, ref:'UserObject'}],
 };
 
 

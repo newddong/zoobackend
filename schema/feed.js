@@ -77,6 +77,8 @@ const FeedObject = {
 	missing_animal_contact: {type: String},
 	/** @type { String} 실종 동물의 특징 */
 	missing_animal_features: {type: String},
+	/** @type { Date} 동물이 실종된 추정일자 */
+	missing_animal_date: {type: Date, default: Date.now},
 
 	/** @type { Date} 제보일자(해당 동물의 목격일) */
 	report_witness_date: {type: Date, default: Date.now},
