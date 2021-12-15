@@ -135,7 +135,37 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-
+  /shelter/getShelterProtectAnimalList:
+    post:
+      tags:
+        - shelter
+      summary: 보호소가 보호중인 동물 리스트를 조회한다.
+      description: 보호소가 보호중인 동물 리스트를 조회한다.
+      operationId: getShelterProtectAnimalList
+      requestBody:
+        description: 리스트 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - request_number
+              type: object
+              properties:
+                shelter_protect_animal_object_id:
+                  type: string
+                  description: 커서 역할을 할 오브잭트(페이징 처리)
+                request_number:
+                  type: integer
+                  description:  보호요청게시글 요청 숫자
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 
 
 #jsdoc을 yaml으로 변환

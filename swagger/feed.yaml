@@ -32,7 +32,7 @@ paths:
                     format: binary
                 feed_medias:
                   type: array
-                  description: 첨부 객체정보 리스트
+                  description: 첨부 객체정보 리스트(첨부파일이 있을때 입력해줘야 오류 발생하지않음)
                   items:
                     type: object
                     properties:
@@ -325,6 +325,35 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /feed/getFeedDetailById:
+    post:
+      tags:
+        - feed
+      summary: 피드,실종,제보 게시글 상세정보 가져오기
+      description: 피드,실종,제보 게시글 상세정보 가져오기
+      operationId: getFeedDetailById
+      requestBody:
+        description: 상세정보 요청 필요 파라메터
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - feedobject_id
+              type: object
+              properties:
+                feedobject_id:
+                  type: string
+                  description: 열람할 게시글의 오브젝트 ID
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+
  #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 #$2:\n  type: $1\n  description: $3

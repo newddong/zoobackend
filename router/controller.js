@@ -18,7 +18,7 @@ async function controllerLoggedIn(req, res, fn) {
 	} else {
 		console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Unauthorized Access", req.ip, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
 		res.status(401);
-		res.json({status: 401, msg: 'Unauthorized'});
+		res.json({status: 401, msg: '로그인이 필요합니다.'});
 	}
 }
 

@@ -4,7 +4,7 @@ const User = require('../schema/user');
 const Feed = require('../schema/feed');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
-const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT} = require('./constants');
+const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MEDIA_INFO} = require('./constants');
 
 //피드 글쓰기
 router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
@@ -13,11 +13,20 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 			feed_content: req.body.feed_content,
 			feed_location: req.body.feed_location,
 			feed_type: 'feed',
-			feed_avatar_id: req.body.feed_avatar_id,
-			feed_medias: JSON.parse('[' + req.body.feed_medias + ']'),
 			feed_writer_id: req.session.loginUser,
 		});
+
+		if(req.body.feed_avatar_id){
+			feed.feed_avatar_id = req.body.feed_avatar_id;
+		}
+
 		if (req.files.length > 0) {
+			if(!req.body.feed_medias){
+				res.status(400);
+				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
+				return;
+			}
+			feed.feed_medias = JSON.parse('[' + req.body.feed_medias + ']'),
 			feed.feed_medias.map((v, i) => {
 				v.media_uri = req.files[i].location;
 			});
@@ -37,7 +46,6 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 			feed_content: req.body.feed_content,
 			feed_location: req.body.feed_location,
 			feed_type: 'missing',
-			feed_medias: JSON.parse('[' + req.body.feed_medias + ']'),
 			feed_writer_id: req.session.loginUser,
 
 			missing_animal_age: req.body.missing_animal_age,
@@ -51,6 +59,12 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 		});
 
 		if (req.files.length > 0) {
+			if(!req.body.feed_medias){
+				res.status(400);
+				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
+				return;
+			}
+			missing.feed_medias = JSON.parse('[' + req.body.feed_medias + ']');
 			missing.feed_medias.map((v, i) => {
 				v.media_uri = req.files[i].location;
 			});
@@ -70,7 +84,6 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 			feed_content: req.body.feed_content,
 			feed_location: req.body.feed_location,
 			feed_type: 'report',
-			feed_medias: JSON.parse('[' + req.body.feed_medias + ']'),
 			feed_writer_id: req.session.loginUser,
 
 			report_witness_date: req.body.report_witness_date,
@@ -78,6 +91,12 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 		});
 
 		if (req.files.length > 0) {
+			if(!req.body.feed_medias){
+				res.status(400);
+				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
+				return;
+			}
+			report.feed_medias = JSON.parse('[' + req.body.feed_medias + ']');
 			report.feed_medias.map((v, i) => {
 				v.media_uri = req.files[i].location;
 			});
@@ -140,10 +159,29 @@ router.post('/getMissingReportList', (req, res) => {
 		}
 
 		reportMissingList = await reportMissingList.exec();
-
+		if(!reportMissingList.length<1){
+			res.status(404);
+			res.json({status:404,msg:ALERT_NO_RESULT});
+			return;
+		}
 		res.status(200);
 		res.json({status: 200, msg: reportMissingList});
 	});
 });
+
+//피드,실종,제보 게시글 상세정보 가져오기
+router.post('/getFeedDetailById',(req, res)=>{
+	controller(req,res,async ()=>{
+		let feed = await Feed.model.findById(req.body.feedobject_id).exec();
+		if(!feed){
+			res.status(404);
+			res.json({status:404,msg:ALERT_NO_RESULT});
+			return;
+		}
+
+		res.status(200);
+		res.json({status:200, msg: feed});
+	})
+})
 
 module.exports = router;

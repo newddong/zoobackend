@@ -63,13 +63,13 @@ const ProtectionActivityApplicantObject = {
 	protect_act_motivation: {type: String},
 
 	/** @type { String} 보호활동 신청자 */
-	protect_act_applicant_id: {type: Schema.Types.ObjectId},
+	protect_act_applicant_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
 
 	/** @type { String} 동물보호 게시글 */
-	protect_act_request_article_id: {type: Schema.Types.ObjectId},
+	protect_act_request_article_id: {type: Schema.Types.ObjectId, ref:'ProtectRequestObject'},
 
 	/** @type { String} 동물보호 게시글 작성한 보호소 */
-	protect_act_request_shelter_id: {type: Schema.Types.ObjectId},
+	protect_act_request_shelter_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
 };
 
 /** @type {mongoose.Schema} */

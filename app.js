@@ -81,6 +81,7 @@ const comment = require('./router/comment');
 const feedRoute = require('./router/feed');
 const shelterRoute = require('./router/shelter');
 const database = require('./database/database');
+const protectRoute = require('./router/protect');
 const router = express.Router();
 
 const dbconnection = database();
@@ -92,6 +93,7 @@ app.use('/post', postRoute);
 app.use('/comment', comment);
 app.use('/feed', feedRoute);
 app.use('/shelter',shelterRoute);
+app.use('/protect',protectRoute);
 app.use('/', router);
 
 //Launch Server

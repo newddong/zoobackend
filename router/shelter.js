@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../schema/user');
 const Feed = require('../schema/feed');
-const Shelter = require('../schema/shelterProtectAnimal');
+const ShelterAnimal = require('../schema/shelterProtectAnimal');
 const ProtectRequest = require('../schema/protectRequest');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
@@ -24,7 +24,7 @@ router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_lis
 			return;
 		}
 
-		const protectAnimal = await Shelter.makeNewdoc({
+		const protectAnimal = await ShelterAnimal.makeNewdoc({
 			protect_animal_rescue_date: req.body.protect_animal_rescue_date,
 			protect_animal_rescue_location: req.body.protect_animal_rescue_location,
 			protect_animal_species: req.body.protect_animal_species,
@@ -54,7 +54,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 			return;
 		}
 
-		let animal = await Shelter.model.findById(req.body.shelter_protect_animal_object_id).exec();
+		let animal = await ShelterAnimal.model.findById(req.body.shelter_protect_animal_object_id).exec();
 		if (!animal) {
 			res.status(400);
 			res.json({status: 400, msg: USER_NOT_FOUND});
@@ -111,5 +111,28 @@ router.post('/getProtectRequestList', (req, res) => {
 		res.json({stauts: 200, msg: requestList});
 	});
 });
+
+//보호소가 보호중인 동물 리스트를 조회한다.
+router.post('/getShelterProtectAnimalList',(req,res)=>{
+	controllerLoggedIn(req,res,async ()=>{
+		if(req.session.user_type!='shelter'){
+			res.status(401);
+			res.json({status: 401,msg:USER_NOT_VALID_TYPE});
+			return;
+		};
+
+		let animalList = ShelterAnimal.model.find({protect_animal_belonged_shelter_id:req.session.loginUser})
+		animalList.limit(req.body.request_number);
+		animalList = await animalList.exec();
+		if(animalList.length<1){
+			res.status(404);
+			res.json({status:404, msg: ALERT_NO_RESULT});
+			return;
+		};
+
+		res.status(200);
+		res.json({stauts: 200, msg: animalList});
+	})
+})
 
 module.exports = router;
