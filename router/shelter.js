@@ -6,7 +6,14 @@ const Shelter = require('../schema/shelterProtectAnimal');
 const ProtectRequest = require('../schema/protectRequest');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
-const {USER_NOT_VALID_TYPE, LOGOUT_FAILED, LOGOUT_SUCCESS, ALERT_DUPLICATE_NICKNAME, ALERT_NOT_VALID_USEROBJECT_ID, USER_NOT_FOUND} = require('./constants');
+const {
+	USER_NOT_VALID_TYPE,
+	LOGOUT_FAILED,
+	LOGOUT_SUCCESS,
+	ALERT_DUPLICATE_NICKNAME,
+	ALERT_NOT_VALID_USEROBJECT_ID,
+	USER_NOT_FOUND,
+} = require('./constants');
 
 //보호소의 보호 동물을 등록한다.
 router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_list'), (req, res) => {
@@ -48,9 +55,9 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 		}
 
 		let animal = await Shelter.model.findById(req.body.shelter_protect_animal_object_id).exec();
-		if(!animal){
+		if (!animal) {
 			res.status(400);
-			res.json({status:400, msg: USER_NOT_FOUND});
+			res.json({status: 400, msg: USER_NOT_FOUND});
 			return;
 		}
 
@@ -58,19 +65,50 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 			protect_animal_id: req.body.shelter_protect_animal_object_id,
 			protect_request_title: req.body.protect_request_title,
 			protect_request_content: req.body.protect_request_content,
-			protect_request_writer_id: req.session.loginUser
+			protect_request_writer_id: req.session.loginUser,
 		});
 
-		if(req.files.length>0){
-			req.files.forEach((file)=>{newRequest.protect_request_photos.push(file.location)});
+		if (req.files.length > 0) {
+			req.files.forEach(file => {
+				newRequest.protect_request_photos.push(file.location);
+			});
 		}
-		if(animal.protect_animal_photo_uri_list.length>0){
-			animal.protect_animal_photo_uri_list.forEach((uri)=>newRequest.protect_request_photos.push(uri));
+		if (animal.protect_animal_photo_uri_list.length > 0) {
+			animal.protect_animal_photo_uri_list.forEach(uri => newRequest.protect_request_photos.push(uri));
 		}
 		await newRequest.save();
 
 		res.status(200);
-		res.json({stauts: 200, msg:newRequest});
+		res.json({stauts: 200, msg: newRequest});
+	});
+});
+
+//동물보호요청을 가져온다.
+router.post('/getProtectRequestList', (req, res) => {
+	controller(req, res, async () => {
+		let requestList = ProtectRequest.model.find();
+
+		if (req.body.city) {
+			requestList.populate({
+				path: 'protect_request_writer_id',
+				select: 'shelter_address shelter_name shelter_delegate_contact_number',
+				match: {'shelter_address.brief': {$regex: req.body.city}, options: {limit: req.body.request_number}},
+			});
+		}
+		if (req.body.protect_animal_species) {
+			requestList.find({protect_animal_species: req.body.protect_animal_species});
+		}
+
+		if (req.body.adoptable_posts && req.body.adoptable_posts == 'true') {
+			requestList.find({protect_request_status: 'rescue'});
+		}
+
+		console.log(requestList.getFilter());
+		requestList = await requestList.exec();
+		requestList = requestList.filter(v => v.protect_request_writer_id != null);
+
+		res.status(200);
+		res.json({stauts: 200, msg: requestList});
 	});
 });
 

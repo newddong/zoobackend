@@ -95,7 +95,46 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-
+  /shelter/getProtectRequestList:
+    post:
+      tags:
+        - shelter
+      summary: 동물보호요청을 가져온다.
+      description: 동물보호요청을 가져온다.
+      operationId: getProtectRequestList
+      requestBody:
+        description: 동물보호 요청 게시물의 작성정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - request_number
+              type: object
+              properties:
+                city:
+                  type: string
+                  description: 보존지역 (서울,부산,인천 등등)
+                protect_animal_species:
+                  type: string
+                  description: 보호중이 동물의 종류 (개, 고양이, 새 등등)
+                adoptable_posts:
+                  type: boolean
+                  description: //입양 가능한 게시글만 보기
+                protect_request_object_id:
+                  type: string
+                  description: 커서 역할을 할 보호요청 오브잭트(페이징 처리)
+                request_number:
+                  type: integer
+                  description:  보호요청게시글 요청 숫자
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 
 
 

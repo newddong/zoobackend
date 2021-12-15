@@ -27,8 +27,8 @@ const RecentComment = {
 	/** @type { String} 댓글 작성자의 닉네임 */
 	comment_user_nickname: {type: String},
 	/** @type { String} 댓글의 내용 */
-	comment_contents: {type: String}
-}
+	comment_contents: {type: String},
+};
 
 const FeedObject = {
 	/** @type { String} 피드 본문 */
@@ -58,9 +58,9 @@ const FeedObject = {
 	/** @type { Number} 게시글에 좋아요를 누른 수 */
 	feed_like_count: {type: Number, default: 0},
 	/** @type { Number} 게시글을 즐겨찾기로 등록한 수 */
-	feed_favorite_count: {type: Number, default:0},
+	feed_favorite_count: {type: Number, default: 0},
 	/** @type { Number} 게시글에 달린 댓글의 수(대댓글 포함) */
-	feed_comment_count: {type: Number, default:0},
+	feed_comment_count: {type: Number, default: 0},
 	/** @type { RecentComment} 게시글에 달린 최신 댓글 */
 	feed_recent_comment: RecentComment,
 	/** @type { String} 실종 동물의 종류(ex 강아지, 고양이, 토끼 등) */
@@ -84,6 +84,19 @@ const FeedObject = {
 	report_witness_date: {type: Date, default: Date.now},
 	/** @type { String} 제보장소(목격장소) */
 	report_witness_location: {type: String},
+
+	/** @type { String} 제보 동물의 종류(ex 강아지, 고양이, 토끼 등) */
+	report_animal_species: {type: String},
+	/** @type { String} 제보 동물의 세부 종류(ex 리트리버, 불독, 진돗개 등) */
+	report_animal_species_detail: {type: String},
+	/** @type { 'male'|'female'|'unknown'} 제보 동물의 성별 */
+	report_animal_sex: {type: String},
+	/** @type { String} 제보 동물의 나이 */
+	report_animal_age: {type: String},
+	/** @type { String} 제보자  연락처 */
+	report_animal_contact: {type: String},
+	/** @type { String} 제보 동물의 특징 */
+	report_animal_features: {type: String},
 };
 
 /** @type {mongoose.Schema} */

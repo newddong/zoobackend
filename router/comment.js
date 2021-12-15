@@ -4,8 +4,10 @@ const User = require("../schema/user");
 const Feed = require('../schema/feed');
 const Comment = require("../schema/comment");
 const Like = require("../schema/likepostcomment");
+const ProtectRequest = require("../schema/protectRequest");
 const uploadS3 = require("../common/uploadS3");
 const {controller, controllerLoggedIn} = require('./controller');
+const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT} = require('./constants');
 
 //댓글 대댓글 작성
 router.post('/createComment',uploadS3.single('comment_photo_uri'),(req,res)=>{
@@ -17,15 +19,15 @@ router.post('/createComment',uploadS3.single('comment_photo_uri'),(req,res)=>{
 			comment_writer_id: req.session.loginUser,
 		});
 
-		if(req.body.comment_parent&&req.body.comment_parent.length>0){
-			let parentComment = await Comment.model.findById(req.body.comment_parent);
+		if(req.body.commentobject_id&&req.body.commentobject_id.length>0){
+			let parentComment = await Comment.model.findById(req.body.commentobject_id);
 			if(parentComment)comment.comment_parent_writer_id = parentComment.comment_writer_id;
-			comment.comment_parent = req.body.comment_parent;
+			comment.comment_parent = req.body.commentobject_id;
 		}//부모 코멘트의 작성자를 설정(Secure기능을 이용하기 위함)
 
-		if(req.body.comment_feed_id&&req.body.comment_feed_id.length>0){
-			comment.comment_feed_id = req.body.comment_feed_id;
-			let targetFeed = await Feed.model.findById(req.body.comment_feed_id);
+		if(req.body.feedobject_id&&req.body.feedobject_id.length>0){
+			comment.comment_feed_id = req.body.feedobject_id;
+			let targetFeed = await Feed.model.findById(req.body.feedobject_id);
 			if(targetFeed){
 				targetFeed.feed_recent_comment.comment_id = comment._id;//게시물에 달린 최신 댓글 설정
 				targetFeed.feed_recent_comment.comment_user_nickname = req.session.user_nickname;//코멘트 작성자의 닉네임
@@ -47,6 +49,52 @@ router.post('/createComment',uploadS3.single('comment_photo_uri'),(req,res)=>{
 
 })
 
+//피드(피드,실종,제보)댓글 리스트 불러오기
+router.post('/getCommentListByFeedId',(req,res)=>{
+	controller(req,res,async ()=>{
+		let feed = await Feed.model.findById(req.body.feedobject_id).exec();
+		if(!feed){
+			res.status(400);
+			res.json({status:400,msg:ALERT_NOT_VALID_OBJECT_ID});
+			return;
+		}
+
+		let commentList = await Comment.model.find({comment_feed_id:feed._id}).exec();
+		if(commentList.length<1){
+			res.status(404);
+			res.json({status:404,msg:ALERT_NO_RESULT});
+			return;
+		}
+
+
+		res.status(200);
+		res.json({status:200,msg:commentList});
+	})
+})
+
+//동물보호요청게시글 댓글 리스트 불러오기
+router.post('/getCommentListByProtectId',(req,res)=>{
+	controller(req,res,async ()=>{
+		let protectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id).exec();
+		
+		if(!protectRequest){
+			res.status(400);
+			res.json({status:400,msg:ALERT_NOT_VALID_OBJECT_ID});
+			return;
+		}
+
+		let commentList = await Comment.model.find({comment_protect_request_id:protectRequest._id}).exec();
+		if(commentList.length<1){
+			res.status(404);
+			res.json({status:404,msg:ALERT_NO_RESULT});
+			return;
+		}
+
+
+		res.status(200);
+		res.json({status:200,msg:commentList});
+	})
+})
 
 
 

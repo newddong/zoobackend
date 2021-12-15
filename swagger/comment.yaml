@@ -12,6 +12,9 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - comment_contents
+                - comment_contents
               properties:
                 comment_photo_uri:
                   type: string
@@ -20,13 +23,13 @@ paths:
                 comment_contents:
                   type: string
                   description: 댓글 내용
-                comment_parent:
+                commentobject_id:
                   type: string
                   description: 대댓글이 달린 댓글의 ID
-                comment_feed_id:
+                feedobject_id:
                   type: string
                   description: 댓글이 작성된 피드 게시물
-                comment_protect_request_id:
+                protect_request_object_id:
                   type: string
                   description: 댓글이 작성된 동물보호 요청 게시물
                 comment_is_secure:
@@ -39,8 +42,72 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
-
-
+  /comment/getCommentListByFeedId:
+    post:
+      tags:
+        - comment
+      summary: 피드(피드,실종,제보)댓글 리스트 불러오기
+      description: 피드(피드,실종,제보)댓글 리스트 불러오기, 댓글 오브젝트를 입력하면 입력된 댓글 이전의 댓글들을 불러온다(페이징)
+      operationId: getCommentListByFeedId
+      requestBody:
+        description: 불러올 댓글의 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - feedobject_id
+                - request_number
+              properties:
+                feedobject_id:
+                  type: string
+                  description: 댓글을 불러올 피드 게시물의 ID
+                commentobject_id:
+                  type: string
+                  description: 커서 역할을 할 코맨트(해당 ID의 코맨트 이전부터 불러옴)
+                request_number:
+                  type: integer
+                  description: 댓글의 요청 숫자
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /comment/getCommentListByProtectId:
+    post:
+      tags:
+        - comment
+      summary: 동물보호요청게시글 댓글 리스트 불러오기
+      description: 동물보호요청게시글 댓글 리스트 불러오기, 댓글 오브젝트를 입력하면 입력된 댓글 이전의 댓글들을 불러온다(페이징)
+      operationId: getCommentListByProtectId
+      requestBody:
+        description: 불러올 댓글의 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - protect_request_object_id
+                - request_number
+              properties:
+                protect_request_object_id:
+                  type: string
+                  description: 댓글을 불러올 동물보호요청 게시물의 ID
+                commentobject_id:
+                  type: string
+                  description: 커서 역할을 할 코맨트(해당 ID의 코맨트 이전부터 불러옴)
+                request_number:
+                  type: integer
+                  description: 댓글의 요청 숫자
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
 
  #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$

@@ -4,7 +4,7 @@ const User = require('../schema/user');
 const Feed = require('../schema/feed');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
-const {USER_NOT_FOUND,ALERT_NOT_VALID_USEROBJECT_ID,ALERT_NO_RESULT} = require('./constants');
+const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT} = require('./constants');
 
 //피드 글쓰기
 router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
@@ -91,37 +91,59 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 });
 
 //특정 유저가 작성한 피드 리스트를 불러온다.
-router.post('/getFeedListByUserId',(req,res)=>{
-	controller(req,res,async ()=>{
+router.post('/getFeedListByUserId', (req, res) => {
+	controller(req, res, async () => {
 		let user = await User.model.findById(req.body.userobject_id);
-		if(!user){
+		if (!user) {
 			res.status(400);
-			res.json({status:400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
-			return;
-		};
-		if(user.user_type=='pet'){
-			let petFeeds = await Feed.model.find({feed_avatar_id: req.body.userobject_id}).limit(req.body.request_number).exec();
-			if(petFeeds.length<1){
-				res.status(404);
-				res.json({status:404,user_type:'pet',msg:ALERT_NO_RESULT});
-				return;
-			}
-			res.status(200);
-			res.json({status:200,user_type:'pet',msg:petFeeds});
-			return;
-		}else{
-			let userFeeds = await Feed.model.find({feed_writer_id: req.body.userobject_id}).limit(req.body.request_number).exec();
-			if(userFeeds<1){
-				res.status(404);
-				res.json({status:404,user_type:user.user_type,msg:ALERT_NO_RESULT});
-				return;
-			}
-			res.status(200);
-			res.json({status:200,user_type:user.user_type,msg:userFeeds});
+			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
-	})
-})
+		if (user.user_type == 'pet') {
+			let petFeeds = await Feed.model.find({feed_avatar_id: req.body.userobject_id}).limit(req.body.request_number).exec();
+			if (petFeeds.length < 1) {
+				res.status(404);
+				res.json({status: 404, user_type: 'pet', msg: ALERT_NO_RESULT});
+				return;
+			}
+			res.status(200);
+			res.json({status: 200, user_type: 'pet', msg: petFeeds});
+			return;
+		} else {
+			let userFeeds = await Feed.model.find({feed_writer_id: req.body.userobject_id}).limit(req.body.request_number).exec();
+			if (userFeeds < 1) {
+				res.status(404);
+				res.json({status: 404, user_type: user.user_type, msg: ALERT_NO_RESULT});
+				return;
+			}
+			res.status(200);
+			res.json({status: 200, user_type: user.user_type, msg: userFeeds});
+			return;
+		}
+	});
+});
 
+//실종/제보 요청을 가져온다.
+router.post('/getMissingReportList', (req, res) => {
+	controller(req, res, async () => {
+		let reportMissingList = Feed.model.find({feed_type: {$ne: 'feed'}});
+		if (req.body.city) {
+			reportMissingList.find({
+				$or: [{missing_animal_lost_location: {$regex: req.body.city}}, {report_witness_location: {$regex: req.body.city}}],
+			});
+		}
+		if (req.body.missing_animal_species) {
+			console.log('d');
+			reportMissingList.find({
+				$or: [{missing_animal_species: {$regex: req.body.missing_animal_species}}, {report_animal_species: {$regex: req.body.missing_animal_species}}],
+			});
+		}
+
+		reportMissingList = await reportMissingList.exec();
+
+		res.status(200);
+		res.json({status: 200, msg: reportMissingList});
+	});
+});
 
 module.exports = router;
