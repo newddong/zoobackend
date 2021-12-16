@@ -19,7 +19,6 @@ const {
 router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_list'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		if (req.session.user_type != 'shelter') {
-			//res.status(400);
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
 			return;
 		}
@@ -49,14 +48,12 @@ router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_lis
 router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		if (req.session.user_type != 'shelter') {
-			//res.status(400);
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
 			return;
 		}
 
 		let animal = await ShelterAnimal.model.findById(req.body.shelter_protect_animal_object_id).exec();
 		if (!animal) {
-			//res.status(400);
 			res.json({status: 400, msg: USER_NOT_FOUND});
 			return;
 		}
@@ -66,11 +63,14 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 			protect_request_title: req.body.protect_request_title,
 			protect_request_content: req.body.protect_request_content,
 			protect_request_writer_id: req.session.loginUser,
+			protect_animal_species: animal.protect_animal_species,
+			protect_animal_species_detail: animal.protect_animal_species_detail,
+
 		});
 
 		if (req.files.length > 0) {
 			req.files.forEach(file => {
-				newRequest.protect_request_photos.push(file.location);
+				newRequest.protect_request_photos_uri.push(file.location);
 			});
 		}
 		if (animal.protect_animal_photo_uri_list.length > 0) {
@@ -88,15 +88,18 @@ router.post('/getProtectRequestList', (req, res) => {
 	controller(req, res, async () => {
 		let requestList = ProtectRequest.model.find();
 
+		if (req.body.protect_animal_species) {
+			requestList.find({protect_animal_species:{$regex:req.body.protect_animal_species}});
+			
+			// find({protect_animal_species: req.body.protect_animal_species});
+		}
+
 		if (req.body.city) {
 			requestList.populate({
 				path: 'protect_request_writer_id',
-				select: 'shelter_address shelter_name shelter_delegate_contact_number',
+				//select: 'shelter_address shelter_name shelter_delegate_contact_number',
 				match: {'shelter_address.brief': {$regex: req.body.city}, options: {limit: req.body.request_number}},
 			});
-		}
-		if (req.body.protect_animal_species) {
-			requestList.find({protect_animal_species: req.body.protect_animal_species});
 		}
 
 		if (req.body.adoptable_posts && req.body.adoptable_posts == 'true') {
@@ -116,7 +119,6 @@ router.post('/getProtectRequestList', (req, res) => {
 router.post('/getShelterProtectAnimalList',(req,res)=>{
 	controllerLoggedIn(req,res,async ()=>{
 		if(req.session.user_type!='shelter'){
-			//res.status(401);
 			res.json({status: 401,msg:USER_NOT_VALID_TYPE});
 			return;
 		};

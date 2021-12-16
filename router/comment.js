@@ -96,6 +96,21 @@ router.post('/getCommentListByProtectId',(req,res)=>{
 	})
 })
 
+//대댓글 불러오기
+router.post('/getChildCommentList',(req,res)=>{
+	controller(req,res,async ()=>{
+		let childComments = await Comment.model.find({comment_parent_writer_id: req.body.commentobject_id}).exec();
+
+		if(childComments.length<1){
+			res.json({status:404,msg:ALERT_NO_RESULT});
+			return;
+		}
+
+		res.json({status:200,msg:childComments});
+
+
+	})
+})
 
 
 //=================================이전 router code =============================================================================

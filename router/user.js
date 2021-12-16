@@ -15,7 +15,8 @@ const {
 	ALERT_DUPLICATE_NICKNAME,
 	ALERT_NOT_VALID_USEROBJECT_ID,
 	ALERT_NOT_VALID_OBJECT_ID,
-	ALERT_NOt_VALID_TARGER_OBJECT_ID
+	ALERT_NOt_VALID_TARGER_OBJECT_ID,
+	ALERT_NO_RESULT
 } = require('./constants');
 const {nicknameDuplicationCheck} = require('./utilfunction');
 
@@ -317,65 +318,22 @@ router.post('/changeUserPassword',(req,res)=>{
 	})
 })
 
-//유저의 정보를 조회
+//유저의 상세 정보를 조회
 router.post('/getUserInfoById',(req,res)=>{
 	controller(req,res,async ()=>{
-		let user = await User.model.findById(req.body.userobject_id)
-			.select(['user_type', ])
+		let filter = {
+			user_password:0,
+			user_agreement:0,
+		}
+		let user = await User.model.findById(req.body.userobject_id).select(filter);
+		if(!user){
+			res.json({status:404,msg:ALERT_NO_RESULT});
+			return;
+		}
+		res.json({status:200,msg:user});
 	});
 })
 
-
-//=================================이전 router code =============================================================================
-
-router.post('/getUserList', async (req, res) => {
-	console.log("%s %s [%s] %s %s %s | getUserList by %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.session.user); // prettier-ignore
-	// if (req.session.user_id) {
-	try {
-		let result = await User.model
-			.find()
-			.where('nickname')
-			.regex(req.body.nickname)
-			.select('_id id name userType nickname profileImgUri text_intro')
-			.sort('nickname')
-			.exec();
-
-		res.json({
-			status: 200,
-			msg: result,
-		});
-	} catch (err) {
-		console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-		res.json({status: 500, msg: err});
-	}
-	// } else {
-	// 	console.log("%s %s [%s] %s %s %s | unauthorized access", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-	// 	res.json({ status: 401, msg: "Unauthorized" });
-	// }
-});
-
-router.post('/getUserPetList', async (req, res) => {
-	console.log("%s %s [%s] %s %s %s | getUserPetList %s", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol, req.body.user_id); // prettier-ignore
-	try {
-		if (req.body.user_id) {
-			let result = await User.model
-				.findById(req.body.user_id)
-				.select('belonged_pets')
-				.populate({
-					path: 'belonged_pets',
-					match: {deleted: {$eq: false}},
-					select: 'age sex adoptionType animalKind animalKindDetail animalNo owner nickname count profileImgUri text_intro deleted',
-				});
-			res.json({status: 200, msg: result});
-		} else {
-			res.json({status: 400, msg: 'bad request'});
-		}
-	} catch (err) {
-		console.error("%s %s [%s] %s %s %s | database error", req.ip, new Date(), req.method, req.hostname, req.originalUrl, req.protocol); // prettier-ignore
-		console.error(err);
-		res.json({status: 500, msg: err});
-	}
-});
 
 router.post('/update', (req, res) => {});
 

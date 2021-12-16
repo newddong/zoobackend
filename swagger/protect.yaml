@@ -27,3 +27,106 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /protect/createProtectActivity:
+    post:
+      tags:
+        - protect
+      summary: 동물보호(입양, 임시보호) 신청
+      description: 동물보호(입양, 임시보호) 신청
+      operationId: createProtectActivity
+      requestBody:
+        description: 동물보호 신청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - protect_act_type
+              type: object
+              properties:
+                protect_act_type:
+                  type: string
+                  description: 신청한 보호 활동의 종류, 임시보호(protect), 입양(adopt) {'protect'|'adopt'}
+                protect_act_companion_history:
+                  type: array
+                  description: 보호 신청자의 반려생활 이력
+                  items:
+                    type: object
+                    properties:
+                      companion_pet_species:
+                        type: string
+                        description: 이전 반려동물의 종류
+                      companion_pet_age:
+                        type: string
+                        description: 이전 반려동물의 나이
+                      companion_pet_period:
+                        type: string
+                        description: 기른 기간
+                      companion_pet_current_status:
+                        type: string
+                        description: 상태정보 카테고리 정해야함 
+                protect_act_address:
+                  type: object
+                  description: 보호 신청자의 주소 
+                  properties:
+                    city:
+                      type: string
+                      description: 시,도
+                    district:
+                      type: string
+                      description: 군,구
+                    neighbor:
+                      type: string
+                      description: 동,읍,면
+                    brief:
+                      type: string
+                      description: 검색주소
+                    detail:
+                      type: string
+                      description: 검색주소(자세히)
+                protect_act_phone_number:
+                  type: string
+                  description: 보호 신청자의 전화번호 
+                protect_act_checklist:
+                  type: object
+                  description: 보호신청 체크리스트 
+                  properties:
+                    is_adult:
+                      type: boolean
+                      description: 성인여부 
+                    is_near_veterinary:
+                      type: boolean
+                      description: 보호지 근처의 동물병원 여부 
+                    is_agreed_housemate:
+                      type: boolean
+                      description: 가족, 동거인의 동의 여부 
+                    is_experience_defecate:
+                      type: boolean
+                      description: 배변훈련 지식여부 
+                    is_knowledge_sanitation:
+                      type: boolean
+                      description: 반려동물 미용,위생 지식여부 
+                protect_act_motivation:
+                  type: string
+                  description: 보호활동 신청동기 
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+
+
+                    
+                    
+                    
+                    
+                    
+
+
+
+
+
+

@@ -11,7 +11,8 @@ paths:
         content:
           multipart/form-data:
             schema:
-              # required:
+              required:
+                - protect_animal_species
               type: object
               properties:
                 protect_animal_photo_uri_list:

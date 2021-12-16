@@ -3,13 +3,19 @@ const Schema = mongoose.Schema;
 
 const ProtectRequestObject = {
 	/** @type { Array.<String>} 보호요청 게시물의 첨부사진 uri */
-	protect_request_photos: [{type: String}],
+	protect_request_photos_uri: [{type: String}],
 
 	/** @type { String} 보호요청 게시물 썸네일 uri */
 	protect_request_photo_thumbnail: {type: String},
 
 	/** @type { String} 보호요청할 동물 */
 	protect_animal_id: {type: Schema.Types.ObjectId, ref: 'ShelterProtectAnimalObject'},
+
+	/** @type { String} 보호중인 동물의 종류(ex 개, 고양이, 토끼) */
+	protect_animal_species  : {type :  String},
+
+	/** @type { String} 보호중인 동물의 종류(ex 리트리버, 푸들, 진돗개) */
+	protect_animal_species_detail  : {type :  String},
 
 	/** @type { String} 보호요청 게시물의 제목 */
 	protect_request_title: {type: String},

@@ -27,6 +27,13 @@ const Address = {
 
 	/** @type { String} 읍,면,동 */
 	neighbor: {type: String},
+	
+	/** @type {String} 검색주소 */
+	brief: {type: String},
+
+	/** @type {String} 검색주소(자세히) */
+	detail: {type: String},
+
 };
 
 const CompanionHistory = {

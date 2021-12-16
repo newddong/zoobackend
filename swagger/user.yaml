@@ -53,6 +53,12 @@ paths:
                     neighbor:
                       type: string
                       description: 사용자 주소(동,읍,면)
+                    brief:
+                      type: string
+                      description: 사용자 주소
+                    detail:
+                      type: string
+                      description: 사용자 상세 주소  
                 user_mobile_company:
                   type: string
                   description: 이동통신사
@@ -101,7 +107,7 @@ paths:
             schema:
               type: object
               required:
-                - user_id
+                - userobject_id
                 - pet_is_temp_protection
                 - pet_sex
                 - pet_species
@@ -109,7 +115,7 @@ paths:
                 - pet_status
                 - user_nickname
               properties:
-                user_id:
+                userobject_id:
                   type: string
                   description: 등록하고 있는 유저 ID(몽고디비 오브젝트 아이디), 반려동물의 주인 ID
                 pet_birthday:
@@ -568,6 +574,34 @@ paths:
                 new_user_password:
                   type: string
                   description: 새로운 유저의 비밀번호
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/getUserInfoById:
+    post:
+      tags:
+        - user
+      summary: 유저의 상세 정보를 조회
+      description: 유저의 상세 정보를 조회한다. (user_type에 따라 출력 필드가 달라짐)
+      operationId: getUserInfoById
+      requestBody:
+        description: 상세 정보를 조회할 유저의 아이디
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - userobject_id
+              properties:
+                userobject_id:
+                  type: string
+                  description: 상세 정보를 조회할 유저의 오브젝트 ID
       responses:
         '200':
           $ref: '#/components/responses/200'
