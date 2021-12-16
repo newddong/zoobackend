@@ -19,7 +19,7 @@ const {
 router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_list'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		if (req.session.user_type != 'shelter') {
-			res.status(400);
+			//res.status(400);
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
 			return;
 		}
@@ -40,7 +40,7 @@ router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_lis
 
 		await protectAnimal.save();
 
-		res.status(200);
+		//res.status(200);
 		res.json({stauts: 200, msg: protectAnimal});
 	});
 });
@@ -49,14 +49,14 @@ router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_lis
 router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		if (req.session.user_type != 'shelter') {
-			res.status(400);
+			//res.status(400);
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
 			return;
 		}
 
 		let animal = await ShelterAnimal.model.findById(req.body.shelter_protect_animal_object_id).exec();
 		if (!animal) {
-			res.status(400);
+			//res.status(400);
 			res.json({status: 400, msg: USER_NOT_FOUND});
 			return;
 		}
@@ -78,7 +78,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 		}
 		await newRequest.save();
 
-		res.status(200);
+		//res.status(200);
 		res.json({stauts: 200, msg: newRequest});
 	});
 });
@@ -107,7 +107,7 @@ router.post('/getProtectRequestList', (req, res) => {
 		requestList = await requestList.exec();
 		requestList = requestList.filter(v => v.protect_request_writer_id != null);
 
-		res.status(200);
+		//res.status(200);
 		res.json({stauts: 200, msg: requestList});
 	});
 });
@@ -116,7 +116,7 @@ router.post('/getProtectRequestList', (req, res) => {
 router.post('/getShelterProtectAnimalList',(req,res)=>{
 	controllerLoggedIn(req,res,async ()=>{
 		if(req.session.user_type!='shelter'){
-			res.status(401);
+			//res.status(401);
 			res.json({status: 401,msg:USER_NOT_VALID_TYPE});
 			return;
 		};
@@ -125,12 +125,12 @@ router.post('/getShelterProtectAnimalList',(req,res)=>{
 		animalList.limit(req.body.request_number);
 		animalList = await animalList.exec();
 		if(animalList.length<1){
-			res.status(404);
+			//res.status(404);
 			res.json({status:404, msg: ALERT_NO_RESULT});
 			return;
 		};
 
-		res.status(200);
+		//res.status(200);
 		res.json({stauts: 200, msg: animalList});
 	})
 })

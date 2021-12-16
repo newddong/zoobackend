@@ -23,7 +23,7 @@ const {nicknameDuplicationCheck} = require('./utilfunction');
 router.post('/userLogin', (req, res) => {
 	controller(req, res, async () => {
 		if (req.session?.loginUser) {
-			res.status(200);
+			//res.status(200);
 			res.json({status: 200, msg: ALREADY_LOGIN});
 			return;
 		}
@@ -31,13 +31,13 @@ router.post('/userLogin', (req, res) => {
 		let loginUser = await User.model.findOne().where('user_phone_number').equals(req.body.login_id);
 
 		if (!loginUser) {
-			res.status(404);
+			//res.status(200);
 			res.json({status: 404, msg: USER_NOT_FOUND});
 			return;
 		}
 		let isValidPassword = loginUser.user_password == req.body.login_password;
 		if (!isValidPassword) {
-			res.status(404);
+			//res.status(200);
 			res.json({status: 404, msg: USER_PASSWORD_NOT_VALID});
 			return;
 		}
@@ -45,7 +45,7 @@ router.post('/userLogin', (req, res) => {
 		req.session.loginUser = loginUser._id;
 		req.session.user_type = loginUser.user_type;
 		req.session.user_nickname = loginUser.user_nickname;
-		res.status(200);
+		//res.status(200);
 		res.json({status: 200, msg: loginUser});
 	});
 });
@@ -55,10 +55,10 @@ router.post('/userLogout', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		try {
 			req.session.destroy();
-			res.status(200);
+			//res.status(200);
 			res.json({status: 200, msg: LOGOUT_SUCCESS});
 		} catch (err) {
-			res.status(500);
+			//res.status(200);
 			res.json({status: 500, msg: LOGOUT_FAILED});
 		}
 	});
@@ -67,12 +67,10 @@ router.post('/userLogout', (req, res) => {
 //유저 생성
 router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 	controller(req, res, async () => {
-		console.log(req.body);
-		// return;
 		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
 		if (duplicateNickname != null) {
-			res.status(400);
-			res.json({status: 400, msg: ALERT_DUPLICATE_NICKNAME});
+			// res.status(400);
+			res.json({status: 200, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
 		}
 
@@ -97,7 +95,7 @@ router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 router.post('/assignPet', uploadS3.single('user_profile_uri'), (req, res) => {
 	controller(req, res, async () => {
 		const pet = await User.makeNewdoc({
-			pet_family: [req.body.user_id],
+			pet_family: [req.body.userobject_id],
 			pet_birthday: req.body.pet_birthday,
 			pet_is_temp_protection: req.body.pet_is_temp_protection,
 			pet_neutralization: req.body.pet_neutralization,
@@ -111,7 +109,7 @@ router.post('/assignPet', uploadS3.single('user_profile_uri'), (req, res) => {
 			user_type: 'pet',
 		});
 		const newPet = await pet.save();
-		const petOwner = await User.model.findById(req.body.user_id).exec();
+		const petOwner = await User.model.findById(req.body.userobject_id).exec();
 		petOwner.user_my_pets.push(newPet._id);
 		await petOwner.save();
 		res.json({status: 200, msg: newPet});
@@ -161,7 +159,7 @@ router.post('/getUserProfile', (req, res) => {
 			.exec();
 
 		if (!userInfo) {
-			res.status(404);
+			//res.status(404);
 			res.json({status: 404, msg: USER_NOT_FOUND});
 			return;
 		}
@@ -175,7 +173,7 @@ router.post('/getUserProfile', (req, res) => {
 
 		// const profile = Object.assign({},userInfo,feedList);
 
-		res.status(200);
+		//res.status(200);
 		res.json({status: 200, msg: profile});
 	});
 });
@@ -194,7 +192,7 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 	controllerLoggedIn(req, res, async () => {
 		let userInfo = await User.model.findById(req.body.userobject_id).exec();
 		if (userInfo == null) {
-			res.status(400);
+			//res.status(400);
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
@@ -205,7 +203,7 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 		// }
 		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
 		if (duplicateNickname != null) {
-			res.status(400);
+			//res.status(400);
 			res.json({status: 400, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
 		}
@@ -216,7 +214,7 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 		}
 		await userInfo.save();
 
-		res.status(200);
+		//res.status(200);
 		res.json({status: 200, msg: userInfo});
 	});
 });
@@ -226,7 +224,7 @@ router.post('/updateUserDetailInformation', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let userInfo = await User.model.findById(req.body.userobject_id).exec();
 		if (userInfo == null) {
-			res.status(400);
+			//res.status(400);
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
@@ -236,7 +234,7 @@ router.post('/updateUserDetailInformation', (req, res) => {
 		userInfo.user_address = JSON.parse(req.body.user_address);
 
 		await userInfo.save();
-		res.status(200);
+		//res.status(200);
 		res.json({status: 200, msg: userInfo});
 	});
 });
@@ -246,14 +244,14 @@ router.post('/updatePetDetailInformation', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let pet = await User.model.findById(req.body.userobject_id).exec();
 		if (!pet) {
-			res.status(404);
+			//res.status(404);
 			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
 		}
 
 		let isFamily = pet.pet_family.includes(req.session.loginUser);
 		if(!isFamily){
-			res.status(400);
+			//res.status(400);
 			res.json({status: 400, msg: USER_NOT_VALID})
 			return;
 		}
@@ -273,21 +271,21 @@ router.post('/addUserToFamily',(req,res)=>{
 	controllerLoggedIn(req, res, async () => {
 		let pet = await User.model.findById(req.body.userobject_id).exec();
 		if (!pet) {
-			res.status(404);
+			//res.status(404);
 			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
 		}
 
 		let isFamily = pet.pet_family.includes(req.session.loginUser);
 		if(!isFamily){
-			res.status(400);
+			//res.status(400);
 			res.json({status: 400, msg: USER_NOT_VALID})
 			return;
 		}
 
 		let targetUser = await User.model.findById(req.body.family_userobject_id).exec();
 		if (!targetUser) {
-			res.status(404);
+			//res.status(404);
 			res.json({status: 404, msg: ALERT_NOt_VALID_TARGER_OBJECT_ID});
 			return;
 		}
@@ -297,7 +295,7 @@ router.post('/addUserToFamily',(req,res)=>{
 		targetUser.user_my_pets.push(pet._id);
 		await targetUser.save();
 
-		res.status(200);
+		//res.status(200);
 		res.json({status:200, pet: pet, targetUser: targetUser});
 	})
 });
@@ -308,13 +306,13 @@ router.post('/changeUserPassword',(req,res)=>{
 	controllerLoggedIn(req,res, async ()=> {
 		let user = await User.model.findById(req.session.loginUser).exec();
 		if(user.user_password!=req.body.user_password){
-			res.status(400);
+			//res.status(400);
 			res.json({status:400,msg:USER_PASSWORD_NOT_VALID});
 			return;
 		}
 		user.user_password = req.body.new_user_password;
 		await user.save();
-		res.status(200);
+		//res.status(200);
 		res.json({status:200,msg:user});
 	})
 })

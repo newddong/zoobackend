@@ -31,7 +31,7 @@ router.post('/getUserProtectAnimalList',(req,res)=>{
         let user = await User.model.findById(req.body.userobject_id).exec();
         console.log(user);
         if(user.user_type!='user'){
-            res.status(400);
+            //res.status(400);
             res.json({status:400,msg:USER_NOT_VALID_TYPE});
             return;
         }
@@ -40,12 +40,12 @@ router.post('/getUserProtectAnimalList',(req,res)=>{
         .populate({path:'user_my_pets',select:'user_type user_nickname user_profile_uri pet_status',match:{pet_status:'protect'}}).exec();
         
         if(user.user_my_pets.length<1){
-            res.status(404);
+            //res.status(404);
             res.json({status:404,msg:ALERT_NO_RESULT});
             return;
         }
 
-        res.status(200);
+        //res.status(200);
         res.json({status:200, msg: user.user_my_pets});
     });
 

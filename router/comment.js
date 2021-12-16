@@ -43,7 +43,7 @@ router.post('/createComment',uploadS3.single('comment_photo_uri'),(req,res)=>{
 		//TODO : 댓글이 달린 보호요청 게시물의 작성자 설정(Secure기능을 이용하기 위함)
 
 		let newComment = await comment.save();
-		res.status(200);
+		//res.status(200);
 		res.json({status: 200, msg: newComment});
 	})
 
@@ -54,20 +54,20 @@ router.post('/getCommentListByFeedId',(req,res)=>{
 	controller(req,res,async ()=>{
 		let feed = await Feed.model.findById(req.body.feedobject_id).exec();
 		if(!feed){
-			res.status(400);
+			//res.status(400);
 			res.json({status:400,msg:ALERT_NOT_VALID_OBJECT_ID});
 			return;
 		}
 
 		let commentList = await Comment.model.find({comment_feed_id:feed._id}).exec();
 		if(commentList.length<1){
-			res.status(404);
+			//res.status(404);
 			res.json({status:404,msg:ALERT_NO_RESULT});
 			return;
 		}
 
 
-		res.status(200);
+		//res.status(200);
 		res.json({status:200,msg:commentList});
 	})
 })
@@ -78,20 +78,20 @@ router.post('/getCommentListByProtectId',(req,res)=>{
 		let protectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id).exec();
 		
 		if(!protectRequest){
-			res.status(400);
+			//res.status(400);
 			res.json({status:400,msg:ALERT_NOT_VALID_OBJECT_ID});
 			return;
 		}
 
 		let commentList = await Comment.model.find({comment_protect_request_id:protectRequest._id}).exec();
 		if(commentList.length<1){
-			res.status(404);
+			//res.status(404);
 			res.json({status:404,msg:ALERT_NO_RESULT});
 			return;
 		}
 
 
-		res.status(200);
+		//res.status(200);
 		res.json({status:200,msg:commentList});
 	})
 })

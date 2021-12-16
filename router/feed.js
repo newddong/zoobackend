@@ -22,7 +22,7 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 
 		if (req.files.length > 0) {
 			if(!req.body.feed_medias){
-				res.status(400);
+				//res.status(400);
 				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
 				return;
 			}
@@ -34,7 +34,7 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 		}
 
 		let newFeed = await feed.save();
-		res.status(200);
+		//res.status(200);
 		res.json({status: 200, msg: newFeed});
 	});
 });
@@ -60,7 +60,7 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 
 		if (req.files.length > 0) {
 			if(!req.body.feed_medias){
-				res.status(400);
+				//res.status(400);
 				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
 				return;
 			}
@@ -72,7 +72,7 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 		}
 
 		let newMissing = await missing.save();
-		res.status(200);
+		//res.status(200);
 		res.json({status: 200, msg: newMissing});
 	});
 });
@@ -92,7 +92,7 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 
 		if (req.files.length > 0) {
 			if(!req.body.feed_medias){
-				res.status(400);
+				//res.status(400);
 				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
 				return;
 			}
@@ -104,7 +104,7 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 		}
 
 		let newReport = await report.save();
-		res.status(200);
+		//res.status(200);
 		res.json({status: 200, msg: newReport});
 	});
 });
@@ -114,28 +114,28 @@ router.post('/getFeedListByUserId', (req, res) => {
 	controller(req, res, async () => {
 		let user = await User.model.findById(req.body.userobject_id);
 		if (!user) {
-			res.status(400);
+			//res.status(400);
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
 		if (user.user_type == 'pet') {
 			let petFeeds = await Feed.model.find({feed_avatar_id: req.body.userobject_id}).limit(req.body.request_number).exec();
 			if (petFeeds.length < 1) {
-				res.status(404);
+				//res.status(404);
 				res.json({status: 404, user_type: 'pet', msg: ALERT_NO_RESULT});
 				return;
 			}
-			res.status(200);
+			//res.status(200);
 			res.json({status: 200, user_type: 'pet', msg: petFeeds});
 			return;
 		} else {
 			let userFeeds = await Feed.model.find({feed_writer_id: req.body.userobject_id}).limit(req.body.request_number).exec();
 			if (userFeeds < 1) {
-				res.status(404);
+				//res.status(404);
 				res.json({status: 404, user_type: user.user_type, msg: ALERT_NO_RESULT});
 				return;
 			}
-			res.status(200);
+			//res.status(200);
 			res.json({status: 200, user_type: user.user_type, msg: userFeeds});
 			return;
 		}
@@ -160,11 +160,11 @@ router.post('/getMissingReportList', (req, res) => {
 
 		reportMissingList = await reportMissingList.exec();
 		if(!reportMissingList.length<1){
-			res.status(404);
+			//res.status(404);
 			res.json({status:404,msg:ALERT_NO_RESULT});
 			return;
 		}
-		res.status(200);
+		//res.status(200);
 		res.json({status: 200, msg: reportMissingList});
 	});
 });
@@ -174,12 +174,12 @@ router.post('/getFeedDetailById',(req, res)=>{
 	controller(req,res,async ()=>{
 		let feed = await Feed.model.findById(req.body.feedobject_id).exec();
 		if(!feed){
-			res.status(404);
+			//res.status(404);
 			res.json({status:404,msg:ALERT_NO_RESULT});
 			return;
 		}
 
-		res.status(200);
+		//res.status(200);
 		res.json({status:200, msg: feed});
 	})
 })
