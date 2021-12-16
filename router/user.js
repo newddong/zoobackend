@@ -67,6 +67,8 @@ router.post('/userLogout', (req, res) => {
 //유저 생성
 router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 	controller(req, res, async () => {
+		console.log(req.body);
+		// return;
 		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
 		if (duplicateNickname != null) {
 			res.status(400);
@@ -75,8 +77,8 @@ router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 		}
 
 		const user = await User.makeNewdoc({
-			user_agreement: JSON.parse(req.body.user_agreement),
-			user_address: JSON.parse(req.body.user_address),
+			user_agreement: typeof req.body.user_agreement=='string'?JSON.parse(req.body.user_agreement):req.body.user_agreement,
+			user_address: typeof req.body.user_address=='string'?JSON.parse(req.body.user_address):req.body.user_address,
 			user_mobile_company: req.body.user_mobile_company,
 			user_name: req.body.user_name,
 			user_password: req.body.user_password,
@@ -120,7 +122,7 @@ router.post('/assignPet', uploadS3.single('user_profile_uri'), (req, res) => {
 router.post('/assignShelter', uploadS3.single('user_profile_uri'), (req, res) => {
 	controller(req, res, async () => {
 		const shelter = await User.makeNewdoc({
-			shelter_address: JSON.parse(req.body.shelter_address),
+			shelter_address: typeof req.body.shelter_address=='string'?JSON.parse(req.body.shelter_address):req.body.shelter_address,
 			shelter_delegate_contact_number: req.body.shelter_delegate_contact_number,
 			user_phone_number: req.body.shelter_delegate_contact_number, //대표번호를 자동으로 로그인용 휴대폰 번호로 등록
 			shelter_foundation_date: req.body.shelter_foundation_date,
@@ -315,6 +317,14 @@ router.post('/changeUserPassword',(req,res)=>{
 		res.status(200);
 		res.json({status:200,msg:user});
 	})
+})
+
+//유저의 정보를 조회
+router.post('/getUserInfoById',(req,res)=>{
+	controller(req,res,async ()=>{
+		let user = await User.model.findById(req.body.userobject_id)
+			.select(['user_type', ])
+	});
 })
 
 
