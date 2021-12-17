@@ -137,7 +137,41 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-
+  /protect/getUserAdoptProtectionList:
+    post:
+      tags:
+        - protect
+      summary: 유저의 보호활동(입양,임시보호) 신청 내역을 가져오기
+      description: 유저의 보호활동(입양,임시보호) 신청 내역을 가져오기
+      operationId: getUserAdoptProtectionList
+      requestBody:
+        description: 동물보호 신청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - protect_act_type
+                - request_number
+              type: object
+              properties:
+                protect_act_type:
+                  type: string
+                  description: 가져올 보호 활동의 종류, 임시보호(protect), 입양(adopt) {'protect'|'adopt'}
+                request_number:
+                  type: integer
+                  description: 요청할 게시물의 숫자
+                protect_act_object_id:
+                  type: string
+                  description: 페이징을 위한 오브젝트 객체 아이디
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
                     
                     
                     

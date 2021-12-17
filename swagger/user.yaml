@@ -639,6 +639,140 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /user/updateShelterDetailInformation:
+    post:
+      tags:
+        - user
+      summary: 보호소 상세 정보를 수정
+      description: 보호소 상세 정보를 수정 
+      operationId: updateShelterDetailInformation
+      requestBody:
+        description: 보호소 상세 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - userobject_id
+              properties:
+                userobject_id:
+                  type: string
+                  description: 수정할 보호소 오브젝트 아이디
+                shelter_name:
+                  type:  string
+                  description: 보호소 이름 
+                shelter_address:
+                  type: object
+                  description: 보호소 주소 
+                  properties:
+                    city:
+                      type: string
+                      description: 보호소 주소(시,도,군)
+                    district:
+                      type: string
+                      description: 보호소 주소(군,구)
+                    neighbor:
+                      type: string
+                      description: 보호소 주소(동,읍,면)
+                    brief:
+                      type: string
+                      description: 보호소 주소
+                    detail:
+                      type: string
+                      description: 보호소 상세 주소 
+                shelter_delegate_contact_number:
+                  type:  string
+                  description: 보호소 대표 전화번호, 휴대폰 번호 
+                user_email:
+                  type:  string
+                  description: 이메일 
+                shelter_homepage:
+                  type:  string
+                  description: 보호소 홈페이지 uri 
+                shelter_foundation_date:
+                  type:  string
+                  description: 보호소 설립일 
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/getUserListByNickname:
+    post:
+      tags:
+        - user
+      summary: 닉네임으로 유저 계정을 검색, 리스트를 반환
+      description: 유저의 닉네임을 필터로 유저 계정을 검색
+      operationId: getUserListByNickname
+      requestBody:
+        description: 요청 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - user_nickname
+                - request_number
+              properties:
+                user_nickname:
+                  type: string
+                  description: 검색할 유저의 닉네임
+                request_number:
+                  type:  integer
+                  description: 요청할 유저 계정 숫자
+                userobject_id:
+                  type: string
+                  description: 커서 객체(페이징 처리)
+                user_type:
+                  type: string
+                  description: 조회할 유저의 타잎(미입력시 모든 타잎 다 조회){'user'|'pet'|'shelter'}
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/removeUserFromFamily:
+    post:
+      tags:
+        - user
+      summary: 가족 계정에서 대상 유저를 삭제
+      description: 가족 계정에서 대상 유저를 삭제
+      operationId: removeUserFromFamily
+      requestBody:
+        description: 요청 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - target_userobject_id
+                - pet_userobject_id
+              properties:
+                target_userobject_id:
+                  type: string
+                  description: 가족계정에서 뺄 유저아이디
+                pet_userobject_id:
+                  type:  integer
+                  description: 가족계정을 조정할 반려동물아이디
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+
+
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$

@@ -10,7 +10,7 @@ async function controllerLoggedIn(req, res, fn) {
 		try {
 			await fn();
 		} catch (err) {
-			console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | DataBase Error", req.ip, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
+			console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Server Error", req.ip, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
 			console.log(err);
 			res.status(500);
 			res.json({status: 500, msg: err + ''});
@@ -33,7 +33,7 @@ async function controller(req, res, fn) {
 	try {
 		await fn();
 	} catch (err) {
-		console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | DataBase Error", req.ip, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, 'user not login'); // prettier-ignore
+		console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Server Error", req.ip, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, 'user not login'); // prettier-ignore
 		console.log(err);
 		res.status(500);
 		res.json({status: 500, msg: err + ''});

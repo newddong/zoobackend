@@ -45,19 +45,19 @@ router.post('/getUserProtectAnimalList', (req, res) => {
 router.post('/createProtectActivity', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let newActivity = await ProtectActivity.makeNewdoc({
-			protect_act_applicant_id: req.session.loginUser ,
-			protect_act_request_article_id: req.body.protect_request_object_id ,
-			protect_act_address: req.body.protect_act_address ,
-			protect_act_checklist: req.body.protect_act_checklist ,
-			protect_act_companion_history: req.body.protect_act_companion_history ,
-			protect_act_motivation: req.body.protect_act_motivation ,
-			protect_act_phone_number: req.body.protect_act_phone_number ,
-			protect_act_type: req.body.protect_act_type ,
+			protect_act_applicant_id: req.session.loginUser,
+			protect_act_request_article_id: req.body.protect_request_object_id,
+			protect_act_address: req.body.protect_act_address,
+			protect_act_checklist: req.body.protect_act_checklist,
+			protect_act_companion_history: req.body.protect_act_companion_history,
+			protect_act_motivation: req.body.protect_act_motivation,
+			protect_act_phone_number: req.body.protect_act_phone_number,
+			protect_act_type: req.body.protect_act_type,
 		});
 
 		let requestArticle = await ProtectRequest.model.findById(newActivity.protect_act_request_article_id);
-		if(!requestArticle){
-			res.json({status:404,msg:ALERT_NOT_VALID_TARGER_OBJECT_ID});
+		if (!requestArticle) {
+			res.json({status: 404, msg: ALERT_NOT_VALID_TARGER_OBJECT_ID});
 			return;
 		}
 		newActivity.protect_act_request_shelter_id = requestArticle.protect_request_writer_id;
@@ -69,28 +69,53 @@ router.post('/createProtectActivity', (req, res) => {
 	});
 });
 
-
-
 /**
  * 유저의 동물보호 신청내역 가져오기
  * (입양신청, 임시보호 신청, 봉사활동 신청 - 한 화면에서 입양신청 1개, 임시보호 신청 1개, 봉사활동 신청 3 ~ 4개 표출)
  * 로그인을 하여야 신청내역을 볼수있음.(입력 파라메터 없음)
- * 
+ *
  */
-router.post('/getAppliesRecord',(req,res)=>{
-	controllerLoggedIn(req, res, async ()=> {
+router.post('/getAppliesRecord', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
 		let applies = await ProtectActivity.model.find({protect_act_applicant_id: req.session.loginUser});
-		if(applies.length<1){
-			res.json({status:404,msg:ALERT_NO_RESULT});
+		if (applies.length < 1) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
-		};
-		
-		res.json({status:200,msg:{
-			adopt:applies.filter(v=>v.protect_act_type=='adopt'),
-			protect:applies.fileter(v=>v.protect_act_type=='protect'),
-			volunteer:[],
-		}})
-	})
-})
+		}
+
+		res.json({
+			status: 200,
+			msg: {
+				adopt: applies.filter(v => v.protect_act_type == 'adopt'),
+				protect: applies.fileter(v => v.protect_act_type == 'protect'),
+				volunteer: [], //봉사활동 부분 추가해야함
+			},
+		});
+	});
+});
+
+/**
+ * 유저의 보호활동(입양,임시보호) 신청 내역을 가져오기
+ *
+ *
+ */
+router.post('/getUserAdoptProtectionList', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let applies = await ProtectActivity.model
+			.find({protect_act_applicant_id: req.session.loginUser, protect_act_type: req.body.protect_act_type})
+			.sort("-_id")
+			.limit(req.body.request_number)
+			.exec();
+		if (applies.length < 1) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		res.json({
+			status: 200,
+			msg: applies,
+		});
+	});
+});
 
 module.exports = router;

@@ -16,7 +16,7 @@ const {
 	ALERT_NOT_VALID_USEROBJECT_ID,
 	ALERT_NOT_VALID_OBJECT_ID,
 	ALERT_NOt_VALID_TARGER_OBJECT_ID,
-	ALERT_NO_RESULT
+	ALERT_NO_RESULT,
 } = require('./constants');
 const {nicknameDuplicationCheck} = require('./utilfunction');
 
@@ -76,8 +76,8 @@ router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 		}
 
 		const user = await User.makeNewdoc({
-			user_agreement: typeof req.body.user_agreement=='string'?JSON.parse(req.body.user_agreement):req.body.user_agreement,
-			user_address: typeof req.body.user_address=='string'?JSON.parse(req.body.user_address):req.body.user_address,
+			user_agreement: typeof req.body.user_agreement == 'string' ? JSON.parse(req.body.user_agreement) : req.body.user_agreement,
+			user_address: typeof req.body.user_address == 'string' ? JSON.parse(req.body.user_address) : req.body.user_address,
 			user_mobile_company: req.body.user_mobile_company,
 			user_name: req.body.user_name,
 			user_password: req.body.user_password,
@@ -121,7 +121,7 @@ router.post('/assignPet', uploadS3.single('user_profile_uri'), (req, res) => {
 router.post('/assignShelter', uploadS3.single('user_profile_uri'), (req, res) => {
 	controller(req, res, async () => {
 		const shelter = await User.makeNewdoc({
-			shelter_address: typeof req.body.shelter_address=='string'?JSON.parse(req.body.shelter_address):req.body.shelter_address,
+			shelter_address: typeof req.body.shelter_address == 'string' ? JSON.parse(req.body.shelter_address) : req.body.shelter_address,
 			shelter_delegate_contact_number: req.body.shelter_delegate_contact_number,
 			user_phone_number: req.body.shelter_delegate_contact_number, //대표번호를 자동으로 로그인용 휴대폰 번호로 등록
 			shelter_foundation_date: req.body.shelter_foundation_date,
@@ -203,7 +203,7 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 		// 	return;
 		// }
 		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
-		if (duplicateNickname != null) {
+		if (duplicateNickname != null && duplicateNickname._id != userInfo._id) {
 			//res.status(400);
 			res.json({status: 400, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
@@ -251,9 +251,9 @@ router.post('/updatePetDetailInformation', (req, res) => {
 		}
 
 		let isFamily = pet.pet_family.includes(req.session.loginUser);
-		if(!isFamily){
+		if (!isFamily) {
 			//res.status(400);
-			res.json({status: 400, msg: USER_NOT_VALID})
+			res.json({status: 400, msg: USER_NOT_VALID});
 			return;
 		}
 
@@ -268,7 +268,7 @@ router.post('/updatePetDetailInformation', (req, res) => {
 });
 
 //반려동물의 가족계정에 유저를 추가
-router.post('/addUserToFamily',(req,res)=>{
+router.post('/addUserToFamily', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let pet = await User.model.findById(req.body.userobject_id).exec();
 		if (!pet) {
@@ -278,9 +278,9 @@ router.post('/addUserToFamily',(req,res)=>{
 		}
 
 		let isFamily = pet.pet_family.includes(req.session.loginUser);
-		if(!isFamily){
+		if (!isFamily) {
 			//res.status(400);
-			res.json({status: 400, msg: USER_NOT_VALID})
+			res.json({status: 400, msg: USER_NOT_VALID});
 			return;
 		}
 
@@ -297,60 +297,146 @@ router.post('/addUserToFamily',(req,res)=>{
 		await targetUser.save();
 
 		//res.status(200);
-		res.json({status:200, pet: pet, targetUser: targetUser});
-	})
+		res.json({status: 200, pet: pet, targetUser: targetUser});
+	});
 });
 
-
 //유저의 패스워드를 변경
-router.post('/changeUserPassword',(req,res)=>{
-	controllerLoggedIn(req,res, async ()=> {
+router.post('/changeUserPassword', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
 		let user = await User.model.findById(req.session.loginUser).exec();
-		if(user.user_password!=req.body.user_password){
+		if (user.user_password != req.body.user_password) {
 			//res.status(400);
-			res.json({status:400,msg:USER_PASSWORD_NOT_VALID});
+			res.json({status: 400, msg: USER_PASSWORD_NOT_VALID});
 			return;
 		}
 		user.user_password = req.body.new_user_password;
 		await user.save();
 		//res.status(200);
-		res.json({status:200,msg:user});
-	})
-})
-
-//유저의 상세 정보를 조회
-router.post('/getUserInfoById',(req,res)=>{
-	controller(req,res,async ()=>{
-		let filter = {
-			user_password:0,
-			user_agreement:0,
-		}
-		let user = await User.model.findById(req.body.userobject_id).select(filter).exec();
-		if(!user){
-			res.json({status:404,msg:ALERT_NO_RESULT});
-			return;
-		}
-		res.json({status:200,msg:user});
-	});
-})
-
-//유저 소개글 변경
-router.post('/updateUserIntroduction',(req,res)=>{
-	controllerLoggedIn(req,res,async ()=>{
-		let user = await User.model.findById(req.session.loginUser).exec();
-		if(!user){
-			res.json({status:404,msg:ALERT_NO_RESULT});
-			return;
-		};
-
-		user.user_introduction = req.body.user_introduction;
-		await user.save();
-		res.json({status:200,msg:user});
+		res.json({status: 200, msg: user});
 	});
 });
 
-router.post('/update', (req, res) => {});
+//유저의 상세 정보를 조회
+router.post('/getUserInfoById', (req, res) => {
+	controller(req, res, async () => {
+		let filter = {
+			user_password: 0,
+			user_agreement: 0,
+		};
+		let user = await User.model.findById(req.body.userobject_id).select(filter).exec();
+		if (!user) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
 
-router.post('/delete', (req, res) => {});
+		switch (user.user_type) {
+			case 'user':
+			case 'shelter':
+				user = await User.model.findById(user._id).populate('user_my_pets').exec();
+				break;
+			case 'pet':
+				user = await User.model.findById(user._id).populate('pet_family').exec();
+				break;
+			default:
+				break;
+		}
+
+		res.json({status: 200, msg: user});
+	});
+});
+
+//유저 소개글 변경
+router.post('/updateUserIntroduction', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let user = await User.model.findById(req.session.loginUser).exec();
+		if (!user) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		user.user_introduction = req.body.user_introduction;
+		await user.save();
+		res.json({status: 200, msg: user});
+	});
+});
+
+//보호소 상세 정보를 수정
+router.post('/updateShelterDetailInformation', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let shelter = await User.model.findById(req.body.userobject_id).exec();
+		if (shelter == null) {
+			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
+			return;
+		}
+
+		shelter.shelter_name = req.body.shelter_name;
+		shelter.shelter_address = req.body.shelter_address;
+		shelter.shelter_delegate_contact_number = req.body.shelter_delegate_contact_number;
+		shelter.user_email = req.body.user_email;
+		shelter.shelter_homepage = req.body.shelter_homepage;
+		shelter.shelter_foundation_date = req.body.shelter_foundation_date;
+
+		await shelter.save();
+		res.json({status: 200, msg: shelter});
+	});
+});
+
+//유저 계정 검색
+router.post('/getUserListByNickname', (req, res) => {
+	controller(req, res, async () => {
+		let userList = User.model
+			.find({
+				user_nickname: {$regex: req.body.user_nickname},
+			})
+			.limit(req.body.request_number);
+
+		if (req.body.user_type) {
+			userList.find({user_type: req.body.user_type});
+		}
+
+		userList = await userList.exec();
+
+		if (userList.length < 1) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+		res.json({status: 200, msg: userList});
+	});
+});
+
+//가족 계정에서 삭제
+router.post('/removeUserFromFamily', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let targetUser = await User.model.findById(req.body.target_userobject_id).exec();
+		if (!targetUser) {
+			res.json({status: 404, msg: USER_NOT_FOUND});
+			return;
+		}
+
+		let pet = await User.model.findById(req.body.pet_userobject_id).exec();
+		if (!pet) {
+			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
+			return;
+		}
+
+		targetUser.user_my_pets = targetUser.user_my_pets.filter(myPet => {
+			// console.log('myPet',myPet);
+			// console.log('petid',pet._id);
+			// console.log(myPet.equals(pet._id));
+			return !myPet.equals(pet._id);
+		});
+		pet.pet_family = pet.pet_family.filter(family => {
+			// console.log('family',family);
+			// console.log('targetUserId',targetUser._id);
+			// console.log(family.equals(targetUser._id));
+			return !family.equals(targetUser._id)});
+
+		targetUser = await targetUser.save();
+		pet = await pet.save();
+
+		res.json({status: 200, msg: {user: targetUser, pet: pet}});
+	});
+});
 
 module.exports = router;
