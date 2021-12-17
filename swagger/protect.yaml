@@ -172,12 +172,34 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-                    
-                    
-                    
-                    
-                    
-
+  /protect/getApplyDetailById:
+    post:
+      tags:
+        - protect
+      summary: 보호활동 신청서 자세히 보기
+      description: 유저의 보호활동(입양,임시보호) 신청서 자세히 보기
+      operationId: getApplyDetailById
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - protect_act_object_id
+              type: object
+              properties:
+                protect_act_object_id:
+                  type: string
+                  description: 불러올 신청서의 오브젝트 아이디
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 
 
 

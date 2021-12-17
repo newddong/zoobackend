@@ -103,7 +103,7 @@ router.post('/getUserAdoptProtectionList', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let applies = await ProtectActivity.model
 			.find({protect_act_applicant_id: req.session.loginUser, protect_act_type: req.body.protect_act_type})
-			.sort("-_id")
+			.sort('-_id')
 			.limit(req.body.request_number)
 			.exec();
 		if (applies.length < 1) {
@@ -114,6 +114,26 @@ router.post('/getUserAdoptProtectionList', (req, res) => {
 		res.json({
 			status: 200,
 			msg: applies,
+		});
+	});
+});
+
+/**
+ * 신청서 자세히 보기
+ *
+ */
+router.post('/getApplyDetailById', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let applyDetail = await ProtectActivity.model.findById(req.body.protect_act_object_id).exec();
+
+		if (!applyDetail) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		res.json({
+			status: 200,
+			msg: applyDetail,
 		});
 	});
 });
