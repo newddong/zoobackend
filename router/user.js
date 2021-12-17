@@ -325,7 +325,7 @@ router.post('/getUserInfoById',(req,res)=>{
 			user_password:0,
 			user_agreement:0,
 		}
-		let user = await User.model.findById(req.body.userobject_id).select(filter);
+		let user = await User.model.findById(req.body.userobject_id).select(filter).exec();
 		if(!user){
 			res.json({status:404,msg:ALERT_NO_RESULT});
 			return;
@@ -334,6 +334,20 @@ router.post('/getUserInfoById',(req,res)=>{
 	});
 })
 
+//유저 소개글 변경
+router.post('/updateUserIntroduction',(req,res)=>{
+	controllerLoggedIn(req,res,async ()=>{
+		let user = await User.model.findById(req.session.loginUser).exec();
+		if(!user){
+			res.json({status:404,msg:ALERT_NO_RESULT});
+			return;
+		};
+
+		user.user_introduction = req.body.user_introduction;
+		await user.save();
+		res.json({status:200,msg:user});
+	});
+});
 
 router.post('/update', (req, res) => {});
 

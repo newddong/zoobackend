@@ -41,8 +41,12 @@ paths:
             schema:
               required:
                 - protect_act_type
+                - protect_request_object_id
               type: object
               properties:
+                protect_request_object_id:
+                  type: string
+                  description: 임시보호/입양을 신청하게 될 동물이 있는 동물보호 요청 게시물의 아이디
                 protect_act_type:
                   type: string
                   description: 신청한 보호 활동의 종류, 임시보호(protect), 입양(adopt) {'protect'|'adopt'}
@@ -117,7 +121,22 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-
+  /protect/getAppliesRecord:
+    post:
+      tags:
+        - protect
+      summary: 유저의 동물보호 신청내역 가져오기
+      description: (입양신청, 임시보호 신청, 봉사활동 신청 - 한 화면에서 입양신청 1개, 임시보호 신청 1개, 봉사활동 신청 3 ~ 4개 표출) 로그인을 하여야 신청내역을 볼수있음.(입력 파라메터 없음)
+      operationId: getAppliesRecord
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 
                     
                     

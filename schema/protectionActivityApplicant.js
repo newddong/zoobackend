@@ -77,6 +77,12 @@ const ProtectionActivityApplicantObject = {
 
 	/** @type { String} 동물보호 게시글 작성한 보호소 */
 	protect_act_request_shelter_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
+
+	/** @type { String} 동물보호(입양, 임시보호)를 신청할 보호소가 보호중인 동물 ID */
+	protect_act_protect_animal_id: {type: Schema.Types.ObjectId, ref: 'ShelterProtectAnimalObject'},
+
+	/** @type { 'accept'|'denied'|'cancel'|'wait'} 보호활동 상태, 승인(accept),거절(denied),취소(cancel),대기(wait)*/
+	protect_act_status : {type: String, default:'wait'}
 };
 
 /** @type {mongoose.Schema} */

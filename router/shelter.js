@@ -13,6 +13,7 @@ const {
 	ALERT_DUPLICATE_NICKNAME,
 	ALERT_NOT_VALID_USEROBJECT_ID,
 	USER_NOT_FOUND,
+	ALERT_NO_RESULT,
 } = require('./constants');
 
 //보호소의 보호 동물을 등록한다.
@@ -110,6 +111,10 @@ router.post('/getProtectRequestList', (req, res) => {
 		requestList = await requestList.exec();
 		requestList = requestList.filter(v => v.protect_request_writer_id != null);
 
+		if(requestList.length<1){
+			res.json({status:404,msg:ALERT_NO_RESULT});
+			return;
+		}
 		//res.status(200);
 		res.json({stauts: 200, msg: requestList});
 	});
