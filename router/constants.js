@@ -4,7 +4,7 @@ module.exports = Object.freeze({
     USER_NOT_VALID_TYPE: '허용되지 않은 타입의 유저입니다.',
 	USER_PASSWORD_NOT_VALID: '유효하지 않은 비밀번호입니다',
     USER_NOT_VALID: '허용되지 않은 유저입니다',
-
+    REQUEST_PARAMETER_NOT_VALID: '요청 파라매터가 옳바르지 않습니다.',
 	LOGOUT_SUCCESS: '로그아웃 성공',
 	LOGOUT_FAILED: '로그아웃 실패',
 

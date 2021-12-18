@@ -5,6 +5,7 @@ const Feed = require('../schema/feed');
 const ShelterAnimal = require('../schema/shelterProtectAnimal');
 const ProtectRequest = require('../schema/protectRequest');
 const ProtectActivity = require('../schema/protectionActivityApplicant');
+const VolunteerActivity = require('../schema/volunteerActivityApplicant');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {
@@ -82,13 +83,16 @@ router.post('/getAppliesRecord', (req, res) => {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
+		let volunteerActivityList = await VolunteerActivity.model.find({
+            volunteer_accompany: {$elemMatch : {$eq:req.session.loginUser}},
+        }).exec();
 
 		res.json({
 			status: 200,
 			msg: {
 				adopt: applies.filter(v => v.protect_act_type == 'adopt'),
 				protect: applies.fileter(v => v.protect_act_type == 'protect'),
-				volunteer: [], //봉사활동 부분 추가해야함
+				volunteer: volunteerActivityList, //봉사활동 부분 추가해야함
 			},
 		});
 	});

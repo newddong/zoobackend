@@ -3,7 +3,6 @@ const router = express.Router();
 const User = require("../schema/user");
 const Feed = require('../schema/feed');
 const Comment = require("../schema/comment");
-const Like = require("../schema/likepostcomment");
 const ProtectRequest = require("../schema/protectRequest");
 const uploadS3 = require("../common/uploadS3");
 const {controller, controllerLoggedIn} = require('./controller');
@@ -111,6 +110,23 @@ router.post('/getChildCommentList',(req,res)=>{
 
 	})
 })
+
+
+//댓글에 좋아요 누름
+router.post('/setLikeComment',(req,res)=>{
+	controllerLoggedIn(req,res,async ()=>{
+
+
+	})
+})
+
+//좋아요 취소
+router.post('/unsetLikeComment',(req,res)=>{
+	controllerLoggedIn(req,res,async ()=>{
+
+	})
+})
+
 
 
 //=================================이전 router code =============================================================================

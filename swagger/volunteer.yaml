@@ -1,0 +1,138 @@
+paths:
+  /volunteer/assignVolunteerActivity:
+    post:
+      tags:
+        - volunteer
+      summary: 봉사활동 신청서를 작성한다.
+      description: 봉사활동 신청서를 작성하고 세부 내용을 데이터베이스에 등록한다.
+      operationId: assignVolunteerActivity
+      requestBody:
+        description: 봉사활동 신청서 등록정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - shelter_userobject_id
+              type: object
+              properties:
+                shelter_userobject_id:
+                  type: string
+                  description: 봉사활동을 희망하는 보호소의 오브젝트 아이디
+                volunteer_wish_date_list:
+                  type: array
+                  description: 봉사활동을 희망하는 날자
+                  items:
+                    type: string
+                    format: date
+                    default: '2021.01.01'
+                accompany_userobject_id_list:
+                  type: array
+                  description: 봉사활동 참여인원 목록(신청자를 포함)
+                  items:
+                    type: string
+                volunteer_delegate_contact:
+                  type: string
+                  description: 봉사활동 대표자의 연락처
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /volunteer/getVolunteerActivityById:
+    post:
+      tags:
+        - volunteer
+      summary: 봉사활동 신청서를 열람한다.
+      description: 열람하고자 하는 봉사활동 신청서를 봉사활동 신청서 아이디를 이용하여 검색한다.(1건만)
+      operationId: getVolunteerActivityById
+      requestBody:
+        description: 봉사활동 신청서 아이디
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - volunteer_activity_object_id
+              type: object
+              properties:
+                volunteer_activity_object_id:
+                  type: string
+                  description: 열람하고자 하는 봉사활동 신청서의 아이디
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /volunteer/getUserVolunteerActivityList:
+    post:
+      tags:
+        - volunteer
+      summary: 일반유저의 봉사활동 신청서 목록을 불러온다.
+      description: 로그인한 일반유저가 신청한 봉사활동 신청서 목록을 불러온다.
+      operationId: getUserVolunteerActivityList
+      requestBody:
+        description: 요청 파라메터
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                # - volunteer_activity_object_id
+              type: object
+              properties:
+                # volunteer_activity_object_id:
+                #   type: string
+                #   description: 열람하고자 하는 봉사활동 신청서의 아이디
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /volunteer/setVolunteerActivityStatus:
+    post:
+      tags:
+        - volunteer
+      summary: 봉사활동 신청서의 상태를 변경한다.
+      description: 봉사활동 신청서의 상태('done'|'notaccept'|'accept'|'waiting'|'cancel')를 변경한다.
+      operationId: getUserVolunteerActivityList
+      requestBody:
+        description: 요청 파라메터
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - volunteer_activity_object_id
+                - volunteer_status
+              type: object
+              properties:
+                volunteer_activity_object_id:
+                  type: string
+                  description: 상태를 변경하려는 봉사활동 신청서의 아이디
+                volunteer_status:
+                  type: string
+                  description: 변경하려고 하는 상태('done'|'notaccept'|'accept'|'waiting'|'cancel')
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+
+
+#jsdoc을 yaml으로 변환
+#.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
+# .*?\{(.*?)\} (.*?) - (.*?)$
+#$2:\n  type: $1\n  description: $3

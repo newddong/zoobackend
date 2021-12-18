@@ -41,7 +41,7 @@ router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_lis
 		await protectAnimal.save();
 
 		//res.status(200);
-		res.json({stauts: 200, msg: protectAnimal});
+		res.json({status: 200, msg: protectAnimal});
 	});
 });
 
@@ -66,7 +66,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 			protect_request_writer_id: req.session.loginUser,
 			protect_animal_species: animal.protect_animal_species,
 			protect_animal_species_detail: animal.protect_animal_species_detail,
-
+			protect_request_photos_uri: [],
 		});
 
 		if (req.files.length > 0) {
@@ -80,7 +80,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 		await newRequest.save();
 
 		//res.status(200);
-		res.json({stauts: 200, msg: newRequest});
+		res.json({status: 200, msg: newRequest});
 	});
 });
 
@@ -107,7 +107,6 @@ router.post('/getProtectRequestList', (req, res) => {
 			requestList.find({protect_request_status: 'rescue'});
 		}
 
-		console.log(requestList.getFilter());
 		requestList = await requestList.exec();
 		requestList = requestList.filter(v => v.protect_request_writer_id != null);
 
@@ -115,8 +114,7 @@ router.post('/getProtectRequestList', (req, res) => {
 			res.json({status:404,msg:ALERT_NO_RESULT});
 			return;
 		}
-		//res.status(200);
-		res.json({stauts: 200, msg: requestList});
+		res.json({status: 200, msg: requestList});
 	});
 });
 
@@ -138,7 +136,7 @@ router.post('/getShelterProtectAnimalList',(req,res)=>{
 		};
 
 		//res.status(200);
-		res.json({stauts: 200, msg: animalList});
+		res.json({status: 200, msg: animalList});
 	})
 })
 

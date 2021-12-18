@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../schema/user");
-const Post = require("../schema/post");
 const Like = require("../schema/likepost");
 const uploadS3 = require("../common/uploadS3");
 

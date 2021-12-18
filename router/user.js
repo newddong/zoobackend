@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../schema/user');
-const Post = require('../schema/post');
 const Feed = require('../schema/feed');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
@@ -203,7 +202,7 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 		// 	return;
 		// }
 		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
-		if (duplicateNickname != null && duplicateNickname._id != userInfo._id) {
+		if (duplicateNickname != null && !duplicateNickname._id.equals(userInfo._id)) {
 			//res.status(400);
 			res.json({status: 400, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
