@@ -153,7 +153,18 @@ router.post('/getProtectRequestListByShelterId',(req,res)=>{
 			return;
 		};
 
-		let protectRequestList = await ProtectRequest.model.find({protect_request_writer_id: shelter._id}).limit(req.body.request_number).exec();
+		let filterObj = {protect_request_writer_id: shelter._id};
+		let status = req.body.protect_request_status;
+		let statusList = ['rescue','discuss','nearrainbow','complete'];
+		if (status&&statusList.some(v=>v==status)) {
+			filterObj = {...filterObj, protect_request_status: status};
+		}
+		if(!statusList.some(v=>v==status)){
+			res.json({status: 400, msg: '허가되지 않은 상태 요청입니다.'});
+			return;
+		}
+
+		let protectRequestList = await ProtectRequest.model.find(filterObj).limit(req.body.request_number).exec();
 		if(protectRequestList.length<1){
 			res.json({status:404,msg:ALERT_NO_RESULT});
 			return;
@@ -161,7 +172,7 @@ router.post('/getProtectRequestListByShelterId',(req,res)=>{
 
 		res.json({status:200,msg:protectRequestList});
 	});
-	
+
 });
 
 

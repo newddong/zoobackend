@@ -142,4 +142,125 @@ router.post('/getApplyDetailById', (req, res) => {
 	});
 });
 
+/**
+ * 보호활동 신청서의 상태를 변경
+ */
+router.post('/setProtectActivityStatus', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let protectActivity = await ProtectActivity.model.findById(req.body.protect_act_object_id).exec();//요청
+		if (!protectActivity) {
+			res.json({status: 404, msg: '요청한 ID와 일치하는 신청서가 존재하지 않습니다.'});
+			return;
+		}
+
+		// let protectRequest = await ProtectRequest.model.findById(protectActivity.protect_act_request_article_id).exec();
+		// if(!protectRequest){
+		// 	res.json({status: 404, msg: '요청한 신청서에 적절한 동물보호 요청이 없습니다. 데이터베이스를 체크해주세요'});
+		// 	return;
+		// }
+
+		// let viewer = await User.model.findById(req.session.loginUser).exec();
+
+		// const userType = viewer.user_type;
+		const userType = req.session.user_type;
+		const statusList = ['accept','denied','cancel','wait'];
+		const targetStatus = req.body.protect_act_status;//요청
+
+		if (!statusList.some(v => v == targetStatus)) {
+			res.json({status: 400, msg: REQUEST_PARAMETER_NOT_VALID});
+			return;
+		}
+
+		if (userType == 'user' && ['denied', 'accept'].some(v => v == targetStatus)) {
+			res.json({status: 400, msg: '해당 유저 타입에는 허가되지 않은 요청입니다.'});
+			return;
+		}
+
+		if (userType == 'shelter' && targetStatus == 'cancel') {
+			res.json({status: 400, msg: '해당 유저 타입에는 허가되지 않은 요청입니다.'});
+			return;
+		}
+
+		protectActivity.protect_act_status = targetStatus;
+		await protectActivity.save();
+
+		res.json({status: 200, msg: protectActivity});
+	});
+});
+
+/**
+ * 동물보호요청 게시물의 상태를 변경
+ */
+ router.post('/setProtectRequestStatus', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let protectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id).exec();//요청
+		if (!protectRequest) {
+			res.json({status: 404, msg: '요청한 ID와 일치하는 동물보호 요청 게시물이 존재하지 않습니다.'});
+			return;
+		}
+
+		// let viewer = await User.model.findById(req.session.loginUser).exec();
+
+		// const userType = viewer.user_type;
+		const userType = req.session.user_type;
+		const statusList = ['rescue','discuss','nearrainbow','complete'];
+		const targetStatus = req.body.protect_request_status;//요청
+
+		if (!statusList.some(v => v == targetStatus)) {
+			res.json({status: 400, msg: REQUEST_PARAMETER_NOT_VALID});
+			return;
+		}
+
+		if (userType == 'user') {
+			res.json({status: 400, msg: '해당 유저 타입에는 허가되지 않은 요청입니다. 보호소 계정으로 로그인하세요'});
+			return;
+		}
+
+		// if (userType == 'shelter' && targetStatus == 'cancel') {
+		// 	res.json({status: 400, msg: '해당 유저 타입에는 허가되지 않은 요청입니다.'});
+		// 	return;
+		// }
+
+		protectRequest.protect_request_status = targetStatus;
+		await protectRequest.save();
+
+		res.json({status: 200, msg: protectRequest});
+	});
+});
+
+
+/**
+ * 대상 동물보호 게시물에 동물보호를 신청한 신청자의 리스트
+ */
+ router.post('/getProtectApplicantList', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		const userType = req.session.user_type;
+		
+		if (userType == 'user') {
+			res.json({status: 400, msg: '해당 유저 타입에는 허가되지 않은 요청입니다. 보호소 계정으로 로그인하세요'});
+			return;
+		}
+
+		let filterObj = {protect_act_request_article_id: req.body.protect_request_object_id};//요청
+		let status = req.body.protect_request_status;
+		let statusList = ['rescue','discuss','nearrainbow','complete'];
+		if (status&&statusList.some(v=>v==status)) {
+			filterObj = {...filterObj, protect_request_status: status};//요청
+		}
+		if(!statusList.some(v=>v==status)){
+			res.json({status: 400, msg: '허가되지 않은 상태 요청입니다.'});
+			return;
+		}
+
+
+		let protectApplicants = await ProtectActivity.model.find(filterObj).exec();
+		if (protectApplicants.length<1) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		res.json({status: 200, msg: protectApplicants});
+	});
+});
+
 module.exports = router;

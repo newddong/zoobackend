@@ -228,10 +228,14 @@ router.post('/updateUserDetailInformation', (req, res) => {
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
+
+		let user_interests = typeof req.body.user_interests == 'string'?JSON.parse('[' + req.body.user_interests + ']'):req.body.user_interests;
+		let user_address = typeof req.body.user_address == 'string'?JSON.parse(req.body.user_address):req.body.user_address;
+
 		userInfo.user_birthday = req.body.user_birthday;
 		userInfo.user_sex = req.body.user_sex;
-		userInfo.user_interests = JSON.parse('[' + req.body.user_interests + ']');
-		userInfo.user_address = JSON.parse(req.body.user_address);
+		userInfo.user_interests = user_interests;
+		userInfo.user_address = user_address;
 
 		await userInfo.save();
 		//res.status(200);
