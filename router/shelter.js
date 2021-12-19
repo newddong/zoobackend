@@ -84,7 +84,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 	});
 });
 
-//동물보호요청을 가져온다.
+//동물보호요청을 가져온다.(추천 알고리즘이 필요, 지금은 모든 요청 게시물이 다 뜸)
 router.post('/getProtectRequestList', (req, res) => {
 	controller(req, res, async () => {
 		let requestList = ProtectRequest.model.find();
@@ -138,6 +138,31 @@ router.post('/getShelterProtectAnimalList',(req,res)=>{
 		//res.status(200);
 		res.json({status: 200, msg: animalList});
 	})
-})
+});
+
+//해당 보호소의 동물보호 요청 게시물을 불러온다.
+router.post('/getProtectRequestListByShelterId',(req,res)=>{
+	controller(req,res,async ()=>{
+		let shelter = await User.model.findById(req.body.shelter_userobject_id).exec();
+		if(!shelter){
+			res.json({status:404,msg:USER_NOT_FOUND});
+			return;
+		}
+		if(shelter.user_type!='shelter'){
+			res.json({status:400,msg:USER_NOT_VALID_TYPE});
+			return;
+		};
+
+		let protectRequestList = await ProtectRequest.model.find({protect_request_writer_id: shelter._id}).limit(req.body.request_number).exec();
+		if(protectRequestList.length<1){
+			res.json({status:404,msg:ALERT_NO_RESULT});
+			return;
+		}
+
+		res.json({status:200,msg:protectRequestList});
+	});
+	
+});
+
 
 module.exports = router;

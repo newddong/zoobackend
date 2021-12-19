@@ -167,7 +167,41 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-
+  /shelter/getProtectRequestListByShelterId:
+    post:
+      tags:
+        - shelter
+      summary: 해당 보호소의 동물보호 요청 게시물을 불러온다.
+      description: 대상 유저 오브젝트 아이디의 보호소가 올린 동물보호 요청 게시물 리스트를 불러온다.
+      operationId: getProtectRequestListByShelterId
+      requestBody:
+        description: 리스트 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - shelter_userobject_id
+                - request_number
+              type: object
+              properties:
+                shelter_userobject_id:
+                  type: string
+                  description: 동물보호 요청 리스트를 불러올 대상 
+                request_number:
+                  type: integer
+                  description:  보호요청게시글 요청 숫자
+                protect_request_object_id:
+                  type: string
+                  description: 커서 역할을 할 보호요청 오브잭트(페이징 처리)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
