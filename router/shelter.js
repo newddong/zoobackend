@@ -175,5 +175,27 @@ router.post('/getProtectRequestListByShelterId',(req,res)=>{
 
 });
 
+//보호소에 보호활동(입양,임시보호)신청이 접수된 동물 목록을 조회
+router.post('/getProtectRequestListByShelterId',(req,res)=>{
+	controllerLoggedIn(req,res,async ()=>{
+		if(req.session.user_type!='shelter'){
+			res.json({status:400,msg:USER_NOT_VALID_TYPE});
+			return;
+		}
+
+		ShelterAnimal.model.find({
+			protect_animal_belonged_shelter_id: req.session.loginUser,
+			
+		})
+
+		
+
+		res.json({status:200,msg:{}});
+	});
+
+});
+
+
+
 
 module.exports = router;

@@ -46,7 +46,7 @@ router.post('/getUserProtectAnimalList', (req, res) => {
 router.post('/createProtectActivity', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let newActivity = await ProtectActivity.makeNewdoc({
-			protect_act_applicant_id: req.session.loginUser,
+			protect_act_applicant_id: req.session.loginUser,//일반유저만 받는지?
 			protect_act_request_article_id: req.body.protect_request_object_id,
 			protect_act_address: req.body.protect_act_address,
 			protect_act_checklist: req.body.protect_act_checklist,
@@ -253,7 +253,7 @@ router.post('/setProtectActivityStatus', (req, res) => {
 		}
 
 
-		let protectApplicants = await ProtectActivity.model.find(filterObj).exec();
+		let protectApplicants = await ProtectActivity.model.find(filterObj).populate('protect_act_applicant_id').exec();
 		if (protectApplicants.length<1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;

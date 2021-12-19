@@ -37,10 +37,7 @@ const FeedObject = {
 	feed_thumbnail: {type: String},
 	/** @type { Array.<FeedMedia>} 피드 미디어 */
 	feed_medias: [FeedMedia],
-	/** @type { String} 게시글 작성자의 db고유 아이디 */
-	feed_writer_id: {type: Schema.Types.ObjectId, ref: 'UserObejct'},
-	/** @type { String} 주인공 동물로 지정한 반려동물 계정의 id, 작성자가 avatar_id로 클라이언트에 표시됨 */
-	feed_avatar_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
+
 
 	/** @type { String} 게시글의 작성 지역정보 */
 	feed_location: {type: String},
@@ -55,12 +52,7 @@ const FeedObject = {
 	/** @type { Boolean} 임보일기일 경우 true */
 	feed_is_protect_diary: {type: Boolean, default: false},
 
-	/** @type { Number} 게시글에 좋아요를 누른 수 */
-	feed_like_count: {type: Number, default: 0},
-	/** @type { Number} 게시글을 즐겨찾기로 등록한 수 */
-	feed_favorite_count: {type: Number, default: 0},
-	/** @type { Number} 게시글에 달린 댓글의 수(대댓글 포함) */
-	feed_comment_count: {type: Number, default: 0},
+	
 	/** @type { RecentComment} 게시글에 달린 최신 댓글 */
 	feed_recent_comment: RecentComment,
 	/** @type { String} 실종 동물의 종류(ex 강아지, 고양이, 토끼 등) */
@@ -84,7 +76,6 @@ const FeedObject = {
 	report_witness_date: {type: Date, default: Date.now},
 	/** @type { String} 제보장소(목격장소) */
 	report_witness_location: {type: String},
-
 	/** @type { String} 제보 동물의 종류(ex 강아지, 고양이, 토끼 등) */
 	report_animal_species: {type: String},
 	/** @type { String} 제보 동물의 세부 종류(ex 리트리버, 불독, 진돗개 등) */
@@ -97,6 +88,20 @@ const FeedObject = {
 	report_animal_contact: {type: String},
 	/** @type { String} 제보 동물의 특징 */
 	report_animal_features: {type: String},
+
+
+	/** @type { Number} 게시글에 좋아요를 누른 수 */
+	feed_like_count: {type: Number, default: 0},
+	/** @type { Number} 게시글을 즐겨찾기로 등록한 수 */
+	feed_favorite_count: {type: Number, default: 0},
+	/** @type { Number} 게시글에 달린 댓글의 수(대댓글 포함) */
+	feed_comment_count: {type: Number, default: 0},
+
+
+	/** @type { String} 게시글 작성자의 db고유 아이디 */
+	feed_writer_id: {type: Schema.Types.ObjectId, ref: 'UserObejct'},
+	/** @type { String} 주인공 동물로 지정한 반려동물 계정의 id, 작성자가 avatar_id로 클라이언트에 표시됨 */
+	feed_avatar_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
 };
 
 /** @type {mongoose.Schema} */
