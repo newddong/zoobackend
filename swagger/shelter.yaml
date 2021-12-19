@@ -205,7 +205,32 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-
+  /shelter/getAnimalListWithApplicant:
+    post:
+      tags:
+        - shelter
+      summary: 보호소에 보호활동(입양,임시보호)신청이 접수된 동물 목록을 조회
+      description: 보호소에 보호활동(입양,임시보호)신청이 접수된 동물 목록을 조회
+      operationId: getAnimalListWithApplicant
+      requestBody:
+        description: 리스트 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - shelter_userobject_id
+                - request_number
+              type: object
+              properties:
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$

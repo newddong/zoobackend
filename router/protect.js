@@ -56,15 +56,20 @@ router.post('/createProtectActivity', (req, res) => {
 			protect_act_type: req.body.protect_act_type,
 		});
 
-		let requestArticle = await ProtectRequest.model.findById(newActivity.protect_act_request_article_id);
+		let requestArticle = await ProtectRequest.model.findById(newActivity.protect_act_request_article_id).exec();
 		if (!requestArticle) {
 			res.json({status: 404, msg: ALERT_NOT_VALID_TARGER_OBJECT_ID});
 			return;
 		}
+		
 		newActivity.protect_act_request_shelter_id = requestArticle.protect_request_writer_id;
 		newActivity.protect_act_protect_animal_id = requestArticle.protect_animal_id;
-
 		await newActivity.save();
+		
+		let animal = await ShelterAnimal.model.findById(newActivity.protect_act_protect_animal_id).exec();
+		
+		animal.protect_act_applicants.push(newActivity._id);
+		await animal.save();
 
 		res.json({status: 200, msg: newActivity});
 	});

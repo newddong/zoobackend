@@ -35,7 +35,7 @@ protect_animal_writer_id  : { type : Schema.Types.ObjectId, ref: 'UserObject'},
 protect_animal_belonged_shelter_id : { type : Schema.Types.ObjectId, ref: 'UserObject'},
 
 /** @type { String} 보호요청 게시물 */
-protect_animal_protect_request_id  : { type : Schema.Types.ObjectId},
+protect_animal_protect_request_id  : { type : Schema.Types.ObjectId, ref: 'ProtectRequestObject'},
 
 /** @type { String} 입양자 */
 protect_animal_adoptor_id  : { type : Schema.Types.ObjectId, ref: 'UserObject'},
@@ -45,6 +45,9 @@ protect_animal_protector_id  : { type : Schema.Types.ObjectId, ref: 'UserObject'
 
 /** @type { Array.<String>} 입양, 임시보호 협의중인 유저 목록 */
 protect_animal_protector_discussion_id  : [{ type : Schema.Types.ObjectId, ref:'UserObject'}],
+
+/** @type { Array.<String>} 보호활동 신청서 목록 */
+protect_act_applicants : [{ type : Schema.Types.ObjectId, ref:'ProtectionActivityApplicantObject'}]
 };
 
 

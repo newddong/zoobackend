@@ -32,7 +32,7 @@ const ProtectRequestObject = {
 
 	/** 다른 스키마와의 관계 */
 
-	/** @type { String} 보호요청 게시물 작성자 */
+	/** @type { String} 보호요청 게시물 작성자(보호소가 작성) */
 	protect_request_writer_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
 
 	/** @type { String} 보호요청할 동물 */
