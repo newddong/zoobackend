@@ -68,7 +68,7 @@ router.post('/userLogout', (req, res) => {
 router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 	controller(req, res, async () => {
 		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
-		if (duplicateNickname != null) {
+		if (duplicateNickname != null&&duplicateNickname.user_type!='pet') {
 			// res.status(400);
 			res.json({status: 200, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
@@ -182,7 +182,8 @@ router.post('/getUserProfile', (req, res) => {
 router.post('/nicknameDuplicationCheck', (req, res) => {
 	controller(req, res, async () => {
 		const duplicateUser = await User.model.findOne({user_nickname: req.body.user_nickname});
-		const isDuplicate = duplicateUser != null;
+		
+		const isDuplicate = duplicateUser != null && duplicateUser.user_type != 'pet';
 		res.json({status: 200, msg: isDuplicate});
 	});
 });
@@ -202,7 +203,7 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 		// 	return;
 		// }
 		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
-		if (duplicateNickname != null && !duplicateNickname._id.equals(userInfo._id)) {
+		if (duplicateNickname != null && !duplicateNickname._id.equals(userInfo._id)&& duplicateNickname.user_type != 'pet') {
 			//res.status(400);
 			res.json({status: 400, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
@@ -385,20 +386,25 @@ router.post('/updateShelterDetailInformation', (req, res) => {
 	});
 });
 
-//유저 계정 검색
+//유저 계정 검색 '/'가 입력되면 'user/pet'으로 검색됨
 router.post('/getUserListByNickname', (req, res) => {
 	controller(req, res, async () => {
-		let userList = User.model
-			.find({
-				user_nickname: {$regex: req.body.user_nickname},
-			})
-			.limit(req.body.request_number);
-
-		if (req.body.user_type) {
-			userList.find({user_type: req.body.user_type});
+		let nickname = req.body.user_nickname;
+		let requestnum = req.body.request_number;
+		let userType = req.body.user_type;
+		let userName = '';
+		let petName = '';
+		let userList = [];
+		
+		if(nickname.includes('/')){
+			let namearray = nickname.split('/');
+			petName = namearray[0];
+			userName = namearray[1];
+			userList = await User.model.find({user_nickname: {$regex: petName}}).populate({path:'pet_family', match: {user_nickname:{$regex:userName}}}).limit(requestnum).exec();
+			userList = userList.filter(v=>v.pet_family.length>0);
+		}else{
+			userList = await User.model.find({user_nickname: {$regex: nickname}}).limit(requestnum).exec();
 		}
-
-		userList = await userList.exec();
 
 		if (userList.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});

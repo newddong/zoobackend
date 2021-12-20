@@ -45,17 +45,18 @@ router.post('/getUserProtectAnimalList', (req, res) => {
 //동물보호(입양, 임시보호) 신청
 router.post('/createProtectActivity', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
+
 		let newActivity = await ProtectActivity.makeNewdoc({
 			protect_act_applicant_id: req.session.loginUser,//일반유저만 받는지?
 			protect_act_request_article_id: req.body.protect_request_object_id,
-			protect_act_address: req.body.protect_act_address,
-			protect_act_checklist: req.body.protect_act_checklist,
-			protect_act_companion_history: req.body.protect_act_companion_history,
+			protect_act_address: typeof req.body.protect_act_address == 'string'?JSON.parse(req.body.protect_act_address):req.body.protect_act_address,
+			protect_act_checklist: typeof req.body.protect_act_checklist == 'string'?JSON.parse(req.body.protect_act_checklist):req.body.protect_act_checklist,
+			protect_act_companion_history: typeof req.body.protect_act_companion_history == 'string'?JSON.parse('[' + req.body.protect_act_companion_history + ']'):req.body.protect_act_companion_history,
 			protect_act_motivation: req.body.protect_act_motivation,
 			protect_act_phone_number: req.body.protect_act_phone_number,
 			protect_act_type: req.body.protect_act_type,
 		});
-
+		
 		let requestArticle = await ProtectRequest.model.findById(newActivity.protect_act_request_article_id).exec();
 		if (!requestArticle) {
 			res.json({status: 404, msg: ALERT_NOT_VALID_TARGER_OBJECT_ID});
@@ -83,20 +84,20 @@ router.post('/createProtectActivity', (req, res) => {
  */
 router.post('/getAppliesRecord', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		let applies = await ProtectActivity.model.find({protect_act_applicant_id: req.session.loginUser});
+		let applies = await ProtectActivity.model.find({protect_act_applicant_id: req.session.loginUser}).populate('protect_act_request_article_id').exec();
 		if (applies.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
 		let volunteerActivityList = await VolunteerActivity.model.find({
             volunteer_accompany: {$elemMatch : {$eq:req.session.loginUser}},
-        }).exec();
+        }).populate('volunteer_target_shelter').exec();
 
 		res.json({
 			status: 200,
 			msg: {
 				adopt: applies.filter(v => v.protect_act_type == 'adopt'),
-				protect: applies.fileter(v => v.protect_act_type == 'protect'),
+				protect: applies.filter(v => v.protect_act_type == 'protect'),
 				volunteer: volunteerActivityList, //봉사활동 부분 추가해야함
 			},
 		});
@@ -112,7 +113,7 @@ router.post('/getUserAdoptProtectionList', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let applies = await ProtectActivity.model
 			.find({protect_act_applicant_id: req.session.loginUser, protect_act_type: req.body.protect_act_type})
-			.sort('-_id')
+			.sort('-_id').populate('protect_act_request_article_id')
 			.limit(req.body.request_number)
 			.exec();
 		if (applies.length < 1) {

@@ -353,7 +353,30 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-
+  /feed/getSuggestFeedList:
+    post:
+      tags:
+        - feed
+      summary: 추천 피드 리스트를 불러온다(홈)
+      description: 추천 피드 리스트를 불러옴(홈화면)
+      operationId: getSuggestFeedList
+      requestBody:
+        description: 
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+              type: object
+              properties:
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
  #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 #$2:\n  type: $1\n  description: $3

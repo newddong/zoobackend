@@ -184,4 +184,20 @@ router.post('/getFeedDetailById',(req, res)=>{
 	})
 })
 
+//추천 피드 리스트를 불러옴(홈화면)
+router.post('/getSuggestFeedList',(req, res)=>{
+	controller(req,res,async ()=>{
+		let feed = await Feed.model.find().populate('feed_writer_id').populate('feed_avatar_id').exec();
+		if(!feed){
+			//res.status(404);
+			res.json({status:404,msg:ALERT_NO_RESULT});
+			return;
+		}
+
+		//res.status(200);
+		res.json({status:200, msg: feed});
+	})
+})
+
+
 module.exports = router;

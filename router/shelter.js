@@ -69,13 +69,13 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 			protect_request_photos_uri: [],
 		});
 
-		if (req.files.length > 0) {
+		if (req.files&&req.files.length > 0) {
 			req.files.forEach(file => {
 				newRequest.protect_request_photos_uri.push(file.location);
 			});
 		}
 		if (animal.protect_animal_photo_uri_list.length > 0) {
-			animal.protect_animal_photo_uri_list.forEach(uri => newRequest.protect_request_photos.push(uri));
+			animal.protect_animal_photo_uri_list.forEach(uri => newRequest.protect_request_photos_uri.push(uri));
 		}
 		await newRequest.save();
 		animal.protect_animal_protect_request_id = newRequest._id;
