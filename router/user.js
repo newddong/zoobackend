@@ -368,13 +368,13 @@ router.post('/updateUserIntroduction', (req, res) => {
 router.post('/updateShelterDetailInformation', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let shelter = await User.model.findById(req.body.userobject_id).exec();
-		if (shelter == null) {
+		if (!shelter) {
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
-
+		
 		shelter.shelter_name = req.body.shelter_name;
-		shelter.shelter_address = req.body.shelter_address;
+		shelter.shelter_address = typeof req.body.shelter_address == 'string' ? JSON.parse(req.body.shelter_address) : req.body.shelter_address;
 		shelter.shelter_delegate_contact_number = req.body.shelter_delegate_contact_number;
 		shelter.user_email = req.body.user_email;
 		shelter.shelter_homepage = req.body.shelter_homepage;

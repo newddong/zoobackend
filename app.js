@@ -39,7 +39,7 @@ const options = {
 const specs = swaggerJsdoc(options);
 
 const app = express();
-
+app.set('trust proxy', true);
 app.set('port', process.env.PORT || 3000); //Port 설정
 
 app.use(

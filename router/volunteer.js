@@ -34,8 +34,8 @@ router.post('/assignVolunteerActivity', (req, res) => {
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
 			return;
 		}
-		console.log(req.body.volunteer_wish_date_list);
-		console.log(typeof req.body.volunteer_wish_date_list);
+		// console.log(req.body.volunteer_wish_date_list);
+		// console.log(typeof req.body.volunteer_wish_date_list);
 		let wishDates =
 			typeof req.body.volunteer_wish_date_list == 'string' ? req.body.volunteer_wish_date_list.split(',') : req.body.volunteer_wish_date_list;
 
