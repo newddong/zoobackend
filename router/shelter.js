@@ -58,9 +58,9 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 			res.json({status: 400, msg: USER_NOT_FOUND});
 			return;
 		}
-
+		
 		let newRequest = await ProtectRequest.makeNewdoc({
-			protect_animal_id: animal._id,
+			// protect_animal_id: {...animal},
 			protect_request_title: req.body.protect_request_title,
 			protect_request_content: req.body.protect_request_content,
 			protect_request_writer_id: req.session.loginUser,
@@ -77,8 +77,9 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 		if (animal.protect_animal_photo_uri_list.length > 0) {
 			animal.protect_animal_photo_uri_list.forEach(uri => newRequest.protect_request_photos_uri.push(uri));
 		}
-		await newRequest.save();
 		animal.protect_animal_protect_request_id = newRequest._id;
+		newRequest.protect_animal_id = {...animal};
+		await newRequest.save();
 		await animal.save();
 
 		res.json({status: 200, msg: newRequest});

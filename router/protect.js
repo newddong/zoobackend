@@ -84,7 +84,7 @@ router.post('/createProtectActivity', (req, res) => {
  */
 router.post('/getAppliesRecord', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		let applies = await ProtectActivity.model.find({protect_act_applicant_id: req.session.loginUser}).populate('protect_act_request_article_id').exec();
+		let applies = await ProtectActivity.model.find({protect_act_applicant_id: req.session.loginUser}).populate({path:'protect_act_request_article_id',populate:'protect_request_writer_id'}).exec();
 		if (applies.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
@@ -113,7 +113,7 @@ router.post('/getUserAdoptProtectionList', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let applies = await ProtectActivity.model
 			.find({protect_act_applicant_id: req.session.loginUser, protect_act_type: req.body.protect_act_type})
-			.sort('-_id').populate('protect_act_request_article_id')
+			.sort('-_id').populate({path:'protect_act_request_article_id',populate:'protect_request_writer_id'})
 			.limit(req.body.request_number)
 			.exec();
 		if (applies.length < 1) {
