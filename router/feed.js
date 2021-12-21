@@ -119,7 +119,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 			return;
 		}
 		if (user.user_type == 'pet') {
-			let petFeeds = await Feed.model.find({feed_avatar_id: req.body.userobject_id}).limit(req.body.request_number).exec();
+			let petFeeds = await Feed.model.find({feed_avatar_id: req.body.userobject_id}).populate('feed_avatar_id').limit(req.body.request_number).exec();
 			if (petFeeds.length < 1) {
 				//res.status(404);
 				res.json({status: 404, user_type: 'pet', msg: ALERT_NO_RESULT});
@@ -129,7 +129,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 			res.json({status: 200, user_type: 'pet', msg: petFeeds});
 			return;
 		} else {
-			let userFeeds = await Feed.model.find({feed_writer_id: req.body.userobject_id}).limit(req.body.request_number).exec();
+			let userFeeds = await Feed.model.find({feed_writer_id: req.body.userobject_id}).populate('feed_writer_id').limit(req.body.request_number).exec();
 			if (userFeeds < 1) {
 				//res.status(404);
 				res.json({status: 404, user_type: user.user_type, msg: ALERT_NO_RESULT});
@@ -145,7 +145,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 //실종/제보 요청을 가져온다.
 router.post('/getMissingReportList', (req, res) => {
 	controller(req, res, async () => {
-		let reportMissingList = Feed.model.find({feed_type: {$ne: 'feed'}});
+		let reportMissingList = Feed.model.find({feed_type: {$ne: 'feed'}}).populate('feed_writer_id');
 		if (req.body.city) {
 			reportMissingList.find({
 				$or: [{missing_animal_lost_location: {$regex: req.body.city}}, {report_witness_location: {$regex: req.body.city}}],
@@ -170,7 +170,7 @@ router.post('/getMissingReportList', (req, res) => {
 //피드,실종,제보 게시글 상세정보 가져오기
 router.post('/getFeedDetailById',(req, res)=>{
 	controller(req,res,async ()=>{
-		let feed = await Feed.model.findById(req.body.feedobject_id).exec();
+		let feed = await Feed.model.findById(req.body.feedobject_id).populate('feed_writer_id').exec();
 		if(!feed){
 			//res.status(404);
 			res.json({status:404,msg:ALERT_NO_RESULT});

@@ -103,10 +103,16 @@ router.post('/getProtectRequestList', (req, res) => {
 				//select: 'shelter_address shelter_name shelter_delegate_contact_number',
 				match: {'shelter_address.brief': {$regex: req.body.city}, options: {limit: req.body.request_number}},
 			});
+		}else{
+			requestList.populate({
+				path: 'protect_request_writer_id',
+				//select: 'shelter_address shelter_name shelter_delegate_contact_number',
+				options: {limit: req.body.request_number}
+			});
 		}
 
 		if (req.body.adoptable_posts && req.body.adoptable_posts == 'true') {
-			requestList.find({protect_request_status: 'rescue'});
+			requestList.find({$or:[{protect_request_status: 'rescue'},{protect_request_status:'discuss'}]});
 		}
 
 		requestList = await requestList.exec();
@@ -157,16 +163,19 @@ router.post('/getProtectRequestListByShelterId', (req, res) => {
 
 		let filterObj = {protect_request_writer_id: shelter._id};
 		let status = req.body.protect_request_status;
-		let statusList = ['rescue', 'discuss', 'nearrainbow', 'complete'];
+		let statusList = ['all','rescue', 'discuss', 'nearrainbow', 'complete'];
 		if (status && statusList.some(v => v == status)) {
+			if(status=='all'){}
+			else{
 			filterObj = {...filterObj, protect_request_status: status};
+			}
 		}
 		if (!statusList.some(v => v == status)) {
 			res.json({status: 400, msg: '허가되지 않은 상태 요청입니다.'});
 			return;
 		}
 
-		let protectRequestList = await ProtectRequest.model.find(filterObj).limit(req.body.request_number).exec();
+		let protectRequestList = await ProtectRequest.model.find(filterObj).populate('protect_request_writer_id').limit(req.body.request_number).exec();
 		if (protectRequestList.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;

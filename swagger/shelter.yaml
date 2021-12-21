@@ -182,6 +182,7 @@ paths:
               required:
                 - shelter_userobject_id
                 - request_number
+                - protect_request_status
               type: object
               properties:
                 shelter_userobject_id:
@@ -195,7 +196,7 @@ paths:
                   description: 커서 역할을 할 보호요청 오브잭트(페이징 처리)
                 protect_request_status:
                   type: string
-                  description: 리스트의 보호요청 게시물의 상태('rescue'|'discuss'|'nearrainbow'|'complete')필터
+                  description: 리스트의 보호요청 게시물의 상태('all'|'rescue'|'discuss'|'nearrainbow'|'complete')필터
       responses:
         '200':
           $ref: '#/components/responses/200'
