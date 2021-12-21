@@ -36,7 +36,7 @@ router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_lis
 			protect_animal_belonged_shelter_id: req.session.loginUser,
 		});
 
-		if (req.files.length > 0) protectAnimal.protect_animal_photo_uri_list = req.files.map(file => file.location);
+		if (req.files&&req.files.length > 0) protectAnimal.protect_animal_photo_uri_list = req.files.map(file => file.location);
 
 		await protectAnimal.save();
 

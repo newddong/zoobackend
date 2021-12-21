@@ -20,7 +20,7 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 			feed.feed_avatar_id = req.body.feed_avatar_id;
 		}
 
-		if (req.files.length > 0) {
+		if (req.files&&req.files.length > 0) {
 			if(!req.body.feed_medias){
 				//res.status(400);
 				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
@@ -58,7 +58,7 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 			missing_animal_date: req.body.missing_animal_date,
 		});
 
-		if (req.files.length > 0) {
+		if (req.files&&req.files.length > 0) {
 			if(!req.body.feed_medias){
 				//res.status(400);
 				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
@@ -90,7 +90,7 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 			report_witness_location: req.body.report_witness_location,
 		});
 
-		if (req.files.length > 0) {
+		if (req.files&&req.files.length > 0) {
 			if(!req.body.feed_medias){
 				//res.status(400);
 				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
@@ -152,19 +152,17 @@ router.post('/getMissingReportList', (req, res) => {
 			});
 		}
 		if (req.body.missing_animal_species) {
-			console.log('d');
 			reportMissingList.find({
 				$or: [{missing_animal_species: {$regex: req.body.missing_animal_species}}, {report_animal_species: {$regex: req.body.missing_animal_species}}],
 			});
 		}
 
 		reportMissingList = await reportMissingList.exec();
-		if(!reportMissingList.length<1){
-			//res.status(404);
+		if(reportMissingList.length<1){
 			res.json({status:404,msg:ALERT_NO_RESULT});
 			return;
 		}
-		//res.status(200);
+
 		res.json({status: 200, msg: reportMissingList});
 	});
 });
