@@ -85,7 +85,8 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 			feed_location: req.body.feed_location,
 			feed_type: 'report',
 			feed_writer_id: req.session.loginUser,
-
+			report_animal_species:req.body.report_animal_species,
+			report_animal_features:req.body.report_animal_features,
 			report_witness_date: req.body.report_witness_date,
 			report_witness_location: req.body.report_witness_location,
 		});
@@ -94,7 +95,7 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 			if(!req.body.feed_medias){
 				//res.status(400);
 				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
-				return;
+				return;           
 			}
 			report.feed_medias = typeof req.body.feed_medias=='string'?JSON.parse('[' + req.body.feed_medias + ']'):req.body.feed_medias;
 			report.feed_medias.map((v, i) => {
