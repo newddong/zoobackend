@@ -120,7 +120,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 			return;
 		}
 		if (user.user_type == 'pet') {
-			let petFeeds = await Feed.model.find({feed_avatar_id: req.body.userobject_id}).populate('feed_avatar_id').limit(req.body.request_number).exec();
+			let petFeeds = await Feed.model.find({feed_avatar_id: req.body.userobject_id}).populate('feed_avatar_id').limit(req.body.request_number).sort("-_id").exec();
 			if (petFeeds.length < 1) {
 				//res.status(404);
 				res.json({status: 404, user_type: 'pet', msg: ALERT_NO_RESULT});
@@ -130,7 +130,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 			res.json({status: 200, user_type: 'pet', msg: petFeeds});
 			return;
 		} else {
-			let userFeeds = await Feed.model.find({feed_writer_id: req.body.userobject_id}).populate('feed_writer_id').limit(req.body.request_number).exec();
+			let userFeeds = await Feed.model.find({feed_writer_id: req.body.userobject_id}).populate('feed_writer_id').limit(req.body.request_number).sort("-_id").exec();
 			if (userFeeds < 1) {
 				//res.status(404);
 				res.json({status: 404, user_type: user.user_type, msg: ALERT_NO_RESULT});
@@ -158,7 +158,7 @@ router.post('/getMissingReportList', (req, res) => {
 			});
 		}
 
-		reportMissingList = await reportMissingList.exec();
+		reportMissingList = await reportMissingList.sort("-_id").exec();
 		if(reportMissingList.length<1){
 			res.json({status:404,msg:ALERT_NO_RESULT});
 			return;
@@ -186,7 +186,7 @@ router.post('/getFeedDetailById',(req, res)=>{
 //추천 피드 리스트를 불러옴(홈화면)
 router.post('/getSuggestFeedList',(req, res)=>{
 	controller(req,res,async ()=>{
-		let feed = await Feed.model.find().populate('feed_writer_id').populate('feed_avatar_id').exec();
+		let feed = await Feed.model.find().populate('feed_writer_id').populate('feed_avatar_id').sort("-_id").exec();
 		if(!feed){
 			//res.status(404);
 			res.json({status:404,msg:ALERT_NO_RESULT});
