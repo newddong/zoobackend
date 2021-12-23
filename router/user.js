@@ -274,24 +274,22 @@ router.post('/addUserToFamily', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let pet = await User.model.findById(req.body.userobject_id).exec();
 		if (!pet) {
-			//res.status(404);
 			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
-			return;
-		}
-
-		let isFamily = pet.pet_family.includes(req.session.loginUser);
-		if (!isFamily) {
-			//res.status(400);
-			res.json({status: 400, msg: USER_NOT_VALID});
 			return;
 		}
 
 		let targetUser = await User.model.findById(req.body.family_userobject_id).exec();
 		if (!targetUser) {
-			//res.status(404);
 			res.json({status: 404, msg: ALERT_NOt_VALID_TARGER_OBJECT_ID});
 			return;
 		}
+
+		let containFamily = pet.pet_family.some(v=>v.equals(req.body.family_userobject_id));
+		if (containFamily) {
+			res.json({status: 400, msg: USER_NOT_VALID});
+			return;
+		}
+
 
 		pet.pet_family.push(targetUser._id);
 		await pet.save();
