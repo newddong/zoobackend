@@ -210,4 +210,28 @@ router.post('/getAnimalListWithApplicant', (req, res) => {
 	});
 });
 
+
+//보호소에 등록된 동물의 상세 정보를 조회
+router.post('/getProtectAnimalByProtectAnimalId',(req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		if (req.session.user_type != 'shelter') {
+			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
+			return;
+		}
+
+		let animal = await ShelterAnimal.model.findById(req.body.shelter_protect_animal_object_id).exec();
+
+		
+		if(!animal){
+			res.json({status:404, msg:ALERT_NO_RESULT});
+			return;
+		}
+
+		res.json({status: 200, msg: animal});
+	});
+});
+
+
+
+
 module.exports = router;

@@ -46,13 +46,6 @@ router.post('/assignVolunteerActivity', (req, res) => {
 			volunteer_delegate_contact: req.body.volunteer_delegate_contact,
 		});
 
-		volunteerActivity.volunteer_accompany.push(req.session.loginUser);
-		if (req.body.accompany_userobject_id_list && req.body.accompany_userobject_id_list.length > 0) {
-			volunteerActivity.volunteer_accompany = volunteerActivity.volunteer_accompany.concat(
-				req.body.accompany_userobject_id_listaccompany_userobject_id_list,
-			);
-		}
-
 		await volunteerActivity.save();
 
 		res.json({status: 200, msg: volunteerActivity});
@@ -78,7 +71,7 @@ router.post('/getUserVolunteerActivityList', (req, res) => {
 		let volunteerActivityList = await VolunteerActivity.model
 			.find({
 				volunteer_accompany: {$elemMatch: {$eq: req.session.loginUser}},
-			})
+			}).populate('volunteer_target_shelter')
 			.exec();
 		if (volunteerActivityList.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});

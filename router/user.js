@@ -23,21 +23,20 @@ const {nicknameDuplicationCheck} = require('./utilfunction');
 router.post('/userLogin', (req, res) => {
 	controller(req, res, async () => {
 		if (req.session?.loginUser) {
-			//res.status(200);
-			res.json({status: 200, msg: ALREADY_LOGIN});
+			res.json({status: 200, msg: {
+				user_nickname: '이미 로그인된 유저입니다.'
+			}});
 			return;
 		}
 
 		let loginUser = await User.model.findOne().where('user_phone_number').equals(req.body.login_id);
 
 		if (!loginUser) {
-			//res.status(200);
 			res.json({status: 404, msg: USER_NOT_FOUND});
 			return;
 		}
 		let isValidPassword = loginUser.user_password == req.body.login_password;
 		if (!isValidPassword) {
-			//res.status(200);
 			res.json({status: 404, msg: USER_PASSWORD_NOT_VALID});
 			return;
 		}
@@ -45,7 +44,6 @@ router.post('/userLogin', (req, res) => {
 		req.session.loginUser = loginUser._id;
 		req.session.user_type = loginUser.user_type;
 		req.session.user_nickname = loginUser.user_nickname;
-		//res.status(200);
 		res.json({status: 200, msg: loginUser});
 	});
 });
@@ -153,7 +151,7 @@ router.post('/getUserProfile', (req, res) => {
 		const userInfo = await User.model
 			.findById(req.body.userobject_id)
 			.select(
-				'user_type user_nickname user_profile_uri user_upload_count user_follow_count user_follower_count user_denied user_my_pets user_introduction',
+				'-user_password',
 			)
 			.populate('user_my_pets', 'user_nickname user_profile_uri')
 			.exec();

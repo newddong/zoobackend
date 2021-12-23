@@ -269,4 +269,23 @@ router.post('/setProtectActivityStatus', (req, res) => {
 	});
 });
 
+/**
+ * 동물보호 요청 게시글 상세조회
+ */
+router.post('/getProtectRequestByProtectRequestId', (req, res) => {
+	controller(req, res, async () => {
+		let protectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id).exec();
+
+		if (!protectRequest) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		res.json({status: 200, msg: protectRequest});
+	});
+});
+
+
+
+
 module.exports = router;
