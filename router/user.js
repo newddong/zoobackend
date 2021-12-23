@@ -277,12 +277,22 @@ router.post('/addUserToFamily', (req, res) => {
 			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
 		}
+		if(pet.user_type!='pet'){
+			res.json({status: 400, msg: '반려동물을 userobject_id의 대상으로 선택하세요'});
+			return;
+		}
+
 
 		let targetUser = await User.model.findById(req.body.family_userobject_id).exec();
 		if (!targetUser) {
 			res.json({status: 404, msg: ALERT_NOt_VALID_TARGER_OBJECT_ID});
 			return;
 		}
+		if(targetUser.user_type=='pet'){
+			res.json({status: 400, msg: '반려동물 끼리는 가족이 될 수 없습니다.'});
+			return;
+		}
+
 
 		let containFamily = pet.pet_family.some(v=>v.equals(req.body.family_userobject_id));
 		if (containFamily) {
