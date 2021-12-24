@@ -14,6 +14,7 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 			feed_location: req.body.feed_location,
 			feed_type: 'feed',
 			feed_writer_id: req.session.loginUser,
+			feed_is_protect_diary: req.body.feed_is_protect_diary,
 		});
 
 		if(req.body.feed_avatar_id){
@@ -21,20 +22,19 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 		}
 
 		if (req.files&&req.files.length > 0) {
-			if(!req.body.feed_medias){
-				//res.status(400);
-				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
-				return;
-			}
-			feed.feed_medias = typeof req.body.feed_medias=='string'?JSON.parse('[' + req.body.feed_medias + ']'):req.body.feed_medias,
-			feed.feed_medias.map((v, i) => {
-				v.media_uri = req.files[i].location;
-			});
-			feed.feed_thumbnail = feed.feed_medias[0].media_uri;
-		}
+			let feedMedia = typeof req.body.feed_medias=='string'?JSON.parse('[' + req.body.feed_medias + ']'):req.body.feed_medias;
 
+			feed.feed_medias = req.files.map((v,i)=>{
+				return {
+					...feedMedia[i],					
+					media_uri: v.location
+				};
+			})
+			feed.feed_thumbnail=feed.feed_medias[0].media_uri;
+		}
+		
+		
 		let newFeed = await feed.save();
-		//res.status(200);
 		res.json({status: 200, msg: newFeed});
 	});
 });
@@ -59,20 +59,20 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 		});
 
 		if (req.files&&req.files.length > 0) {
-			if(!req.body.feed_medias){
-				//res.status(400);
-				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
-				return;
-			}
-			missing.feed_medias = typeof req.body.feed_medias=='string'?JSON.parse('[' + req.body.feed_medias + ']'):req.body.feed_medias;
-			missing.feed_medias.map((v, i) => {
-				v.media_uri = req.files[i].location;
-			});
-			missing.feed_thumbnail = missing.feed_medias[0].media_uri;
+			let feedMedia = typeof req.body.feed_medias=='string'?JSON.parse('[' + req.body.feed_medias + ']'):req.body.feed_medias;
+
+			missing.feed_medias = req.files.map((v,i)=>{
+				return {
+					...feedMedia[i],					
+					media_uri: v.location
+				};
+			})
+			missing.feed_thumbnail=missing.feed_medias[0].media_uri;
 		}
+		
+
 
 		let newMissing = await missing.save();
-		//res.status(200);
 		res.json({status: 200, msg: newMissing});
 	});
 });
@@ -92,20 +92,19 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 		});
 
 		if (req.files&&req.files.length > 0) {
-			if(!req.body.feed_medias){
-				//res.status(400);
-				res.json({status:400,msg:ALERT_NO_MEDIA_INFO});
-				return;           
-			}
-			report.feed_medias = typeof req.body.feed_medias=='string'?JSON.parse('[' + req.body.feed_medias + ']'):req.body.feed_medias;
-			report.feed_medias.map((v, i) => {
-				v.media_uri = req.files[i].location;
-			});
-			report.feed_thumbnail = report.feed_medias[0].media_uri;
+			let feedMedia = typeof req.body.feed_medias=='string'?JSON.parse('[' + req.body.feed_medias + ']'):req.body.feed_medias;
+
+			report.feed_medias = req.files.map((v,i)=>{
+				return {
+					...feedMedia[i],					
+					media_uri: v.location
+				};
+			})
+			report.feed_thumbnail=report.feed_medias[0].media_uri;
 		}
+		
 
 		let newReport = await report.save();
-		//res.status(200);
 		res.json({status: 200, msg: newReport});
 	});
 });

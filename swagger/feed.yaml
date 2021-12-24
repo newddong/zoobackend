@@ -24,6 +24,9 @@ paths:
                 feed_avatar_id:
                   type: string
                   description: 피드의 작성자로 지정하고 싶은 반려동물 ID
+                feed_is_protect_diary:
+                  type: boolean
+                  description: 임보일기여부
                 media_uri:
                   type: array
                   description: 피드 첨부파일 uri리스트
