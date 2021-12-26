@@ -33,7 +33,7 @@ async function controller(req, res, fn) {
 	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | excute API", req.connection.remoteAddress, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, 'user not login'); // prettier-ignore
 	try {
 		await fn();
-		if(!req.session.loginUser){
+		if(req.session&&!req.session.loginUser){
 			req.session.destroy();
 		}
 	} catch (err) {

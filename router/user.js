@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const User = require('../schema/user');
 const Feed = require('../schema/feed');
+const PetType = require('../schema/pettype');
 const uploadS3 = require('../common/uploadS3');
+const Address = require('../schema/address');
 const {controller, controllerLoggedIn} = require('./controller');
 const {
 	ALREADY_LOGIN,
@@ -162,7 +164,12 @@ router.post('/getUserProfile', (req, res) => {
 			return;
 		}
 
-		const feedList = await Feed.model.find().where('feed_writer_id').select('feed_thumbnail');
+		let feedList = [];
+		if(userInfo.user_type=='pet'){
+			feedList = await Feed.model.find({feed_avatar_id:userInfo._id}).limit(20).sort('-_id').exec();
+		}else{
+			feedList = await Feed.model.find({feed_writer_id:userInfo._id}).limit(20).sort('-_id').exec();
+		}
 
 		const profile = {
 			...userInfo._doc,
@@ -453,5 +460,13 @@ router.post('/removeUserFromFamily', (req, res) => {
 		res.json({status: 200, msg: {user: targetUser, pet: pet}});
 	});
 });
+
+//동물의 종류 코드를 받아온다.
+router.post('/getPettypes',(req,res)=>{
+	controller(req,res,async ()=>{
+		let codes = await PetType.model.find({}).exec();
+		res.json({status:200,msg:codes});
+	})
+})
 
 module.exports = router;

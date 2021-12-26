@@ -11,6 +11,10 @@ tags:
     description: '동물보호 활동'
   - name: 'volunteer'
     description: '봉사활동 신청/관리'
+  - name: 'address'
+    description: '주소검색 관련 API'
+  - name: 'admin'
+    description: '관리자 API'
 externalDocs:
   description: 'Find out more about Swagger'
   url: 'http://swagger.io'

@@ -1,0 +1,36 @@
+paths:
+  /address/pushAddressFromfile:
+    get:
+      tags:
+        - address
+      summary: 주소 처리 파일을 디비에 입력(절대 건드리지 마세요)
+      description: 주소 txt 파일을 디비에 일괄적으로 업로드한다.(광역시도/시군구/동읍면 단위)
+      operationId: pushAddressFromfile
+      responses:
+  /address/getAddressList:
+    post:
+      tags:
+        - address
+      summary: 주소를 행정구역 동읍면 단위까지만 불러온다.
+      description: 주소를 행정구역 동읍면 단위까지만 불러온다. 모든 요청필드에 빈값을 넣으면 광역시도 목록을, 광역시도를 넣으면 그 이하의 행정구역들을, 구를 넣으면 해당 동들이 나온다.
+      operation: getAddressList
+      requestBody:
+        description: 주소 요청 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                city:
+                  type: string
+                  description: 주소를 요청할 광역시도
+                district:
+                  type: string
+                  description: 주소를 요청할 시군구
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'

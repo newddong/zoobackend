@@ -75,25 +75,27 @@ app.use("/api-docs",
 
 //Routers
 const userRoute = require('./router/user');
-const appauth = require('./router/appauth');
 const comment = require('./router/comment');
 const feedRoute = require('./router/feed');
 const shelterRoute = require('./router/shelter');
 const database = require('./database/database');
 const protectRoute = require('./router/protect');
 const volunteer = require('./router/volunteer');
+const address = require('./router/address');
+const admin = require('./router/admin');
 const router = express.Router();
 
 const dbconnection = database();
 
 //Api routes
-app.use('/auth', appauth);
 app.use('/user', userRoute);
 app.use('/comment', comment);
 app.use('/feed', feedRoute);
 app.use('/shelter',shelterRoute);
 app.use('/protect',protectRoute);
 app.use('/volunteer',volunteer);
+app.use('/address',address);
+app.use('/admin',admin);
 app.use('/', router);
 
 //Launch Server
