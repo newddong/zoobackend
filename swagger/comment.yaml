@@ -108,6 +108,32 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
+  /comment/getChildCommentList:
+    post:
+      tags:
+        - comment
+      summary: 대댓글 불러오기
+      description: 대댓글 불러오기 댓글 오브젝트를 입력하면 입력된 댓글 이전의 댓글들을 불러온다(페이징)
+      operationId: 대댓글 불러오기
+      requestBody:
+        description: getChildCommentList
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - commentobject_id
+              properties:
+                commentobject_id:
+                  type: string
+                  description: 대댓글
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
 
  #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$

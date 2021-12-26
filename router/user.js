@@ -155,7 +155,8 @@ router.post('/getUserProfile', (req, res) => {
 			.select(
 				'-user_password',
 			)
-			.populate('user_my_pets', 'user_nickname user_profile_uri')
+			.populate('user_my_pets')
+			.populate('pet_family')
 			.exec();
 
 		if (!userInfo) {

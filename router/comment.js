@@ -17,10 +17,11 @@ router.post('/createComment',uploadS3.single('comment_photo_uri'),(req,res)=>{
 			comment_is_secure: req.body.comment_is_secure,
 			comment_writer_id: req.session.loginUser,
 		});
-
+		let parentComment
 		if(req.body.commentobject_id&&req.body.commentobject_id.length>0){
-			let parentComment = await Comment.model.findById(req.body.commentobject_id);
+			parentComment = await Comment.model.findById(req.body.commentobject_id);
 			if(parentComment)comment.comment_parent_writer_id = parentComment.comment_writer_id;
+			parentComment.children_count++;
 			comment.comment_parent = req.body.commentobject_id;
 		}//부모 코멘트의 작성자를 설정(Secure기능을 이용하기 위함)
 
@@ -28,10 +29,10 @@ router.post('/createComment',uploadS3.single('comment_photo_uri'),(req,res)=>{
 			comment.comment_feed_id = req.body.feedobject_id;
 			let targetFeed = await Feed.model.findById(req.body.feedobject_id);
 			if(targetFeed){
-				targetFeed.feed_recent_comment.comment_id = comment._id;//게시물에 달린 최신 댓글 설정
+				targetFeed.feed_recent_comment.comment_id = comment._id;//게시물에 달린 최신 댓글 설정(1개까지)
 				targetFeed.feed_recent_comment.comment_user_nickname = req.session.user_nickname;//코멘트 작성자의 닉네임
-				targetFeed.feed_recent_comment.comment_contents = comment.comment_contents;
-				
+				targetFeed.feed_recent_comment.comment_contents = comment.comment_contents;//코멘트 내용
+				targetFeed.feed_comment_count++;
 				comment.comment_feed_writer_id = targetFeed.feed_writer_id;//댓글이 달린 피드의 작성자를 설정(Secure기능을 이용하기 위함)
 			}
 			await targetFeed.save();
@@ -40,7 +41,7 @@ router.post('/createComment',uploadS3.single('comment_photo_uri'),(req,res)=>{
 
 		// comment_protect_request_id: req.body.comment_protect_request_id,
 		//TODO : 댓글이 달린 보호요청 게시물의 작성자 설정(Secure기능을 이용하기 위함)
-
+		await parentComment&&parentComment.save();
 		let newComment = await comment.save();
 		//res.status(200);
 		res.json({status: 200, msg: newComment});
@@ -53,20 +54,15 @@ router.post('/getCommentListByFeedId',(req,res)=>{
 	controller(req,res,async ()=>{
 		let feed = await Feed.model.findById(req.body.feedobject_id).exec();
 		if(!feed){
-			//res.status(400);
 			res.json({status:400,msg:ALERT_NOT_VALID_OBJECT_ID});
 			return;
 		}
 
-		let commentList = await Comment.model.find({comment_feed_id:feed._id}).populate('comment_writer_id').exec();
+		let commentList = await Comment.model.find({comment_feed_id:feed._id, comment_parent:{$exists:false}}).populate('comment_writer_id').sort("-_id").exec();
 		if(commentList.length<1){
-			//res.status(404);
 			res.json({status:404,msg:ALERT_NO_RESULT});
 			return;
 		}
-
-
-		//res.status(200);
 		res.json({status:200,msg:commentList});
 	})
 })
@@ -77,20 +73,15 @@ router.post('/getCommentListByProtectId',(req,res)=>{
 		let protectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id).exec();
 		
 		if(!protectRequest){
-			//res.status(400);
 			res.json({status:400,msg:ALERT_NOT_VALID_OBJECT_ID});
 			return;
 		}
 
-		let commentList = await Comment.model.find({comment_protect_request_id:protectRequest._id}).populate('comment_writer_id').exec();
+		let commentList = await Comment.model.find({comment_protect_request_id:protectRequest._id}).populate('comment_writer_id').sort("-_id").exec();
 		if(commentList.length<1){
-			//res.status(404);
 			res.json({status:404,msg:ALERT_NO_RESULT});
 			return;
 		}
-
-
-		//res.status(200);
 		res.json({status:200,msg:commentList});
 	})
 })
@@ -98,7 +89,7 @@ router.post('/getCommentListByProtectId',(req,res)=>{
 //대댓글 불러오기
 router.post('/getChildCommentList',(req,res)=>{
 	controller(req,res,async ()=>{
-		let childComments = await Comment.model.find({comment_parent_writer_id: req.body.commentobject_id}).populate('comment_writer_id').exec();
+		let childComments = await Comment.model.find({comment_parent: req.body.commentobject_id}).populate('comment_writer_id').sort("-_id").exec();
 
 		if(childComments.length<1){
 			res.json({status:404,msg:ALERT_NO_RESULT});
