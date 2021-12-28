@@ -60,11 +60,12 @@ app.use(
 	expressSession({
 		secret: 'zoodoongi.pinetree.gylee',
 		resave: false,
-		saveUninitialized: true,
+		saveUninitialized: false,
 		store: MongoStore.create({
 			mongoUrl: 'mongodb://app:appkeeper!@zoodoongi.net:27017',
 			dbName: 'app',
 		}),
+		proxy: true,
 	}),
 );
 app.use("/api-docs",

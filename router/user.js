@@ -20,16 +20,17 @@ const {
 	ALERT_NO_RESULT,
 } = require('./constants');
 const {nicknameDuplicationCheck} = require('./utilfunction');
+const session = require('express-session');
 
 //로그인
 router.post('/userLogin', (req, res) => {
 	controller(req, res, async () => {
-		if (req.session?.loginUser) {
-			res.json({status: 200, msg: {
-				user_nickname: '이미 로그인된 유저입니다.'
-			}});
-			return;
-		}
+		// if (req.session?.loginUser) {
+		// 	res.json({status: 200, msg: {
+		// 		user_nickname: '이미 로그인된 유저입니다.'
+		// 	}});
+		// 	return;
+		// }
 
 		let loginUser = await User.model.findOne().where('user_phone_number').equals(req.body.login_id);
 
@@ -189,7 +190,11 @@ router.post('/nicknameDuplicationCheck', (req, res) => {
 	controller(req, res, async () => {
 		const duplicateUser = await User.model.findOne({user_nickname: req.body.user_nickname});
 		
-		const isDuplicate = duplicateUser != null && duplicateUser.user_type != 'pet';
+		let isDuplicate = duplicateUser && duplicateUser.user_type != 'pet';  
+		
+		if(req.session&&req.session.loginUser){
+			isDuplicate = isDuplicate && !duplicateUser._id.equals(req.session.loginUser);
+		}
 		res.json({status: 200, msg: isDuplicate});
 	});
 });
@@ -203,23 +208,21 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
-		// if (userInfo.user_type != 'user') {
-		// 	res.status(400);
-		// 	res.json({status: 400, msg: '대상이 유저가 아닙니다.'});
-		// 	return;
-		// }
-		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
-		if (duplicateNickname != null && !duplicateNickname._id.equals(userInfo._id)&& duplicateNickname.user_type != 'pet') {
-			//res.status(400);
+
+		const duplicate = await User.model.findOne({user_nickname: req.body.user_nickname});
+
+		let isDuplicate = userInfo.user_type != 'pet' && duplicate && !userInfo._id.equals(duplicate._id)
+		if (isDuplicate) {
 			res.json({status: 400, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
 		}
+
 		userInfo.user_nickname = req.body.user_nickname;
 
 		if (req.file) {
 			userInfo.user_profile_uri = req.file?.location;
 		}
-		await userInfo.save();
+		userInfo = await userInfo.save();
 
 		//res.status(200);
 		res.json({status: 200, msg: userInfo});
@@ -244,7 +247,7 @@ router.post('/updateUserDetailInformation', (req, res) => {
 		userInfo.user_interests = user_interests;
 		userInfo.user_address = user_address;
 
-		await userInfo.save();
+		userInfo = await userInfo.save();
 		//res.status(200);
 		res.json({status: 200, msg: userInfo});
 	});
@@ -271,7 +274,7 @@ router.post('/updatePetDetailInformation', (req, res) => {
 		pet.pet_neutralization = req.body.pet_neutralization;
 		pet.pet_birthday = req.body.pet_birthday;
 		pet.pet_weight = req.body.pet_weight;
-		await pet.save();
+		pet = await pet.save();
 
 		res.json({status: 200, msg: pet});
 	});
@@ -312,7 +315,7 @@ router.post('/addUserToFamily', (req, res) => {
 		pet.pet_family.push(targetUser._id);
 		await pet.save();
 		targetUser.user_my_pets.push(pet._id);
-		await targetUser.save();
+		targetUser = await targetUser.save();
 
 		//res.status(200);
 		res.json({status: 200, pet: pet, targetUser: targetUser});
