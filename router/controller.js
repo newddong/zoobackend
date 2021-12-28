@@ -34,7 +34,10 @@ async function controller(req, res, fn) {
 	try {
 		await fn();
 		if(req.session&&!req.session.loginUser){
+			console.log('파괴')
 			req.session.destroy();
+		}else{
+			console.log('파괴실패')
 		}
 	} catch (err) {
 		console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Server Error", req.connection.remoteAddress, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, 'user not login'); // prettier-ignore

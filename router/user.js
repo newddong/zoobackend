@@ -188,7 +188,13 @@ router.post('/getUserProfile', (req, res) => {
 router.post('/nicknameDuplicationCheck', (req, res) => {
 	controller(req, res, async () => {
 		const duplicateUser = await User.model.findOne({user_nickname: req.body.user_nickname});
-		
+		console.log(req.session);
+		if(req.session&&req.session.user_nickname){
+			console.log(res.session.loginUser, '   ', duplicateUser._id, req.body.user_nickname);
+			let isDuplicate = duplicateUser._id.equals(res.session.loginUser)
+			res.json({status:200, msg: !isDuplicate});
+			return;
+		}
 		const isDuplicate = duplicateUser != null && duplicateUser.user_type != 'pet';
 		res.json({status: 200, msg: isDuplicate});
 	});
