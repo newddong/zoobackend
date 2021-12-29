@@ -46,7 +46,7 @@ router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_lis
 });
 
 //동물보호 요청 게시물을 작성한다.
-router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (req, res) => {
+router.post('/createProtectRequest', uploadS3.array('protect_request_photos_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		if (req.session.user_type != 'shelter') {
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
