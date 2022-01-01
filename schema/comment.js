@@ -4,6 +4,8 @@ const Schema = mongoose.Schema;
 
 const CommentObject = {
 	/** 일반 필드 */
+	/** @type { String} 데이터 오브젝트의 타입 */
+	type: {type: String, default: 'CommentObject'},	
 	/** @type { String} 댓글 첨부 이미지 uri */
 	comment_photo_uri: {type: String},
 	/** @type { String} 댓글 내용 */
