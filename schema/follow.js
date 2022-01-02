@@ -5,9 +5,9 @@ const FollowObject = {
 	/** 일반 필드 */
 	/** @type { String} 데이터 오브젝트의 타입 */
 	type: {type: String, default: 'FollowObject'},
-	/** @type { String} 팔로우를 한 유저 */
+	/** @type { String} 팔로우를 대상(할) 유저 */
 	follow_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
-	/** @type { String} 팔로우 대상 유저 */
+	/** @type { String} 팔로우를 한 유저 */
 	follower_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
 
 	/** @type { Date} 팔로우 날자 */

@@ -81,7 +81,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos_uri'
 		newRequest.protect_animal_id = {...animal};
 		await newRequest.save();
 		await animal.save();
-
+		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
 		res.json({status: 200, msg: newRequest});
 	});
 });

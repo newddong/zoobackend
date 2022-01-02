@@ -44,6 +44,8 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 				createHash(hashKeyword, feed._id);
 			});
 		}
+		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
+
 		res.json({status: 200, msg: newFeed});
 	});
 });
@@ -90,6 +92,7 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 		}
 
 		let newMissing = await missing.save();
+		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
 		res.json({status: 200, msg: newMissing});
 	});
 });
@@ -121,6 +124,7 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 		}
 
 		let newReport = await report.save();
+		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
 		res.json({status: 200, msg: newReport});
 	});
 });

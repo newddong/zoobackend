@@ -10,29 +10,6 @@ const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_
 //해쉬 생성
 router.post('/createHash', (req, res) => {
 	controller(req, res, async () => {
-		
-        let hash = await Hash.makeNewdoc({
-			
-		});
-
-		if(req.body.feed_avatar_id){
-			feed.feed_avatar_id = req.body.feed_avatar_id;
-		}
-
-		if (req.files&&req.files.length > 0) {
-			let feedMedia = typeof req.body.feed_medias=='string'?JSON.parse('[' + req.body.feed_medias + ']'):req.body.feed_medias;
-
-			feed.feed_medias = req.files.map((v,i)=>{
-				return {
-					...feedMedia[i],					
-					media_uri: v.location
-				};
-			})
-			feed.feed_thumbnail=feed.feed_medias[0].media_uri;
-		}
-		
-		
-		let newFeed = await feed.save();
 		res.json({status: 200, msg: newFeed});
 	});
 });
@@ -50,6 +27,14 @@ router.post('/getFeedsByHash', (req, res) => {
 
 
 		res.json({status: 200, msg: feeds});
+	});
+});
+
+//해시태그 키워드 검색
+router.post('/getHashKeywords',(req, res) => {
+	controller(req, res, async () => {
+		let keywords = await Hash.model.find({hashtag_keyword: {$regex: req.body.hashtag_keyword}}).exec();
+		res.json({status: 200, msg: keywords});
 	});
 });
 
