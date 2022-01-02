@@ -11,6 +11,8 @@ const HashTagObject = {
 	hashtag_date : {type: Date, default: Date.now},
     /** @type { Date} 해시태그 업데이트 날자 */
 	hashtag_update_date : {type: Date, default: Date.now},
+	/** @type { Number} 해시태그에 연결된 게시물의 숫자 */
+	hashtag_feed_count: {type: Number, default: 0},
 };
 
 /** @type {mongoose.Schema} */

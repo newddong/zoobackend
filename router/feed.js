@@ -37,8 +37,7 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 
 		let newFeed = await feed.save();
 
-		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.split(',') : req.body.hashtag_keyword;
-
+		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g,'').split(',') : req.body.hashtag_keyword;
 		if (hashTags) {
 			hashTags.forEach(hashKeyword => {
 				createHash(hashKeyword, feed._id);
@@ -51,7 +50,7 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 });
 
 async function createHash(hashKeyword, documentId) {
-	let hash = await Hash.model.findOneAndUpdate({hashtag_keyword: hashKeyword}, {$set: {hashtag_keyword: hashKeyword}}, {new:true,upsert: true}).exec();
+	let hash = await Hash.model.findOneAndUpdate({hashtag_keyword: hashKeyword}, {$set: {hashtag_keyword: hashKeyword},$inc:{hashtag_feed_count:1}}, {new:true,upsert: true}).exec();
 	let hashfeed = await HashFeed.makeNewdoc({
 		hashtag_id: hash._id,
 		hashtag_feed_id: documentId,
