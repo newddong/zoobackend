@@ -553,7 +553,7 @@ router.post('/getFollows', (req, res) => {
 		}
 
 		let follow = await Follow.model
-			.find({follower_id: targetUser._id})
+			.find({follower_id: targetUser._id,follow_is_delete:false})
 			.populate('follow_id')
 			.lean();
 
@@ -571,7 +571,7 @@ router.post('/getFollowers', (req, res) => {
 		}
 
 		let follow = await Follow.model
-			.find({follow_id: targetUser._id})
+			.find({follow_id: targetUser._id,follow_is_delete:false})
 			.populate('follower_id')
 			.lean();
 
