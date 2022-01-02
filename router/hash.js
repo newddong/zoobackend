@@ -23,7 +23,7 @@ router.post('/getFeedsByHash', (req, res) => {
             return;
         }
 
-        let feeds = await HashFeed.model.find({hashtag_id:hash._id}).populate('hashtag_feed_id').sort('-_id').lean();
+        let feeds = await HashFeed.model.find({hashtag_id:hash._id}).populate({path:'hashtag_feed_id',populate:{ path: 'feed_writer_id' }}).sort('-_id').lean();
 
 		let result = {hash: hash, feeds: feeds};
 		res.json({status: 200, msg: result});

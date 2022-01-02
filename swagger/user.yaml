@@ -885,7 +885,7 @@ paths:
         - user
       summary: 대상 유저를 팔로우 한 유저를 검색한다.
       description: 대상 유저를 팔로우 한 유저를 검색한다.
-      operationId: getFollows
+      operationId: getFollowers
       requestBody:
         description: 요청 정보
         content:

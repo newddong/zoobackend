@@ -183,7 +183,7 @@ router.post('/getUserProfile', (req, res) => {
 
 
 		const profile = {
-			...userInfo._doc,
+			...userInfo,
 			feedList: feedList,
 			is_follow: follow
 		};
@@ -501,18 +501,18 @@ router.post('/followUser', (req, res) => {
 			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
 			return;
 		}
-
+		
 		let follow = await Follow.model
 			.findOneAndUpdate(
-				{follower_id: req.session.loginUser},
-				{$set: {follow_id: req.body.follow_userobject_id,follow_is_delete: false}, $currentDate: {follow_update_date: true}},
+				{follow_id: targetUser._id, follower_id:req.session.loginUser},
+				{$set: {follow_id: targetUser._id, follower_id:req.session.loginUser, follow_is_delete: false}, $currentDate: {follow_update_date: true}},
 				{new: true, upsert: true},
 			)
 			.lean();
 		
 		targetUser.user_follower_count++;
 		await targetUser.save();
-		User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_follow_count:1}});
+		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_follow_count:1}});
 
 		res.json({status: 200, msg: follow});
 	});
@@ -537,7 +537,7 @@ router.post('/unFollowUser', (req, res) => {
 
 		targetUser.user_follower_count--;
 		await targetUser.save();
-		User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_follow_count:-1}});
+		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_follow_count:-1}});
 
 		res.json({status: 200, msg: follow});
 	});

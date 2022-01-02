@@ -91,6 +91,14 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 		}
 
 		let newMissing = await missing.save();
+
+		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g,'').split(',') : req.body.hashtag_keyword;
+		if (hashTags) {
+			hashTags.forEach(hashKeyword => {
+				createHash(hashKeyword, missing._id);
+			});
+		}
+
 		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
 		res.json({status: 200, msg: newMissing});
 	});
@@ -123,6 +131,14 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 		}
 
 		let newReport = await report.save();
+
+		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g,'').split(',') : req.body.hashtag_keyword;
+		if (hashTags) {
+			hashTags.forEach(hashKeyword => {
+				createHash(hashKeyword, report._id);
+			});
+		}
+
 		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
 		res.json({status: 200, msg: newReport});
 	});
