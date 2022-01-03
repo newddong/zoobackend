@@ -167,9 +167,9 @@ router.post('/getUserProfile', (req, res) => {
 
 		let feedList = [];
 		if (userInfo.user_type == 'pet') {
-			feedList = await Feed.model.find({feed_avatar_id: userInfo._id}).limit(20).sort('-_id').lean();
+			feedList = await Feed.model.find({feed_avatar_id: userInfo._id}).limit(9999).sort('-_id').lean();
 		} else {
-			feedList = await Feed.model.find({feed_writer_id: userInfo._id}).limit(20).sort('-_id').lean();
+			feedList = await Feed.model.find({feed_writer_id: userInfo._id}).limit(9999).sort('-_id').lean();
 		}
 
 

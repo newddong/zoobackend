@@ -233,15 +233,18 @@ router.post('/getFeedDetailById', (req, res) => {
 //추천 피드 리스트를 불러옴(홈화면)
 router.post('/getSuggestFeedList', (req, res) => {
 	controller(req, res, async () => {
-		let feed = await Feed.model.find().populate('feed_writer_id').populate('feed_avatar_id').sort('-_id').exec();
+		let feed = await Feed.model.find().populate('feed_writer_id').populate('feed_avatar_id').sort('-_id').lean();
 		if (!feed) {
 			//res.status(404);
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
-
+		let recentFeeds = feed.slice(0,4);
+		let randomFeeds = feed.slice(5);
+		randomFeeds.sort(()=>Math.random()-0.5);//섞음
+		let result = recentFeeds.concat(randomFeeds);
 		//res.status(200);
-		res.json({status: 200, msg: feed});
+		res.json({status: 200, msg: result});
 	});
 });
 

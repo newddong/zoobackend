@@ -134,7 +134,7 @@ router.post('/getUserAdoptProtectionList', (req, res) => {
  */
 router.post('/getApplyDetailById', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		let applyDetail = await ProtectActivity.model.findById(req.body.protect_act_object_id).exec();
+		let applyDetail = await ProtectActivity.model.findById(req.body.protect_act_object_id).sort('-_id').exec();
 
 		if (!applyDetail) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
