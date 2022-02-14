@@ -4,6 +4,7 @@ const User = require('../schema/user');
 const Feed = require('../schema/feed');
 const PetType = require('../schema/pettype');
 const uploadS3 = require('../common/uploadS3');
+const Follow = require('../schema/follow');
 const Address = require('../schema/address');
 const {controller, controllerLoggedIn} = require('./controller');
 const {
@@ -69,7 +70,7 @@ router.post('/userLogout', (req, res) => {
 router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 	controller(req, res, async () => {
 		const duplicateNickname = await User.model.findOne({user_nickname: req.body.user_nickname});
-		if (duplicateNickname != null&&duplicateNickname.user_type!='pet') {
+		if (duplicateNickname != null && duplicateNickname.user_type != 'pet') {
 			// res.status(400);
 			res.json({status: 200, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
@@ -153,12 +154,10 @@ router.post('/getUserProfile', (req, res) => {
 	controller(req, res, async () => {
 		const userInfo = await User.model
 			.findById(req.body.userobject_id)
-			.select(
-				'-user_password',
-			)
+			.select('-user_password')
 			.populate('user_my_pets')
 			.populate('pet_family')
-			.exec();
+			.lean();
 
 		if (!userInfo) {
 			//res.status(404);
@@ -167,20 +166,28 @@ router.post('/getUserProfile', (req, res) => {
 		}
 
 		let feedList = [];
-		if(userInfo.user_type=='pet'){
-			feedList = await Feed.model.find({feed_avatar_id:userInfo._id}).limit(20).sort('-_id').exec();
-		}else{
-			feedList = await Feed.model.find({feed_writer_id:userInfo._id}).limit(20).sort('-_id').exec();
+		if (userInfo.user_type == 'pet') {
+			feedList = await Feed.model.find({feed_avatar_id: userInfo._id}).limit(9999).sort('-_id').lean();
+		} else {
+			feedList = await Feed.model.find({feed_writer_id: userInfo._id}).limit(9999).sort('-_id').lean();
 		}
 
+
+
+
+		let follow = false;
+		if(req.session&&req.session.loginUser){
+			follow = await Follow.model.findOne({follow_id:userInfo._id, follower_id:req.session.loginUser}).lean();
+		}
+		follow = follow!=null&&!follow.follow_is_delete;
+
+
 		const profile = {
-			...userInfo._doc,
+			...userInfo,
 			feedList: feedList,
+			is_follow: follow
 		};
 
-		// const profile = Object.assign({},userInfo,feedList);
-
-		//res.status(200);
 		res.json({status: 200, msg: profile});
 	});
 });
@@ -189,10 +196,10 @@ router.post('/getUserProfile', (req, res) => {
 router.post('/nicknameDuplicationCheck', (req, res) => {
 	controller(req, res, async () => {
 		const duplicateUser = await User.model.findOne({user_nickname: req.body.user_nickname});
-		
-		let isDuplicate = duplicateUser && duplicateUser.user_type != 'pet';  
-		
-		if(req.session&&req.session.loginUser){
+
+		let isDuplicate = duplicateUser && duplicateUser.user_type != 'pet';
+
+		if (req.session && req.session.loginUser) {
 			isDuplicate = isDuplicate && !duplicateUser._id.equals(req.session.loginUser);
 		}
 		res.json({status: 200, msg: isDuplicate});
@@ -211,7 +218,7 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 
 		const duplicate = await User.model.findOne({user_nickname: req.body.user_nickname});
 
-		let isDuplicate = userInfo.user_type != 'pet' && duplicate && !userInfo._id.equals(duplicate._id)
+		let isDuplicate = userInfo.user_type != 'pet' && duplicate && !userInfo._id.equals(duplicate._id);
 		if (isDuplicate) {
 			res.json({status: 400, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
@@ -239,8 +246,8 @@ router.post('/updateUserDetailInformation', (req, res) => {
 			return;
 		}
 
-		let user_interests = typeof req.body.user_interests == 'string'?JSON.parse('[' + req.body.user_interests + ']'):req.body.user_interests;
-		let user_address = typeof req.body.user_address == 'string'?JSON.parse(req.body.user_address):req.body.user_address;
+		let user_interests = typeof req.body.user_interests == 'string' ? JSON.parse('[' + req.body.user_interests + ']') : req.body.user_interests;
+		let user_address = typeof req.body.user_address == 'string' ? JSON.parse(req.body.user_address) : req.body.user_address;
 
 		userInfo.user_birthday = req.body.user_birthday;
 		userInfo.user_sex = req.body.user_sex;
@@ -288,29 +295,26 @@ router.post('/addUserToFamily', (req, res) => {
 			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
 		}
-		if(pet.user_type!='pet'){
+		if (pet.user_type != 'pet') {
 			res.json({status: 400, msg: '반려동물을 userobject_id의 대상으로 선택하세요'});
 			return;
 		}
-
 
 		let targetUser = await User.model.findById(req.body.family_userobject_id).exec();
 		if (!targetUser) {
 			res.json({status: 404, msg: ALERT_NOt_VALID_TARGER_OBJECT_ID});
 			return;
 		}
-		if(targetUser.user_type=='pet'){
+		if (targetUser.user_type == 'pet') {
 			res.json({status: 400, msg: '반려동물 끼리는 가족이 될 수 없습니다.'});
 			return;
 		}
 
-
-		let containFamily = pet.pet_family.some(v=>v.equals(req.body.family_userobject_id));
+		let containFamily = pet.pet_family.some(v => v.equals(req.body.family_userobject_id));
 		if (containFamily) {
 			res.json({status: 400, msg: USER_NOT_VALID});
 			return;
 		}
-
 
 		pet.pet_family.push(targetUser._id);
 		await pet.save();
@@ -345,7 +349,7 @@ router.post('/getUserInfoById', (req, res) => {
 			user_password: 0,
 			user_agreement: 0,
 		};
-		let user = await User.model.findById(req.body.userobject_id).select(filter).exec();
+		let user = await User.model.findById(req.body.userobject_id).select(filter).lean();
 		if (!user) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
@@ -354,14 +358,22 @@ router.post('/getUserInfoById', (req, res) => {
 		switch (user.user_type) {
 			case 'user':
 			case 'shelter':
-				user = await User.model.findById(user._id).populate('user_my_pets').exec();
+				user = await User.model.findById(user._id).populate('user_my_pets').lean();
 				break;
 			case 'pet':
-				user = await User.model.findById(user._id).populate('pet_family').exec();
+				user = await User.model.findById(user._id).populate('pet_family').lean();
 				break;
 			default:
 				break;
 		}
+
+		let follow = false;
+		if(req.session&&req.session.loginUser){
+			follow = await Follow.model.findOne({follow_id:user._id, follower_id:req.session.loginUser}).lean();
+		}
+		follow = follow!=null&&!follow.follow_is_delete;
+		
+		user = {...user, is_follow : follow};
 
 		res.json({status: 200, msg: user});
 	});
@@ -390,7 +402,7 @@ router.post('/updateShelterDetailInformation', (req, res) => {
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
-		
+
 		shelter.shelter_name = req.body.shelter_name;
 		shelter.shelter_address = typeof req.body.shelter_address == 'string' ? JSON.parse(req.body.shelter_address) : req.body.shelter_address;
 		shelter.shelter_delegate_contact_number = req.body.shelter_delegate_contact_number;
@@ -412,15 +424,22 @@ router.post('/getUserListByNickname', (req, res) => {
 		let userName = '';
 		let petName = '';
 		let userList = [];
-		
-		if(nickname.includes('/')){
+
+		if (nickname.includes('/')) {
 			let namearray = nickname.split('/');
 			petName = namearray[0];
 			userName = namearray[1];
-			userList = await User.model.find({user_nickname: {$regex: petName}}).populate({path:'pet_family', match: {user_nickname:{$regex:userName}}}).limit(requestnum).exec();
-			userList = userList.filter(v=>v.pet_family.length>0);
-		}else{
-			userList = await User.model.find({user_nickname: {$regex: nickname}}).limit(requestnum).exec();
+			userList = await User.model
+				.find({user_nickname: {$regex: petName}})
+				.populate({path: 'pet_family', match: {user_nickname: {$regex: userName}}})
+				.limit(requestnum)
+				.lean();
+			userList = userList.filter(v => v.pet_family.length > 0);
+		} else {
+			userList = await User.model
+				.find({user_nickname: {$regex: nickname}})
+				.limit(requestnum)
+				.lean();
 		}
 
 		if (userList.length < 1) {
@@ -456,7 +475,8 @@ router.post('/removeUserFromFamily', (req, res) => {
 			// console.log('family',family);
 			// console.log('targetUserId',targetUser._id);
 			// console.log(family.equals(targetUser._id));
-			return !family.equals(targetUser._id)});
+			return !family.equals(targetUser._id);
+		});
 
 		targetUser = await targetUser.save();
 		pet = await pet.save();
@@ -466,11 +486,98 @@ router.post('/removeUserFromFamily', (req, res) => {
 });
 
 //동물의 종류 코드를 받아온다.
-router.post('/getPettypes',(req,res)=>{
-	controller(req,res,async ()=>{
+router.post('/getPettypes', (req, res) => {
+	controller(req, res, async () => {
 		let codes = await PetType.model.find({}).exec();
-		res.json({status:200,msg:codes});
-	})
-})
+		res.json({status: 200, msg: codes});
+	});
+});
+
+//유저를 팔로우한다.
+router.post('/followUser', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let targetUser = await User.model.findById(req.body.follow_userobject_id).exec();
+		if (!targetUser) {
+			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
+			return;
+		}
+		
+		let follow = await Follow.model
+			.findOneAndUpdate(
+				{follow_id: targetUser._id, follower_id:req.session.loginUser},
+				{$set: {follow_id: targetUser._id, follower_id:req.session.loginUser, follow_is_delete: false}, $currentDate: {follow_update_date: true}},
+				{new: true, upsert: true},
+			)
+			.lean();
+		
+		targetUser.user_follower_count++;
+		await targetUser.save();
+		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_follow_count:1}});
+
+		res.json({status: 200, msg: follow});
+	});
+});
+
+//유저를 팔로우 취소한다.
+router.post('/unFollowUser', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let targetUser = await User.model.findById(req.body.follow_userobject_id).exec();
+		if (!targetUser) {
+			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
+			return;
+		}
+
+		let follow = await Follow.model
+			.findOneAndUpdate(
+				{follower_id: req.session.loginUser, follow_id: req.body.follow_userobject_id},
+				{$set: {follow_is_delete: true}, $currentDate: {follow_update_date: true}},
+				{new: true, upsert: false},
+			)
+			.lean();
+
+		targetUser.user_follower_count--;
+		await targetUser.save();
+		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_follow_count:-1}});
+
+		res.json({status: 200, msg: follow});
+	});
+});
+
+//대상 유저가 팔로우 한 유저를 검색한다.
+router.post('/getFollows', (req, res) => {
+	controller(req, res, async () => {
+		let targetUser = await User.model.findById(req.body.userobject_id).lean();
+		if (!targetUser) {
+			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
+			return;
+		}
+
+		let follow = await Follow.model
+			.find({follower_id: targetUser._id,follow_is_delete:false})
+			.populate('follow_id')
+			.lean();
+
+		res.json({status: 200, msg: follow});
+	});
+});
+
+//대상 유저를 팔로우 한 유저를 검색한다.
+router.post('/getFollowers', (req, res) => {
+	controller(req, res, async () => {
+		let targetUser = await User.model.findById(req.body.userobject_id).lean();
+		if (!targetUser) {
+			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
+			return;
+		}
+
+		let follow = await Follow.model
+			.find({follow_id: targetUser._id,follow_is_delete:false})
+			.populate('follower_id')
+			.lean();
+
+		res.json({status: 200, msg: follow});
+	});
+});
+
 
 module.exports = router;

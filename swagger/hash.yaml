@@ -1,0 +1,65 @@
+paths:
+  /hash/getFeedsByHash:
+    post:
+      tags:
+        - hash
+      summary: 키워드로 해시에 등록된 피드(실종/제보) 리스트를 검색
+      description: 해시태그 키워드를 가지고 연결된 피드들의 리스트를 검색한다.
+      operationId: getFeedsByHash
+      requestBody:
+        description: 피드리스트를 요청할 해시태그 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - hashtag_keyword
+              properties:
+                hashtag_keyword:
+                  type: string
+                  description: 해시태그의 키워드
+                request_number:
+                  type: integer
+                  description: 요청할 숫자
+                feedobject_id:
+                  type: string
+                  description: 커서 역할을 할 피드오브잭트(페이징 처리)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /hash/getHashKeywords:
+    post:
+      tags:
+        - hash
+      summary: 해시태그 키워드 검색
+      description: 등록된 해시태그 키워드를 검색한다. 키워드 목록을 반환한다.
+      operationId: getHashKeywords
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - hashtag_keyword
+              properties:
+                hashtag_keyword:
+                  type: string
+                  description: 해시태그의 키워드
+                request_number:
+                  type: integer
+                  description: 요청할 숫자
+                hashobject_id:
+                  type: string
+                  description: 커서 역할을 할 해쉬오브잭트(페이징 처리)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'

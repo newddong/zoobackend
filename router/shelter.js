@@ -46,7 +46,7 @@ router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_lis
 });
 
 //동물보호 요청 게시물을 작성한다.
-router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (req, res) => {
+router.post('/createProtectRequest', uploadS3.array('protect_request_photos_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		if (req.session.user_type != 'shelter') {
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
@@ -81,7 +81,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos'), (
 		newRequest.protect_animal_id = {...animal};
 		await newRequest.save();
 		await animal.save();
-
+		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
 		res.json({status: 200, msg: newRequest});
 	});
 });
@@ -115,7 +115,7 @@ router.post('/getProtectRequestList', (req, res) => {
 			requestList.find({$or:[{protect_request_status: 'rescue'},{protect_request_status:'discuss'}]});
 		}
 
-		requestList = await requestList.exec();
+		requestList = await requestList.sort('-_id').exec();
 		requestList = requestList.filter(v => v.protect_request_writer_id != null);
 
 		if (requestList.length < 1) {
@@ -136,7 +136,7 @@ router.post('/getShelterProtectAnimalList', (req, res) => {
 
 		let animalList = ShelterAnimal.model.find({protect_animal_belonged_shelter_id: req.session.loginUser});
 		animalList.limit(req.body.request_number);
-		animalList = await animalList.exec();
+		animalList = await animalList.sort('-_id').exec();
 		if (animalList.length < 1) {
 			//res.status(404);
 			res.json({status: 404, msg: ALERT_NO_RESULT});
@@ -175,7 +175,7 @@ router.post('/getProtectRequestListByShelterId', (req, res) => {
 			return;
 		}
 
-		let protectRequestList = await ProtectRequest.model.find(filterObj).populate('protect_request_writer_id').limit(req.body.request_number).exec();
+		let protectRequestList = await ProtectRequest.model.find(filterObj).populate('protect_request_writer_id').limit(req.body.request_number).sort('-_id').exec();
 		if (protectRequestList.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
@@ -197,7 +197,7 @@ router.post('/getAnimalListWithApplicant', (req, res) => {
 			.find({
 				protect_animal_belonged_shelter_id: req.session.loginUser,
 			})
-			.populate('protect_act_applicants')
+			.populate('protect_act_applicants').sort('-_id')
 			.exec(); //요청
 
 		animalWithApply = animalWithApply.filter(v=>v.protect_act_applicants.length>0);

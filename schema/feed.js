@@ -31,6 +31,8 @@ const RecentComment = {
 };
 
 const FeedObject = {
+	/** @type { String} 데이터 오브젝트의 타입 */
+	type: {type: String, default: 'FeedObject'},
 	/** @type { String} 피드 본문 */
 	feed_content: {type: String},
 	/** @type { String} 피드 썸네일(올린 이미지나 동영상의 썸네일 사용 - 사용자 이미지를 저용량 썸네일로 변환하는 툴의 구현 필요) */

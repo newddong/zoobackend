@@ -14,6 +14,7 @@ paths:
               type: object
               required:
                 - feed_content
+                - feed_is_protect_diary
               properties:
                 feed_content:
                   type: string
@@ -62,7 +63,13 @@ paths:
                               description: 태그의 사진 프레임에서 x좌표
                             position_y:
                               type: integer
-                              description: 태그의 사진 프레임에서 y좌표 
+                              description: 태그의 사진 프레임에서 y좌표
+                hashtag_keyword:
+                  type: array
+                  description: 피드에 들어갈 해시태그 키워드의 목록
+                  items:
+                    type: string
+                    description: 해시태그 키워드
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -133,6 +140,12 @@ paths:
                             position_y:
                               type: integer
                               description: 태그의 사진 프레임에서 y좌표 
+                hashtag_keyword:
+                  type: array
+                  description: 피드에 들어갈 해시태그 키워드의 목록
+                  items:
+                    type: string
+                    description: 해시태그 키워드
                 missing_animal_age:
                   type: integer
                   description: 실종 동물 나이
@@ -157,6 +170,7 @@ paths:
                 missing_animal_date:
                   type: string
                   description: 실종 추정일
+                
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -224,6 +238,12 @@ paths:
                             position_y:
                               type: integer
                               description: 태그의 사진 프레임에서 y좌표
+                hashtag_keyword:
+                  type: array
+                  description: 피드에 들어갈 해시태그 키워드의 목록
+                  items:
+                    type: string
+                    description: 해시태그 키워드
                 report_witness_date:
                   type: string
                   description: 제보일자
@@ -279,9 +299,9 @@ paths:
                 request_number:
                   type: interger
                   description: 요청할 리스트의 갯수
-                # user_type:
-                #   type: string
-                #   description: 유저의 유형('user'|'shelter'|'pet')
+                feedobject_id:
+                  type: string
+                  description: 페이징에 사용할 피드 오브젝트 아이디
       responses:
         '200':
           $ref: '#/components/responses/200'

@@ -72,7 +72,7 @@ paths:
                 - protect_request_content
               type: object
               properties:
-                protect_request_photos:
+                protect_request_photos_uri:
                   type: array
                   description: 보호요청 게시물의 첨부사진 uri
                   items:

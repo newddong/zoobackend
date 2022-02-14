@@ -17,9 +17,6 @@ async function controllerLoggedIn(req, res, fn) {
 		}
 	} else {
 		console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Unauthorized Access", req.connection.remoteAddress, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
-		// req.session.destroy((error)=>{
-		// 	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Cannot Destroy Cookie : %s", req.connection.remoteAddress, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser,error); // prettier-ignore
-		// });
 		res.status(200);
 		res.json({status: 401, msg: '로그인이 필요합니다.'});
 	}
@@ -43,9 +40,6 @@ async function controller(req, res, fn) {
 		console.log(err);
 		res.status(500);
 		res.json({status: 500, msg: err + ''});
-		// req.session.destroy((error)=>{
-		// 	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Cannot Destroy Cookie : %s", req.connection.remoteAddress, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser,error); // prettier-ignore
-		// });
 	}
 }
 

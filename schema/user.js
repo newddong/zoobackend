@@ -57,6 +57,8 @@ const ShelterAddress = {
  */
 const UserObject = {
 	/** 일반 필드 */
+	/** @type { String} 데이터 오브젝트의 타입 */
+	type: {type: String, default: 'UserObject'},
 	/** @type {'user'|'shelter'|'pet'} 유저 타입정보 '일반유저|보호소|반려동물'로 구분됨 */
 	user_type: {type: String, default: 'user'},
 	/** @type {'private'|'public'} 보호소 유형, 공립(public), 사립(private)로 나뉨 */
