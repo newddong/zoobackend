@@ -42,6 +42,7 @@ router.post('/assignVolunteerActivity', (req, res) => {
 		let volunteerActivity = await VolunteerActivity.makeNewdoc({
 			volunteer_target_shelter: req.body.shelter_userobject_id,
 			volunteer_wish_date: wishDates,
+			volunteer_accompany_number: req.body.volunteer_accompany_number, //신규추가
 			volunteer_accompany: req.body.accompany_userobject_id_list, //
 			volunteer_delegate_contact: req.body.volunteer_delegate_contact,
 		});
@@ -71,7 +72,8 @@ router.post('/getUserVolunteerActivityList', (req, res) => {
 		let volunteerActivityList = await VolunteerActivity.model
 			.find({
 				volunteer_accompany: {$elemMatch: {$eq: req.session.loginUser}},
-			}).populate('volunteer_target_shelter')
+			})
+			.populate('volunteer_target_shelter')
 			.exec();
 		if (volunteerActivityList.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
@@ -101,11 +103,12 @@ router.post('/setVolunteerActivityStatus', (req, res) => {
 			return;
 		}
 
+		//로그인한 유저가 일반 유저일 경우 허가되지 않음. (승인과 승인취소는 보호소가 진행.)
 		if (userType == 'user' && ['notaccept', 'accept'].some(v => v == status)) {
 			res.json({status: 400, msg: '해당 유저 타입에는 허가되지 않은 요청입니다.'});
 			return;
 		}
-
+		//봉사 활동 cancel은 유저가 하는 것이며, 보호소는 신청승인안함(notaccept) status을 함.
 		if (userType == 'shelter' && status == 'cancel') {
 			res.json({status: 400, msg: '해당 유저 타입에는 허가되지 않은 요청입니다.'});
 			return;
@@ -143,6 +146,46 @@ router.post('/getShelterVolunteerActivityList', (req, res) => {
 		}
 
 		res.json({status: 200, msg: volunteerActivityList});
+	});
+});
+
+//작업 진행 중
+router.post('/setVolunteerActivityAccept', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		//봉사활동 내역서 해당 아이디로 존재 여부 확인
+		let volunteerActivity = await VolunteerActivity.model.findById(req.body.volunteer_activity_object_id).exec();
+		if (!volunteerActivity) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+		let viewer = await User.model.findById(req.session.loginUser).exec();
+
+		const userType = viewer.user_type;
+		const statusList = ['accept', 'refuse'];
+		const status = req.body.volunteer_status;
+
+		//로그인한 유저가 보호소일 경우 해당 되지 않음.
+		if (userType == 'shelter') {
+			res.json({status: 400, msg: '해당 유저 타입에는 허가되지 않은 요청입니다.'});
+			return;
+		}
+
+		//수락과 거부 status만 가능.
+		if (!statusList.some(v => v == status)) {
+			res.json({status: 400, msg: REQUEST_PARAMETER_NOT_VALID});
+			return;
+		}
+
+		//세션 아이디와 동일한 아이디 값을 찾아 수락 여부에 따른 값 업데이트. (화면 확인 후 재작성)
+		for (let i = 0; i < volunteerActivity.volunteer_member_confirm.length; i++) {
+			if (volunteerActivity.volunteer_member_confirm[i].member == req.session.loginUser) {
+				volunteerActivity.volunteer_member_confirm[i].confirm = status;
+				break;
+			}
+		}
+
+		await volunteerActivity.save();
+		res.json({status: 200, msg: volunteerActivity});
 	});
 });
 

@@ -13,6 +13,7 @@ paths:
             schema:
               required:
                 - shelter_userobject_id
+                - volunteer_accompany_number
               type: object
               properties:
                 shelter_userobject_id:
@@ -25,6 +26,10 @@ paths:
                     type: string
                     format: date
                     default: '2021.01.01'
+                volunteer_accompany_number:
+                  type: integer
+                  description: 봉사활동 인원수(본인포함)
+                  default: 1
                 accompany_userobject_id_list:
                   type: array
                   description: 봉사활동 참여인원 목록(신청자를 포함)
@@ -154,7 +159,7 @@ paths:
                   description: 조회하려고 하는 상태('done'|'notaccept'|'accept'|'waiting'|'cancel')
                 request_number:
                   type: integer
-                  description:  봉사활동 신청서 요청 숫자
+                  description: 봉사활동 신청서 요청 숫자
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -164,7 +169,6 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$
