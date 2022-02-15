@@ -239,10 +239,11 @@ router.post('/getSuggestFeedList', (req, res) => {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
-		let recentFeeds = feed.slice(0,4);
-		let randomFeeds = feed.slice(5);
-		randomFeeds.sort(()=>Math.random()-0.5);//섞음
-		let result = recentFeeds.concat(randomFeeds);
+		// let recentFeeds = feed.slice(0,4);
+		// let randomFeeds = feed.slice(5);
+		// randomFeeds.sort(()=>Math.random()-0.5);//섞음
+		// let result = recentFeeds.concat(randomFeeds);
+		let result = feed;
 		//res.status(200);
 		res.json({status: 200, msg: result});
 	});
