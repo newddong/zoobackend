@@ -14,7 +14,7 @@ paths:
               type: object
               required:
                 - comment_contents
-                - comment_contents
+                - comment_is_secure
               properties:
                 comment_photo_uri:
                   type: string
@@ -135,6 +135,6 @@ paths:
         '500':
           $ref: '#/components/responses/500'
 
- #jsdoc을 yaml으로 변환
+  #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 #$2:\n  type: $1\n  description: $3
