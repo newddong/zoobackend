@@ -169,6 +169,38 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /volunteer/setVolunteerActivityAcceptByMember:
+    post:
+      tags:
+        - volunteer
+      summary: 참여 인원의 수락 여부 상태를 변경한단. (로그인 필요)
+      description: 참여 인원의 수락 여부 상태를 변경한다. (로그인 필요)
+      operationId: setVolunteerActivityAcceptByMember
+      requestBody:
+        description: 요청 파라메터
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - volunteer_activity_object_id
+                - confirm
+              type: object
+              properties:
+                volunteer_activity_object_id:
+                  type: string
+                  description: 상태를 변경하려는 봉사활동 신청서의 아이디
+                confirm:
+                  type: string
+                  description: 변경하려고 하는 상태('accept'|'notaccept')
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$

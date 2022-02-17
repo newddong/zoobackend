@@ -34,21 +34,38 @@ router.post('/assignVolunteerActivity', (req, res) => {
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
 			return;
 		}
-		// console.log(req.body.volunteer_wish_date_list);
+		// console.log('member =>' + req.body.accompany_userobject_id_list);
 		// console.log(typeof req.body.volunteer_wish_date_list);
 		let wishDates =
 			typeof req.body.volunteer_wish_date_list == 'string' ? req.body.volunteer_wish_date_list.split(',') : req.body.volunteer_wish_date_list;
+
+		// 문자열 자르기
+		let memberList = req.body.accompany_userobject_id_list.split(',');
+		//객체 리스트
+		var tempList = new Array();
+		for (var i = 0; i < memberList.length; i++) {
+			// 객체 생성
+			var data = new Object();
+			//object 형식으로 데이터 insert
+			data.member = memberList[i];
+			data.confirm = 'waiting';
+
+			// 리스트에 생성된 객체 삽입
+			tempList.push(data);
+		}
+		// String 형태로 변환
+		// var jsonData = JSON.stringify(tempList);
+		// console.log('jsonData=>' + jsonData);
 
 		let volunteerActivity = await VolunteerActivity.makeNewdoc({
 			volunteer_target_shelter: req.body.shelter_userobject_id,
 			volunteer_wish_date: wishDates,
 			volunteer_accompany_number: req.body.volunteer_accompany_number, //신규추가
-			volunteer_accompany: req.body.accompany_userobject_id_list, //
+			volunteer_accompany: tempList, //
 			volunteer_delegate_contact: req.body.volunteer_delegate_contact,
 		});
-
+		console.log('volunteerActivity=>' + JSON.stringify(volunteerActivity));
 		await volunteerActivity.save();
-
 		res.json({status: 200, msg: volunteerActivity});
 	});
 });
@@ -149,10 +166,10 @@ router.post('/getShelterVolunteerActivityList', (req, res) => {
 	});
 });
 
-//작업 진행 중
-router.post('/setVolunteerActivityAccept', (req, res) => {
+//참여 인원의 수락 여부 상태 변경
+router.post('/setVolunteerActivityAcceptByMember', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		//봉사활동 내역서 해당 아이디로 존재 여부 확인
+		//봉사활동 내역서 해당 아이디(봉사활동 신청서 ID)로 존재 여부 확인
 		let volunteerActivity = await VolunteerActivity.model.findById(req.body.volunteer_activity_object_id).exec();
 		if (!volunteerActivity) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
@@ -161,8 +178,8 @@ router.post('/setVolunteerActivityAccept', (req, res) => {
 		let viewer = await User.model.findById(req.session.loginUser).exec();
 
 		const userType = viewer.user_type;
-		const statusList = ['accept', 'refuse'];
-		const status = req.body.volunteer_status;
+		const statusList = ['accept', 'notaccept'];
+		const member_status = req.body.confirm;
 
 		//로그인한 유저가 보호소일 경우 해당 되지 않음.
 		if (userType == 'shelter') {
@@ -171,15 +188,15 @@ router.post('/setVolunteerActivityAccept', (req, res) => {
 		}
 
 		//수락과 거부 status만 가능.
-		if (!statusList.some(v => v == status)) {
+		if (!statusList.some(v => v == member_status)) {
 			res.json({status: 400, msg: REQUEST_PARAMETER_NOT_VALID});
 			return;
 		}
 
-		//세션 아이디와 동일한 아이디 값을 찾아 수락 여부에 따른 값 업데이트. (화면 확인 후 재작성)
-		for (let i = 0; i < volunteerActivity.volunteer_member_confirm.length; i++) {
-			if (volunteerActivity.volunteer_member_confirm[i].member == req.session.loginUser) {
-				volunteerActivity.volunteer_member_confirm[i].confirm = status;
+		//세션 아이디와 동일한 아이디 값을 찾아 수락, 거절 값 업데이트.
+		for (let i = 0; i < volunteerActivity.volunteer_accompany.length; i++) {
+			if (volunteerActivity.volunteer_accompany[i].member == req.session.loginUser) {
+				volunteerActivity.volunteer_accompany[i].confirm = req.body.confirm;
 				break;
 			}
 		}
