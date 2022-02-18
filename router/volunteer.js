@@ -40,7 +40,11 @@ router.post('/assignVolunteerActivity', (req, res) => {
 			typeof req.body.volunteer_wish_date_list == 'string' ? req.body.volunteer_wish_date_list.split(',') : req.body.volunteer_wish_date_list;
 
 		// 문자열 자르기
-		let memberList = req.body.accompany_userobject_id_list.split(',');
+		let str_userlist = JSON.stringify(req.body.accompany_userobject_id_list);
+		// console.log('str_userlist =>' + str_userlist);
+		let memberList = str_userlist.split(',');
+
+		// let memberList = req.body.accompany_userobject_id_list.split(',');
 		//객체 리스트
 		var tempList = new Array();
 		for (var i = 0; i < memberList.length; i++) {
@@ -64,7 +68,7 @@ router.post('/assignVolunteerActivity', (req, res) => {
 			volunteer_accompany: tempList, //
 			volunteer_delegate_contact: req.body.volunteer_delegate_contact,
 		});
-		console.log('volunteerActivity=>' + JSON.stringify(volunteerActivity));
+		// console.log('volunteerActivity=>' + JSON.stringify(volunteerActivity));
 		await volunteerActivity.save();
 		res.json({status: 200, msg: volunteerActivity});
 	});
