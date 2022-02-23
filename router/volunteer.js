@@ -88,7 +88,8 @@ router.post('/getUserVolunteerActivityList', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let volunteerActivityList = await VolunteerActivity.model
 			.find({
-				volunteer_accompany: {$elemMatch: {$eq: req.session.loginUser}},
+				// volunteer_accompany: {$elemMatch: {$eq: req.session.loginUser}},
+				volunteer_accompany: {$elemMatch: {member: req.session.loginUser}},
 			})
 			.populate('volunteer_target_shelter')
 			.exec();
