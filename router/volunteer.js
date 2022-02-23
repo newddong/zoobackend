@@ -39,13 +39,9 @@ router.post('/assignVolunteerActivity', (req, res) => {
 		let wishDates =
 			typeof req.body.volunteer_wish_date_list == 'string' ? req.body.volunteer_wish_date_list.split(',') : req.body.volunteer_wish_date_list;
 
-		// 문자열 자르기
 		let str_userlist = JSON.stringify(req.body.accompany_userobject_id_list);
-		// console.log('str_userlist =>' + str_userlist);
-		let memberList = str_userlist.split(',');
-
-		// let memberList = req.body.accompany_userobject_id_list.split(',');
-		//객체 리스트
+		// 문자열 제거
+		let memberList = str_userlist.replace(/[\[\]\"]/gi, '').split(',');
 		var tempList = new Array();
 		for (var i = 0; i < memberList.length; i++) {
 			// 객체 생성
@@ -58,7 +54,7 @@ router.post('/assignVolunteerActivity', (req, res) => {
 			tempList.push(data);
 		}
 		// String 형태로 변환
-		// var jsonData = JSON.stringify(tempList);
+		var jsonData = JSON.stringify(tempList);
 		// console.log('jsonData=>' + jsonData);
 
 		let volunteerActivity = await VolunteerActivity.makeNewdoc({
