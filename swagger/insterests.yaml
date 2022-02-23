@@ -1,0 +1,26 @@
+paths:
+  /interests/getInterestsList:
+    post:
+      tags:
+        - interests
+      summary: 관심사 내역 불러오기
+      description: 관심사 내역들을 불러온다.
+      operationId: getInterestsList
+      requestBody:
+        description: 관심사 내역
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  #jsdoc을 yaml으로 변환
+#.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
+#$2:\n  type: $1\n  description: $3

@@ -8,8 +8,8 @@ const errorHandler = require('errorhandler');
 const expressErrorHandler = require('express-error-handler');
 const expressSession = require('express-session');
 const MongoStore = require('connect-mongo');
-const swaggerJsdoc = require("swagger-jsdoc");
-const swaggerUi = require("swagger-ui-express");
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const options = {
 	definition: {
@@ -25,15 +25,15 @@ const options = {
 		servers: [
 			{
 				url: 'http://localhost:3000',
-				description : 'local environment'
+				description: 'local environment',
 			},
 			{
 				url: 'https://api.zoodoongi.net',
-				description : 'dev server'
-			}
+				description: 'dev server',
+			},
 		],
 	},
-	apis: ['./router/*.js','./swagger/*.yaml'],
+	apis: ['./router/*.js', './swagger/*.yaml'],
 };
 
 const specs = swaggerJsdoc(options);
@@ -68,11 +68,7 @@ app.use(
 		proxy: true,
 	}),
 );
-app.use("/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(specs)
-);
-
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 //Routers
 const userRoute = require('./router/user');
@@ -85,6 +81,7 @@ const volunteer = require('./router/volunteer');
 const hash = require('./router/hash');
 const address = require('./router/address');
 const admin = require('./router/admin');
+const interests = require('./router/interests');
 const router = express.Router();
 
 const dbconnection = database();
@@ -93,12 +90,13 @@ const dbconnection = database();
 app.use('/user', userRoute);
 app.use('/comment', comment);
 app.use('/feed', feedRoute);
-app.use('/shelter',shelterRoute);
-app.use('/protect',protectRoute);
-app.use('/volunteer',volunteer);
-app.use('/hash',hash);
-app.use('/address',address);
-app.use('/admin',admin);
+app.use('/shelter', shelterRoute);
+app.use('/protect', protectRoute);
+app.use('/volunteer', volunteer);
+app.use('/hash', hash);
+app.use('/address', address);
+app.use('/admin', admin);
+app.use('/interests', interests);
 app.use('/', router);
 
 //Launch Server
