@@ -33,10 +33,16 @@ const UserAddress = {
 
 /** 관심사 항목 키워드 */
 const UserInterest = {
-	/** @type {String} 지역 관심사 */
-	location: {type: String},
-	/** @type {String} 활동 관심사 */
-	activity: {type: String},
+	/** @type {[String]} 지역 관심사 */
+	location: {type: [String]},
+	/** @type {[String]} 미용 관심사 */
+	beauty: {type: [String]},
+	/** @type {[String]} 활동 관심사 */
+	activity: {type: [String]},
+	/** @type {[String]} 음식 관심사 */
+	food: {type: [String]},
+	/** @type {[String]} 건강 관심사 */
+	health: {type: [String]},
 };
 
 const ShelterAddress = {
@@ -124,7 +130,6 @@ const UserObject = {
 	/** @type {'protect'|'adopt'|'companion'} 반려동물의 상태, 임시보호중(protect), 입양됨(adopt), 반려동물(companion)  */
 	pet_status: {type: String},
 
-
 	/** 도큐먼트 관리정보(조회수,날자등 통계) */
 	/** @type { Number} 업로드 게시물 숫자 */
 	user_upload_count: {type: Number, default: 0},
@@ -137,9 +142,7 @@ const UserObject = {
 	/** @type { Date} 가입일 */
 	user_register_date: {type: Date, default: Date.now},
 
-
-
-	/** 다른 스키마와의 관계 */	
+	/** 다른 스키마와의 관계 */
 	/** @type {Array.<String>} 내 반려동물들들 */
 	user_my_pets: [{type: Schema.Types.ObjectId, ref: 'UserObject'}],
 

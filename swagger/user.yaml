@@ -58,7 +58,7 @@ paths:
                       description: 사용자 주소
                     detail:
                       type: string
-                      description: 사용자 상세 주소  
+                      description: 사용자 상세 주소
                 user_mobile_company:
                   type: string
                   description: 이동통신사
@@ -129,7 +129,7 @@ paths:
                   description: 중성화 여부 {'yes'|'no'|'unknown'}
                 pet_sex:
                   type: string
-                  description: 성별 { 'male'|'female'|'unknown'} 
+                  description: 성별 { 'male'|'female'|'unknown'}
                 pet_species:
                   type: string
                   description: 반려동물의 종류(ex 개, 고양이, 토끼 등)
@@ -341,7 +341,7 @@ paths:
               properties:
                 userobject_id:
                   type: string
-                  description : 프로필을 얻어올 유저의 아이디(DB아이디)
+                  description: 프로필을 얻어올 유저의 아이디(DB아이디)
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -369,7 +369,7 @@ paths:
               properties:
                 user_nickname:
                   type: string
-                  description : 중복체크를 수행할 닉네임
+                  description: 중복체크를 수행할 닉네임
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -400,7 +400,7 @@ paths:
                   description: 정보를 수정할 유저의 몽고디비 도큐먼트 ID
                 user_nickname:
                   type: string
-                  description : 수정할 닉네임
+                  description: 수정할 닉네임
                 user_profile_uri:
                   type: string
                   format: binary
@@ -437,21 +437,38 @@ paths:
                   type: string
                   description: 유저 성별, 마이메뉴-프로필 상세정보에서 수정('male'|'female')
                 user_interests:
-                  type: array
+                  type: object
                   description: 유저의 관심사, 마이메뉴-프로필 상세정보에서 수정
-                  items:
-                    type: object
-                    properties:
-                      location:
+                  properties:
+                    location:
+                      type: array
+                      items:
                         type: string
-                        description: 지역 관심사 
-                      activity:
+                      description: 지역 관심사
+                    beauty:
+                      type: array
+                      items:
                         type: string
-                        description: 활동 관심사
+                      description: 미용 관심사
+                    activity:
+                      type: array
+                      items:
+                        type: string
+                      description: 활동 관심사
+                    food:
+                      type: array
+                      items:
+                        type: string
+                      description: 음식 관심사
+                    health:
+                      type: array
+                      items:
+                        type: string
+                      description: 건강 관심사
                 user_address:
                   type: object
                   description: 유저 지역정보
-                  properties: 
+                  properties:
                     city:
                       type: string
                       description: 시,도
@@ -500,16 +517,16 @@ paths:
                   description: 정보를 수정할 반려동물의 몽고디비 도큐먼트 ID
                 pet_sex:
                   type: string
-                  description: 반려동물의 성별 
+                  description: 반려동물의 성별
                 pet_neutralization:
                   type: string
-                  description: 반려동물 중성화 여부 
+                  description: 반려동물 중성화 여부
                 pet_birthday:
                   type: string
-                  description: 반려동물 생일 
+                  description: 반려동물 생일
                 pet_weight:
                   type: string
-                  description: 반려동물 몸무게 
+                  description: 반려동물 몸무게
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -616,7 +633,7 @@ paths:
       tags:
         - user
       summary: 유저 소개글 변경
-      description: 유저 소개글을 변경한다. 
+      description: 유저 소개글을 변경한다.
       operationId: updateUserIntroduction
       requestBody:
         description: 유저 소개글을 변경할 아이디
@@ -644,7 +661,7 @@ paths:
       tags:
         - user
       summary: 보호소 상세 정보를 수정
-      description: 보호소 상세 정보를 수정 
+      description: 보호소 상세 정보를 수정
       operationId: updateShelterDetailInformation
       requestBody:
         description: 보호소 상세 정보
@@ -659,11 +676,11 @@ paths:
                   type: string
                   description: 수정할 보호소 오브젝트 아이디
                 shelter_name:
-                  type:  string
-                  description: 보호소 이름 
+                  type: string
+                  description: 보호소 이름
                 shelter_address:
                   type: object
-                  description: 보호소 주소 
+                  description: 보호소 주소
                   properties:
                     city:
                       type: string
@@ -679,19 +696,19 @@ paths:
                       description: 보호소 주소
                     detail:
                       type: string
-                      description: 보호소 상세 주소 
+                      description: 보호소 상세 주소
                 shelter_delegate_contact_number:
-                  type:  string
-                  description: 보호소 대표 전화번호, 휴대폰 번호 
+                  type: string
+                  description: 보호소 대표 전화번호, 휴대폰 번호
                 user_email:
-                  type:  string
-                  description: 이메일 
+                  type: string
+                  description: 이메일
                 shelter_homepage:
-                  type:  string
-                  description: 보호소 홈페이지 uri 
+                  type: string
+                  description: 보호소 홈페이지 uri
                 shelter_foundation_date:
-                  type:  string
-                  description: 보호소 설립일 
+                  type: string
+                  description: 보호소 설립일
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -722,7 +739,7 @@ paths:
                   type: string
                   description: 검색할 유저의 닉네임
                 request_number:
-                  type:  integer
+                  type: integer
                   description: 요청할 유저 계정 숫자
                 userobject_id:
                   type: string
@@ -760,7 +777,7 @@ paths:
                   type: string
                   description: 가족계정에서 뺄 유저아이디
                 pet_userobject_id:
-                  type:  integer
+                  type: integer
                   description: 가족계정을 조정할 반려동물아이디
       responses:
         '200':

@@ -172,20 +172,16 @@ router.post('/getUserProfile', (req, res) => {
 			feedList = await Feed.model.find({feed_writer_id: userInfo._id}).limit(9999).sort('-_id').lean();
 		}
 
-
-
-
 		let follow = false;
-		if(req.session&&req.session.loginUser){
-			follow = await Follow.model.findOne({follow_id:userInfo._id, follower_id:req.session.loginUser}).lean();
+		if (req.session && req.session.loginUser) {
+			follow = await Follow.model.findOne({follow_id: userInfo._id, follower_id: req.session.loginUser}).lean();
 		}
-		follow = follow!=null&&!follow.follow_is_delete;
-
+		follow = follow != null && !follow.follow_is_delete;
 
 		const profile = {
 			...userInfo,
 			feedList: feedList,
-			is_follow: follow
+			is_follow: follow,
 		};
 
 		res.json({status: 200, msg: profile});
@@ -245,8 +241,8 @@ router.post('/updateUserDetailInformation', (req, res) => {
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
-
-		let user_interests = typeof req.body.user_interests == 'string' ? JSON.parse('[' + req.body.user_interests + ']') : req.body.user_interests;
+		// let user_interests = typeof req.body.user_interests == 'string' ? JSON.parse('[' + req.body.user_interests + ']') : req.body.user_interests;
+		let user_interests = JSON.parse(req.body.user_interests);
 		let user_address = typeof req.body.user_address == 'string' ? JSON.parse(req.body.user_address) : req.body.user_address;
 
 		userInfo.user_birthday = req.body.user_birthday;
@@ -368,12 +364,12 @@ router.post('/getUserInfoById', (req, res) => {
 		}
 
 		let follow = false;
-		if(req.session&&req.session.loginUser){
-			follow = await Follow.model.findOne({follow_id:user._id, follower_id:req.session.loginUser}).lean();
+		if (req.session && req.session.loginUser) {
+			follow = await Follow.model.findOne({follow_id: user._id, follower_id: req.session.loginUser}).lean();
 		}
-		follow = follow!=null&&!follow.follow_is_delete;
-		
-		user = {...user, is_follow : follow};
+		follow = follow != null && !follow.follow_is_delete;
+
+		user = {...user, is_follow: follow};
 
 		res.json({status: 200, msg: user});
 	});
@@ -501,18 +497,18 @@ router.post('/followUser', (req, res) => {
 			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
 			return;
 		}
-		
+
 		let follow = await Follow.model
 			.findOneAndUpdate(
-				{follow_id: targetUser._id, follower_id:req.session.loginUser},
-				{$set: {follow_id: targetUser._id, follower_id:req.session.loginUser, follow_is_delete: false}, $currentDate: {follow_update_date: true}},
+				{follow_id: targetUser._id, follower_id: req.session.loginUser},
+				{$set: {follow_id: targetUser._id, follower_id: req.session.loginUser, follow_is_delete: false}, $currentDate: {follow_update_date: true}},
 				{new: true, upsert: true},
 			)
 			.lean();
-		
+
 		targetUser.user_follower_count++;
 		await targetUser.save();
-		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_follow_count:1}});
+		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_follow_count: 1}});
 
 		res.json({status: 200, msg: follow});
 	});
@@ -537,7 +533,7 @@ router.post('/unFollowUser', (req, res) => {
 
 		targetUser.user_follower_count--;
 		await targetUser.save();
-		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_follow_count:-1}});
+		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_follow_count: -1}});
 
 		res.json({status: 200, msg: follow});
 	});
@@ -552,10 +548,7 @@ router.post('/getFollows', (req, res) => {
 			return;
 		}
 
-		let follow = await Follow.model
-			.find({follower_id: targetUser._id,follow_is_delete:false})
-			.populate('follow_id')
-			.lean();
+		let follow = await Follow.model.find({follower_id: targetUser._id, follow_is_delete: false}).populate('follow_id').lean();
 
 		res.json({status: 200, msg: follow});
 	});
@@ -570,14 +563,10 @@ router.post('/getFollowers', (req, res) => {
 			return;
 		}
 
-		let follow = await Follow.model
-			.find({follow_id: targetUser._id,follow_is_delete:false})
-			.populate('follower_id')
-			.lean();
+		let follow = await Follow.model.find({follow_id: targetUser._id, follow_is_delete: false}).populate('follower_id').lean();
 
 		res.json({status: 200, msg: follow});
 	});
 });
-
 
 module.exports = router;
