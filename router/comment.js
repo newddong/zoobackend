@@ -129,6 +129,7 @@ router.post('/deleteComment', (req, res) => {
 		let comments = await Comment.model.findById(req.body.commentobject_id).exec();
 		let comment_writer_id = JSON.stringify(comments.comment_writer_id).replace(/\"/gi, '');
 
+		//로그인 정보와 작성자가 일치한지 확인
 		if (req.session.loginUser != comment_writer_id) {
 			res.json({status: 400, msg: ALERT_NO_MATCHING});
 			return;
@@ -140,8 +141,28 @@ router.post('/deleteComment', (req, res) => {
 			{new: true, upsert: true, setDefaultsOnInsert: true},
 		);
 
-		console.log('result=>', result);
 		res.json({status: 200, msg: result});
+	});
+});
+
+//댓글 수정
+router.post('/updateComment', (req, res) => {
+	controller(req, res, async () => {
+		let comments = await Comment.model.findById(req.body.commentobject_id).exec();
+		let comment_writer_id = JSON.stringify(comments.comment_writer_id).replace(/\"/gi, '');
+
+		//로그인 정보와 작성자가 일치한지 확인
+		if (req.session.loginUser != comment_writer_id) {
+			res.json({status: 400, msg: ALERT_NO_MATCHING});
+			return;
+		}
+
+		comments.comment_contents = req.body.comment_contents;
+		comments.comment_is_secure = req.body.comment_is_secure;
+		comments.comment_update_date = Date.now();
+		comments = await comments.save();
+
+		res.json({status: 200, msg: comments});
 	});
 });
 

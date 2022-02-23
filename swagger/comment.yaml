@@ -160,6 +160,39 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
+  /comment/updateComment:
+    post:
+      tags:
+        - comment
+      summary: 댓글/대댓글 수정
+      description: 댓글/대댓글 오브젝트를 입력하면 댓글 수정
+      operationId: 댓글/대댓글 수정기능
+      requestBody:
+        description: updateComment
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - commentobject_id
+              properties:
+                commentobject_id:
+                  type: string
+                  description: 수정할 댓글/대댓글
+                comment_contents:
+                  type: string
+                  description: 콘텐츠 내용
+                comment_is_secure:
+                  type: boolean
+                  description: true일때는 writer와 댓글이 달린 게시글 작성자만 볼수있음
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+
   #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 #$2:\n  type: $1\n  description: $3
