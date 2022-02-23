@@ -6,7 +6,7 @@ const Comment = require('../schema/comment');
 const ProtectRequest = require('../schema/protectRequest');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
-const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT} = require('./constants');
+const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 
 //댓글 대댓글 작성
 router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) => {
@@ -121,6 +121,28 @@ router.post('/setLikeComment', (req, res) => {
 //좋아요 취소
 router.post('/unsetLikeComment', (req, res) => {
 	controllerLoggedIn(req, res, async () => {});
+});
+
+//댓글 삭제(실제 DB에서 삭제되지는 않음)
+router.post('/deleteComment', (req, res) => {
+	controller(req, res, async () => {
+		let comments = await Comment.model.findById(req.body.commentobject_id).exec();
+		let comment_writer_id = JSON.stringify(comments.comment_writer_id).replace(/\"/gi, '');
+
+		if (req.session.loginUser != comment_writer_id) {
+			res.json({status: 400, msg: ALERT_NO_MATCHING});
+			return;
+		}
+
+		let result = await Comment.model.findOneAndUpdate(
+			{_id: req.body.commentobject_id},
+			{$set: {comment_is_delete: true}},
+			{new: true, upsert: true, setDefaultsOnInsert: true},
+		);
+
+		console.log('result=>', result);
+		res.json({status: 200, msg: result});
+	});
 });
 
 //=================================이전 router code =============================================================================

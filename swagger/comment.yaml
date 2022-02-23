@@ -134,7 +134,32 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
-
+  /comment/deleteComment:
+    post:
+      tags:
+        - comment
+      summary: 댓글/대댓글 삭제
+      description: 댓글/대댓글 오브젝트를 입력하면 삭제 (comment_is_delete 필드만 true로 변경)
+      operationId: 댓글/대댓글 삭제
+      requestBody:
+        description: deleteComment
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - commentobject_id
+              properties:
+                commentobject_id:
+                  type: string
+                  description: 삭제할 댓글/대댓글
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
   #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 #$2:\n  type: $1\n  description: $3
