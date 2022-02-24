@@ -152,7 +152,7 @@ paths:
               properties:
                 commentobject_id:
                   type: string
-                  description: 삭제할 댓글/대댓글
+                  description: 삭제할 댓글/대댓글 commentobject_id
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -178,7 +178,7 @@ paths:
               properties:
                 commentobject_id:
                   type: string
-                  description: 수정할 댓글/대댓글
+                  description: 수정할 댓글/대댓글 commentobject_id
                 comment_contents:
                   type: string
                   description: 콘텐츠 내용
