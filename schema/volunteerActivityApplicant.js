@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 /** 참여자 리스트 및 수락여부 상태 */
 const MemberListAndStatus = {
 	/** @type {String} 봉사활동 신청자 목록 */
-	member: {type: String},
+	member: {type: Schema.Types.ObjectId, ref: 'UserObject'},
 	/** @type {String} 참여자 수락여부 상태 */
 	confirm: {type: String, default: 'waiting'},
 };

@@ -155,7 +155,7 @@ router.post('/getShelterVolunteerActivityList', (req, res) => {
 		let volunteerActivityList = await VolunteerActivity.model
 			.find(filterObj)
 			.limit(req.body.request_number)
-			.populate('volunteer_accompany', '-user_agreement -user_interests')
+			.populate('volunteer_accompany.member', '-user_agreement -user_interests')
 			.exec();
 
 		if (volunteerActivityList.length < 1) {
