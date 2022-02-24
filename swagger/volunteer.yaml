@@ -126,6 +126,9 @@ paths:
                 volunteer_status:
                   type: string
                   description: 변경하려고 하는 상태('done'|'notaccept'|'accept'|'waiting'|'cancel')
+                volunteer_reason_of_notaccept:
+                  type: string
+                  description: 거절 사유 (유저가 보호소이고 상태가 notaccept 일 경우에만 입력가능)
       responses:
         '200':
           $ref: '#/components/responses/200'

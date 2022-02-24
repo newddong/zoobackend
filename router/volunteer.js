@@ -131,6 +131,10 @@ router.post('/setVolunteerActivityStatus', (req, res) => {
 			res.json({status: 400, msg: '해당 유저 타입에는 허가되지 않은 요청입니다.'});
 			return;
 		}
+		if (userType == 'shelter' && status == 'notaccept') {
+			volunteerActivity.volunteer_reason_of_notaccept = req.body.volunteer_reason_of_notaccept;
+		}
+
 		volunteerActivity.volunteer_status = status;
 		await volunteerActivity.save();
 

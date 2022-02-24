@@ -22,6 +22,8 @@ const VolunteerActivityApplicantObject = {
 	volunteer_delegate_contact: {type: String},
 	/** @type { 'done'|'notaccept'|'accept'|'wating'|'cancel'} 봉사활동 신청 상태*/
 	volunteer_status: {type: String, default: 'waiting'},
+	/** @type { String} 봉사활동 신청 거절 사유*/
+	volunteer_reason_of_notaccept: {type: String},
 };
 
 /** @type {mongoose.Schema} */
