@@ -175,6 +175,8 @@ paths:
               type: object
               required:
                 - commentobject_id
+                - comment_contents
+                - comment_is_secure
               properties:
                 commentobject_id:
                   type: string
