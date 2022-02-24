@@ -103,6 +103,7 @@ router.post('/getAppliesRecord', (req, res) => {
 				volunteer_accompany: {$elemMatch: {member: req.session.loginUser}},
 			})
 			.populate('volunteer_target_shelter')
+			.populate('volunteer_accompany.member')
 			.exec();
 		console.log('volunteerActivityList =>', volunteerActivityList);
 		res.json({
