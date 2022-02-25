@@ -421,21 +421,42 @@ router.post('/getUserListByNickname', (req, res) => {
 		let petName = '';
 		let userList = [];
 
+		console.log('userType=>', userType);
+
 		if (nickname.includes('/')) {
 			let namearray = nickname.split('/');
 			petName = namearray[0];
 			userName = namearray[1];
-			userList = await User.model
-				.find({user_nickname: {$regex: petName}})
-				.populate({path: 'pet_family', match: {user_nickname: {$regex: userName}}})
-				.limit(requestnum)
-				.lean();
+			if (userType != '') {
+				userList = await User.model
+					.find({user_nickname: {$regex: petName}})
+					.where('user_type')
+					.equals(userType)
+					.populate({path: 'pet_family', match: {user_nickname: {$regex: userName}}})
+					.limit(requestnum)
+					.lean();
+			} else {
+				userList = await User.model
+					.find({user_nickname: {$regex: petName}})
+					.populate({path: 'pet_family', match: {user_nickname: {$regex: userName}}})
+					.limit(requestnum)
+					.lean();
+			}
 			userList = userList.filter(v => v.pet_family.length > 0);
 		} else {
-			userList = await User.model
-				.find({user_nickname: {$regex: nickname}})
-				.limit(requestnum)
-				.lean();
+			if (userType != '') {
+				userList = await User.model
+					.find({user_nickname: {$regex: nickname}})
+					.where('user_type')
+					.equals(userType)
+					.limit(requestnum)
+					.lean();
+			} else {
+				userList = await User.model
+					.find({user_nickname: {$regex: nickname}})
+					.limit(requestnum)
+					.lean();
+			}
 		}
 
 		if (userList.length < 1) {
