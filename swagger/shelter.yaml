@@ -86,7 +86,7 @@ paths:
                   description: 보호요청 게시물의 제목
                 protect_request_content:
                   type: string
-                  description: 보호요청 게시물 내용 
+                  description: 보호요청 게시물 내용
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -126,7 +126,7 @@ paths:
                   description: 커서 역할을 할 보호요청 오브잭트(페이징 처리)
                 request_number:
                   type: integer
-                  description:  보호요청게시글 요청 숫자
+                  description: 보호요청게시글 요청 숫자
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -157,7 +157,7 @@ paths:
                   description: 커서 역할을 할 오브잭트(페이징 처리)
                 request_number:
                   type: integer
-                  description:  보호요청게시글 요청 숫자
+                  description: 보호요청게시글 요청 숫자
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -187,10 +187,10 @@ paths:
               properties:
                 shelter_userobject_id:
                   type: string
-                  description: 동물보호 요청 리스트를 불러올 대상 
+                  description: 동물보호 요청 리스트를 불러올 대상
                 request_number:
                   type: integer
-                  description:  보호요청게시글 요청 숫자
+                  description: 보호요청게시글 요청 숫자
                 protect_request_object_id:
                   type: string
                   description: 커서 역할을 할 보호요청 오브잭트(페이징 처리)
@@ -250,7 +250,7 @@ paths:
               properties:
                 shelter_protect_animal_object_id:
                   type: string
-                  description: 보호소의 등록된 동물의 오브젝트 아이디. 
+                  description: 보호소의 등록된 동물의 오브젝트 아이디.
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -260,11 +260,38 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-
-
-
-
-
+  /shelter/setShelterProtectAnimalStatus:
+    post:
+      tags:
+        - shelter
+      summary: 보호소에 등록된 동물의 상태를 변경
+      description: 보호소에 등록된 동물의 상태를 변경
+      operationId: setShelterProtectAnimalStatus
+      requestBody:
+        description: 리스트 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - shelter_protect_animal_object_id
+                - protect_animal_status
+              type: object
+              properties:
+                shelter_protect_animal_object_id:
+                  type: string
+                  description: 보호소의 보호중인 동물 ID
+                protect_animal_status:
+                  type: string
+                  description: 변경할 보호소의 동물 상태 ('rescue'|'protect'|'adopt'|'discuss'|'rainbowbridge')
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$

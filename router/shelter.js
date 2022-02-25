@@ -36,7 +36,7 @@ router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_lis
 			protect_animal_belonged_shelter_id: req.session.loginUser,
 		});
 
-		if (req.files&&req.files.length > 0) protectAnimal.protect_animal_photo_uri_list = req.files.map(file => file.location);
+		if (req.files && req.files.length > 0) protectAnimal.protect_animal_photo_uri_list = req.files.map(file => file.location);
 
 		await protectAnimal.save();
 
@@ -58,7 +58,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos_uri'
 			res.json({status: 400, msg: USER_NOT_FOUND});
 			return;
 		}
-		
+
 		let newRequest = await ProtectRequest.makeNewdoc({
 			// protect_animal_id: {...animal},
 			protect_request_title: req.body.protect_request_title,
@@ -69,7 +69,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos_uri'
 			protect_request_photos_uri: [],
 		});
 
-		if (req.files&&req.files.length > 0) {
+		if (req.files && req.files.length > 0) {
 			req.files.forEach(file => {
 				newRequest.protect_request_photos_uri.push(file.location);
 			});
@@ -81,7 +81,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos_uri'
 		newRequest.protect_animal_id = {...animal};
 		await newRequest.save();
 		await animal.save();
-		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
+		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_upload_count: 1}});
 		res.json({status: 200, msg: newRequest});
 	});
 });
@@ -103,16 +103,16 @@ router.post('/getProtectRequestList', (req, res) => {
 				//select: 'shelter_address shelter_name shelter_delegate_contact_number',
 				match: {'shelter_address.brief': {$regex: req.body.city}, options: {limit: req.body.request_number}},
 			});
-		}else{
+		} else {
 			requestList.populate({
 				path: 'protect_request_writer_id',
 				//select: 'shelter_address shelter_name shelter_delegate_contact_number',
-				options: {limit: req.body.request_number}
+				options: {limit: req.body.request_number},
 			});
 		}
 
 		if (req.body.adoptable_posts && req.body.adoptable_posts == 'true') {
-			requestList.find({$or:[{protect_request_status: 'rescue'},{protect_request_status:'discuss'}]});
+			requestList.find({$or: [{protect_request_status: 'rescue'}, {protect_request_status: 'discuss'}]});
 		}
 
 		requestList = await requestList.sort('-_id').exec();
@@ -163,11 +163,11 @@ router.post('/getProtectRequestListByShelterId', (req, res) => {
 
 		let filterObj = {protect_request_writer_id: shelter._id};
 		let status = req.body.protect_request_status;
-		let statusList = ['all','rescue', 'discuss', 'nearrainbow', 'complete'];
+		let statusList = ['all', 'rescue', 'discuss', 'nearrainbow', 'complete'];
 		if (status && statusList.some(v => v == status)) {
-			if(status=='all'){}
-			else{
-			filterObj = {...filterObj, protect_request_status: status};
+			if (status == 'all') {
+			} else {
+				filterObj = {...filterObj, protect_request_status: status};
 			}
 		}
 		if (!statusList.some(v => v == status)) {
@@ -175,7 +175,12 @@ router.post('/getProtectRequestListByShelterId', (req, res) => {
 			return;
 		}
 
-		let protectRequestList = await ProtectRequest.model.find(filterObj).populate('protect_request_writer_id').limit(req.body.request_number).sort('-_id').exec();
+		let protectRequestList = await ProtectRequest.model
+			.find(filterObj)
+			.populate('protect_request_writer_id')
+			.limit(req.body.request_number)
+			.sort('-_id')
+			.exec();
 		if (protectRequestList.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
@@ -197,12 +202,13 @@ router.post('/getAnimalListWithApplicant', (req, res) => {
 			.find({
 				protect_animal_belonged_shelter_id: req.session.loginUser,
 			})
-			.populate('protect_act_applicants').sort('-_id')
+			.populate('protect_act_applicants')
+			.sort('-_id')
 			.exec(); //요청
 
-		animalWithApply = animalWithApply.filter(v=>v.protect_act_applicants.length>0);
-		if(animalWithApply.length<1){
-			res.json({status:404, msg:ALERT_NO_RESULT});
+		animalWithApply = animalWithApply.filter(v => v.protect_act_applicants.length > 0);
+		if (animalWithApply.length < 1) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
 
@@ -210,9 +216,8 @@ router.post('/getAnimalListWithApplicant', (req, res) => {
 	});
 });
 
-
 //보호소에 등록된 동물의 상세 정보를 조회
-router.post('/getProtectAnimalByProtectAnimalId',(req, res) => {
+router.post('/getProtectAnimalByProtectAnimalId', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		if (req.session.user_type != 'shelter') {
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
@@ -221,9 +226,8 @@ router.post('/getProtectAnimalByProtectAnimalId',(req, res) => {
 
 		let animal = await ShelterAnimal.model.findById(req.body.shelter_protect_animal_object_id).exec();
 
-		
-		if(!animal){
-			res.json({status:404, msg:ALERT_NO_RESULT});
+		if (!animal) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
 
@@ -231,7 +235,37 @@ router.post('/getProtectAnimalByProtectAnimalId',(req, res) => {
 	});
 });
 
+/**
+ * 보호소의 동물 상태를 변경
+ */
+router.post('/setShelterProtectAnimalStatus', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let shelterAnimal = await ShelterAnimal.model.findById(req.body.shelter_protect_animal_object_id).exec();
+		console.log('shelterAnimal=>', shelterAnimal);
+		if (!shelterAnimal) {
+			res.json({status: 404, msg: '요청한 ID와 일치하는 보호소 동물이 존재하지 않습니다.'});
+			return;
+		}
 
+		const userType = req.session.user_type;
+		const statusList = ['rescue', 'protect', 'adopt', 'discuss', 'rainbowbridge'];
+		const targetStatus = req.body.protect_animal_status; //요청 상태
 
+		if (!statusList.some(v => v == targetStatus)) {
+			res.json({status: 400, msg: REQUEST_PARAMETER_NOT_VALID});
+			return;
+		}
+
+		if (userType == 'user') {
+			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
+			return;
+		}
+
+		shelterAnimal.protect_animal_status = targetStatus;
+		await shelterAnimal.save();
+
+		res.json({status: 200, msg: shelterAnimal});
+	});
+});
 
 module.exports = router;

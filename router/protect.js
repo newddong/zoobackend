@@ -17,6 +17,7 @@ const {
 	ALERT_NOT_VALID_USEROBJECT_ID,
 	USER_NOT_FOUND,
 	ALERT_NOT_VALID_TARGER_OBJECT_ID,
+	REQUEST_PARAMETER_NOT_VALID,
 } = require('./constants');
 
 //유저의 보호동물(프로필에서 보여지는) 목록 조회
