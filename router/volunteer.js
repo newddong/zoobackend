@@ -92,6 +92,7 @@ router.post('/getUserVolunteerActivityList', (req, res) => {
 				volunteer_accompany: {$elemMatch: {member: req.session.loginUser}},
 			})
 			.populate('volunteer_target_shelter')
+			.populate('volunteer_accompany.member')
 			.exec();
 		if (volunteerActivityList.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
