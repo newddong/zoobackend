@@ -292,6 +292,34 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /shelter/getProtectRequestListByProtectAnimalId:
+    post:
+      tags:
+        - shelter
+      summary: 보호소가 보호중인 동물에 관한 요청 게시글 리스트 조회
+      description: 보호소가 보호중인 동물에 관한 요청 게시글 리스트 조회
+      operationId: getProtectRequestListByProtectAnimalId
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - protect_animal_id
+              type: object
+              properties:
+                protect_animal_id:
+                  type: string
+                  description: 해당 보호소가 보호중인 동물 ID
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$

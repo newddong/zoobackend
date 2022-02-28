@@ -15,6 +15,7 @@ const {
 	USER_NOT_FOUND,
 	ALERT_NO_RESULT,
 } = require('./constants');
+const mongoose = require('mongoose');
 
 //보호소의 보호 동물을 등록한다.
 router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_list'), (req, res) => {
@@ -265,6 +266,24 @@ router.post('/setShelterProtectAnimalStatus', (req, res) => {
 		await shelterAnimal.save();
 
 		res.json({status: 200, msg: shelterAnimal});
+	});
+});
+
+/**
+ * 보호소가 보호중인 동물에 관한 요청 게시글 리스트 조회
+ */
+router.post('/getProtectRequestListByProtectAnimalId', (req, res) => {
+	controller(req, res, async () => {
+		let protectRequestList = await ProtectRequest.model.find({'protect_animal_id._id': mongoose.Types.ObjectId(req.body.protect_animal_id)});
+
+		// console.log('req.body.protectRequestList=>', protectRequestList);
+
+		if (!protectRequestList) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		res.json({status: 200, msg: protectRequestList});
 	});
 });
 

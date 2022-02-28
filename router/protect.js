@@ -180,9 +180,6 @@ router.post('/setProtectActivityStatus', (req, res) => {
 		// 	return;
 		// }
 
-		// let viewer = await User.model.findById(req.session.loginUser).exec();
-
-		// const userType = viewer.user_type;
 		const userType = req.session.user_type;
 		const statusList = ['accept', 'denied', 'cancel', 'wait'];
 		const targetStatus = req.body.protect_act_status; //요청
@@ -202,10 +199,29 @@ router.post('/setProtectActivityStatus', (req, res) => {
 			return;
 		}
 
+		//해당 신청서만 accept로 변경
 		protectActivity.protect_act_status = targetStatus;
 		await protectActivity.save();
 
-		res.json({status: 200, msg: protectActivity});
+		let protect_act_request_article_id = JSON.stringify(protectActivity.protect_act_request_article_id).replace(/\"/g, '');
+
+		//해당 동물 보호 게시글에 신청한 다른 신청자들의 신청서 컬렉션에 protect_act_status가 완료로 변경
+		let protectActivity_others = await ProtectActivity.model
+			.find({protect_act_request_article_id: protect_act_request_article_id})
+			.where('protect_act_status')
+			.ne('accept')
+			.updateMany({$set: {protect_act_status: 'done'}})
+			.exec();
+
+		//다른 신청서에 대한 결과값 확인시 아래 주석들을 풀어서 확인할 것!
+		// console.log('protectActivity_others after ==>', protectActivity_others);
+		// let protectActivity_others_end = await ProtectActivity.model
+		// 	.find({protect_act_request_article_id: protect_act_request_article_id})
+		// 	.where('protect_act_status')
+		// 	.exec();
+		// console.log('protectActivity_others_end ==>', protectActivity_others_end);
+
+		res.json({status: 200, msg: '완료'});
 	});
 });
 
