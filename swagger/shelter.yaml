@@ -210,8 +210,8 @@ paths:
     post:
       tags:
         - shelter
-      summary: 보호소에 보호활동(입양,임시보호)신청이 접수된 동물 목록을 조회
-      description: 보호소에 보호활동(입양,임시보호)신청이 접수된 동물 목록을 조회
+      summary: 보호소에 보호활동(입양,임시보호)신청이 접수된 신청자 목록 조회
+      description: 보호소에 보호활동(입양,임시보호)신청이 접수된 신청자 목록 조회
       operationId: getAnimalListWithApplicant
       requestBody:
         description: 리스트 요청정보

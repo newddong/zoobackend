@@ -4,6 +4,7 @@ const User = require('../schema/user');
 const Feed = require('../schema/feed');
 const ShelterAnimal = require('../schema/shelterProtectAnimal');
 const ProtectRequest = require('../schema/protectRequest');
+const ProtectActivity = require('../schema/protectionActivityApplicant');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {
@@ -191,29 +192,64 @@ router.post('/getProtectRequestListByShelterId', (req, res) => {
 	});
 });
 
-//보호소에 보호활동(입양,임시보호)신청이 접수된 동물 목록을 조회
+//보호소에 보호활동(입양,임시보호)신청이 접수된 동물 목록을 조회 (아래 사항으로 변경)
+//보호소에 보호활동(입양,임시보호)신청이 접수된 신청자 목록 조회
 router.post('/getAnimalListWithApplicant', (req, res) => {
+	// controllerLoggedIn(req, res, async () => {
+	// 	if (req.session.user_type != 'shelter') {
+	// 		res.json({status: 400, msg: USER_NOT_VALID_TYPE});
+	// 		return;
+	// 	}
+
+	// 	let animalWithApply = await ShelterAnimal.model
+	// 		.find({
+	// 			protect_animal_belonged_shelter_id: req.session.loginUser,
+	// 		})
+	// 		.populate('protect_act_applicants')
+	// 		.sort('-_id')
+	// 		.exec(); //요청
+
+	// 	animalWithApply = animalWithApply.filter(v => v.protect_act_applicants.length > 0);
+	// 	if (animalWithApply.length < 1) {
+	// 		res.json({status: 404, msg: ALERT_NO_RESULT});
+	// 		return;
+	// 	}
+
+	// 	res.json({status: 200, msg: animalWithApply});
+	// });
+
 	controllerLoggedIn(req, res, async () => {
 		if (req.session.user_type != 'shelter') {
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
 			return;
 		}
 
-		let animalWithApply = await ShelterAnimal.model
+		let animalWithApply = await ProtectActivity.model
 			.find({
-				protect_animal_belonged_shelter_id: req.session.loginUser,
+				protect_act_request_shelter_id: req.session.loginUser,
 			})
-			.populate('protect_act_applicants')
+			.populate('protect_act_applicant_id')
 			.sort('-_id')
 			.exec(); //요청
 
-		animalWithApply = animalWithApply.filter(v => v.protect_act_applicants.length > 0);
-		if (animalWithApply.length < 1) {
-			res.json({status: 404, msg: ALERT_NO_RESULT});
-			return;
-		}
+		let adoptList = new Array();
+		let protectList = new Array();
+		let total = new Object();
 
-		res.json({status: 200, msg: animalWithApply});
+		for (let i = 0; i < animalWithApply.length; i++) {
+			let data = new Object();
+			if (animalWithApply[i].protect_act_type == 'adopt') {
+				data = animalWithApply[i];
+				adoptList.push(data);
+			} else {
+				data = animalWithApply[i];
+				protectList.push(data);
+			}
+		}
+		total.adopt = adoptList;
+		total.protect = protectList;
+		console.log('total', total);
+		res.json({status: 200, msg: total});
 	});
 });
 
@@ -237,7 +273,7 @@ router.post('/getProtectAnimalByProtectAnimalId', (req, res) => {
 });
 
 /**
- * 보호소의 동물 상태를 변경
+ * 보호소에 등록된 동물의 상태를 변경
  */
 router.post('/setShelterProtectAnimalStatus', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
