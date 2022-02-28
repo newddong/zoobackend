@@ -303,7 +303,7 @@ router.post('/getProtectApplicantList', (req, res) => {
  */
 router.post('/getProtectRequestByProtectRequestId', (req, res) => {
 	controller(req, res, async () => {
-		let protectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id).exec();
+		let protectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id).populate('protect_request_writer_id').exec();
 
 		if (!protectRequest) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
