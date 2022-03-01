@@ -9,7 +9,7 @@ const {controller, controllerLoggedIn} = require('./controller');
 const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MEDIA_INFO} = require('./constants');
 
 //피드 글쓰기
-router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
+router.post('/createFeed',uploadS3.array('media_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let feed = await Feed.makeNewdoc({
 			feed_content: req.body.feed_content,
@@ -24,12 +24,13 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 		}
 
 		if (req.files && req.files.length > 0) {
-			let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse('[' + req.body.feed_medias + ']') : req.body.feed_medias;
+		let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
 
 			feed.feed_medias = req.files.map((v, i) => {
 				return {
 					...feedMedia[i],
 					media_uri: v.location,
+
 				};
 			});
 			feed.feed_thumbnail = feed.feed_medias[0].media_uri;
@@ -44,7 +45,6 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 			});
 		}
 		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
-
 		res.json({status: 200, msg: newFeed});
 	});
 });
