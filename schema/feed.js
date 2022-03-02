@@ -8,6 +8,11 @@ const Tag = {
 	position_x: {type: Number},
 	/** @type {Number} 태그가 보여야할 사진 프레임에서 y좌표 */
 	position_y: {type: Number},
+	pos:{
+		x:{type:Number},
+		y:{type:Number}
+	},
+	user:{type:Object}
 };
 
 const FeedMedia = {

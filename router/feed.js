@@ -27,11 +27,9 @@ router.post('/createFeed',uploadS3.array('media_uri'), (req, res) => {
 		let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
 
 			feed.feed_medias = req.files.map((v, i) => {
-				return {
-					...feedMedia[i],
-					media_uri: v.location,
-
-				};
+				let result = feedMedia[i];
+				result.media_uri = v.location;
+				return result;
 			});
 			feed.feed_thumbnail = feed.feed_medias[0].media_uri;
 		}
