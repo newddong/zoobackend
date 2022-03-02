@@ -242,7 +242,10 @@ router.post('/updateUserDetailInformation', (req, res) => {
 			return;
 		}
 		// let user_interests = typeof req.body.user_interests == 'string' ? JSON.parse('[' + req.body.user_interests + ']') : req.body.user_interests;
-		let user_interests = JSON.parse(req.body.user_interests);
+		let user_interests = typeof req.body.user_interests == 'string' ? JSON.parse(req.body.user_interests) : req.body.user_interests;
+
+		console.log('user_interests->', user_interests);
+
 		let user_address = typeof req.body.user_address == 'string' ? JSON.parse(req.body.user_address) : req.body.user_address;
 
 		userInfo.user_birthday = req.body.user_birthday;

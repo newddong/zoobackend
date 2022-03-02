@@ -34,15 +34,15 @@ const UserAddress = {
 /** 관심사 항목 키워드 */
 const UserInterest = {
 	/** @type {[String]} 지역 관심사 */
-	location: {type: [String]},
+	interests_location: {type: [String]},
 	/** @type {[String]} 미용 관심사 */
-	beauty: {type: [String]},
+	interests_beauty: {type: [String]},
 	/** @type {[String]} 활동 관심사 */
-	activity: {type: [String]},
+	interests_activity: {type: [String]},
 	/** @type {[String]} 음식 관심사 */
-	food: {type: [String]},
+	interests_food: {type: [String]},
 	/** @type {[String]} 건강 관심사 */
-	health: {type: [String]},
+	interests_health: {type: [String]},
 };
 
 const ShelterAddress = {
