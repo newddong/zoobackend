@@ -365,6 +365,34 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /shelter/deleteProtectRequest:
+    post:
+      tags:
+        - shelter
+      summary: 동물보호 요청 게시물을 삭제
+      description: 동물보호 요청 게시물을 삭제
+      operationId: deleteProtectRequest
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - protect_request_object_id
+              type: object
+              properties:
+                protect_request_object_id:
+                  type: string
+                  description: 동물보호 요청 게시물 ID
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$

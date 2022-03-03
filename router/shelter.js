@@ -180,6 +180,8 @@ router.post('/getProtectRequestListByShelterId', (req, res) => {
 
 		let protectRequestList = await ProtectRequest.model
 			.find(filterObj)
+			.where('protect_request_is_delete')
+			.ne(true)
 			.populate('protect_request_writer_id')
 			.limit(req.body.request_number)
 			.sort('-_id')
@@ -369,6 +371,31 @@ router.post('/updateProtectRequest', uploadS3.array('protect_request_photos_uri'
 				protectRequest.protect_request_photos_uri.push(file.location);
 			});
 		}
+		protectRequest.protect_request_update_date = Date.now();
+		await protectRequest.save();
+
+		res.json({status: 200, msg: protectRequest});
+	});
+});
+
+//동물보호 요청 게시물을 삭제한다
+router.post('/deleteProtectRequest', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		//유저가 shelter인지 확인
+		if (req.session.user_type != 'shelter') {
+			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
+			return;
+		}
+
+		let protectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id);
+
+		if (!protectRequest) {
+			res.json({status: 400, msg: ALERT_NO_POST});
+			return;
+		}
+
+		protectRequest.protect_request_update_date = Date.now();
+		protectRequest.protect_request_is_delete = true;
 		await protectRequest.save();
 
 		res.json({status: 200, msg: protectRequest});

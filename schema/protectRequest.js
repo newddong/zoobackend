@@ -51,6 +51,9 @@ const ProtectRequestObject = {
 
 	/** @type { 'rescue'|'discuss'|'nearrainbow'|'complete'} 항목 추가 필요 입양가능(rescue), 보호소에서 구조가 이루어졌으므로 입양가능한 상태임, 협의중(discuss) 안락사 임박(nearrainbow) 완료(complete), 입양, 임시보호가 되면 보호요청 게시글은 완료 상태로 변경됨, 해당 동물은(adopt,protect)가 됨 사망(rainbowbridge) */
 	protect_request_status: {type: String, default: 'rescue'},
+
+	/** @type { Boolean} 삭제여부 */
+	protect_request_is_delete: {type: Boolean, default: false},
 };
 
 /** @type {mongoose.Schema} */
