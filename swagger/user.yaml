@@ -438,27 +438,27 @@ paths:
                   type: object
                   description: 유저의 관심사, 마이메뉴-프로필 상세정보에서 수정
                   properties:
-                    location:
+                    interests_location:
                       type: array
                       items:
                         type: string
                       description: 지역 관심사
-                    beauty:
+                    interests_beauty:
                       type: array
                       items:
                         type: string
                       description: 미용 관심사
-                    activity:
+                    interests_activity:
                       type: array
                       items:
                         type: string
                       description: 활동 관심사
-                    food:
+                    interests_food:
                       type: array
                       items:
                         type: string
                       description: 음식 관심사
-                    health:
+                    interests_health:
                       type: array
                       items:
                         type: string

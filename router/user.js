@@ -416,7 +416,7 @@ router.post('/updateShelterDetailInformation', (req, res) => {
 		shelter.user_email = req.body.user_email;
 		shelter.shelter_homepage = req.body.shelter_homepage;
 		shelter.shelter_foundation_date = req.body.shelter_foundation_date;
-
+		shelter.user_interests = new Object();
 		await shelter.save();
 		res.json({status: 200, msg: shelter});
 	});
