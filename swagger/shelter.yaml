@@ -72,15 +72,15 @@ paths:
                 - protect_request_content
               type: object
               properties:
+                shelter_protect_animal_object_id:
+                  type: string
+                  description: 보호요청할 동물 ID
                 protect_request_photos_uri:
                   type: array
                   description: 보호요청 게시물의 첨부사진 uri
                   items:
                     type: string
                     format: binary
-                shelter_protect_animal_object_id:
-                  type: string
-                  description: 보호요청할 동물 ID
                 protect_request_title:
                   type: string
                   description: 보호요청 게시물의 제목
@@ -311,6 +311,51 @@ paths:
                 protect_animal_id:
                   type: string
                   description: 해당 보호소가 보호중인 동물 ID
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /shelter/updateProtectRequest:
+    post:
+      tags:
+        - shelter
+      summary: 동물보호 요청 게시물을 수정
+      description: 동물보호 요청 게시물을 수정
+      operationId: updateProtectRequest
+      requestBody:
+        description: 동물보호 요청 게시물 수정
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - protect_request_object_id
+              type: object
+              properties:
+                protect_request_object_id:
+                  type: string
+                  description: 동물보호 요청 게시물 ID
+                protect_request_photos_uri:
+                  type: array
+                  description: 동물보호 요청 게시물 추가 사진 uri
+                  items:
+                    type: string
+                    format: binary
+                protect_photos_to_delete:
+                  type: array
+                  description: 삭제할 동물보호 요청 게시물 사진 인덱스 (인덱스 0은 삭제 불가- 인덱스 숫자만 기입)
+                  items:
+                    type: integer
+                protect_request_title:
+                  type: string
+                  description: 동물보호 요청 게시물 제목
+                protect_request_content:
+                  type: string
+                  description: 동물보호 요청 게시물 내용
       responses:
         '200':
           $ref: '#/components/responses/200'

@@ -15,6 +15,7 @@ const {
 	ALERT_NOT_VALID_USEROBJECT_ID,
 	USER_NOT_FOUND,
 	ALERT_NO_RESULT,
+	ALERT_NO_POST,
 } = require('./constants');
 const mongoose = require('mongoose');
 
@@ -320,6 +321,57 @@ router.post('/getProtectRequestListByProtectAnimalId', (req, res) => {
 		}
 
 		res.json({status: 200, msg: protectRequestList});
+	});
+});
+
+//동물보호 요청 게시물을 수정한다
+router.post('/updateProtectRequest', uploadS3.array('protect_request_photos_uri'), (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		//유저가 shelter인지 확인
+		if (req.session.user_type != 'shelter') {
+			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
+			return;
+		}
+
+		let protectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id);
+
+		if (!protectRequest) {
+			res.json({status: 400, msg: ALERT_NO_POST});
+			return;
+		}
+
+		if (req.body.protect_request_title) {
+			protectRequest.protect_request_title = req.body.protect_request_title;
+		}
+
+		if (req.body.protect_request_content) {
+			protectRequest.protect_request_content = req.body.protect_request_content;
+		}
+
+		let protect_photos_to_delete = new Array();
+		protect_photos_to_delete = req.body.protect_photos_to_delete;
+
+		//삭제할 사진이 있는지 확인 후 삭제 진행
+		if (protect_photos_to_delete.length > 0) {
+			let temp_list = new Array();
+			temp_list.push(protectRequest.protect_request_photos_uri[0]);
+			for (let i = 1; i < protectRequest.protect_request_photos_uri.length; i++) {
+				//protect_photos_to_delete 배열은 1부터 시작(0은 무조건 넣어야 함), 1부터 체크해서 삭제 대상이 아닐 경우 배열에 push
+				if (!protect_photos_to_delete.includes(i)) {
+					temp_list.push(protectRequest.protect_request_photos_uri[i]);
+				}
+			}
+			protectRequest.protect_request_photos_uri = [...temp_list];
+		}
+
+		if (req.files && req.files.length > 0) {
+			req.files.forEach(file => {
+				protectRequest.protect_request_photos_uri.push(file.location);
+			});
+		}
+		await protectRequest.save();
+
+		res.json({status: 200, msg: protectRequest});
 	});
 });
 
