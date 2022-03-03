@@ -84,13 +84,15 @@ router.post('/createProtectActivity', (req, res) => {
  * 유저의 동물보호 신청내역 가져오기
  * (입양신청, 임시보호 신청, 봉사활동 신청 - 한 화면에서 입양신청 1개, 임시보호 신청 1개, 봉사활동 신청 3 ~ 4개 표출)
  * 로그인을 하여야 신청내역을 볼수있음.(입력 파라메터 없음)
- *
+ * 최신 게시물 가져오기, 하나만 가져오기 등의 필터등은 추후 개선이 필요해 보임.
  */
 router.post('/getAppliesRecord', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
+		let volunteer_number = 4;
 		let applies = await ProtectActivity.model
 			.find({protect_act_applicant_id: req.session.loginUser})
 			.populate({path: 'protect_act_request_article_id', populate: 'protect_request_writer_id'})
+			.sort('-_id')
 			.exec();
 		//봉사활동 신청만 있을 경우에도 표출되어야 하므로 return 시키지 않고 진행
 		// if (applies.length < 1) {
@@ -105,13 +107,15 @@ router.post('/getAppliesRecord', (req, res) => {
 			})
 			.populate('volunteer_target_shelter')
 			.populate('volunteer_accompany.member')
+			.sort('-_id')
+			.limit(volunteer_number)
 			.exec();
 		console.log('volunteerActivityList =>', volunteerActivityList);
 		res.json({
 			status: 200,
 			msg: {
-				adopt: applies.filter(v => v.protect_act_type == 'adopt'),
-				protect: applies.filter(v => v.protect_act_type == 'protect'),
+				adopt: applies.filter(v => v.protect_act_type == 'adopt')[0],
+				protect: applies.filter(v => v.protect_act_type == 'protect')[0],
 				volunteer: volunteerActivityList, //봉사활동 부분 추가해야함
 			},
 		});
