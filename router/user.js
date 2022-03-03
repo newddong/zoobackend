@@ -19,6 +19,7 @@ const {
 	ALERT_NOT_VALID_OBJECT_ID,
 	ALERT_NOt_VALID_TARGER_OBJECT_ID,
 	ALERT_NO_RESULT,
+	USER_NOT_VALID_TYPE,
 } = require('./constants');
 const {nicknameDuplicationCheck} = require('./utilfunction');
 const session = require('express-session');
@@ -598,6 +599,37 @@ router.post('/getFollowers', (req, res) => {
 		let follow = await Follow.model.find({follow_id: targetUser._id, follow_is_delete: false}).populate('follower_id').lean();
 
 		res.json({status: 200, msg: follow});
+	});
+});
+
+/**
+ * 반려동물의 상태를 변경
+ */
+router.post('/setPetStatus', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let pet = await User.model.findById(req.body.userobject_id);
+		console.log('pet=>', pet);
+		if (!pet) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+		if (pet.user_type != 'pet') {
+			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
+			return;
+		}
+		const statusList = ['protect', 'adopt', 'companion'];
+		const targetStatus = req.body.pet_status; //요청 상태
+		if (!statusList.some(v => v == targetStatus)) {
+			res.json({status: 400, msg: REQUEST_PARAMETER_NOT_VALID});
+			return;
+		}
+
+		pet.pet_status = targetStatus;
+		pet.user_interests = new Object();
+		pet.user_update_date = Date.now();
+
+		await pet.save();
+		res.json({status: 200, msg: pet});
 	});
 });
 

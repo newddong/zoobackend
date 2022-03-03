@@ -141,6 +141,8 @@ const UserObject = {
 	user_denied: {type: Boolean, default: false},
 	/** @type { Date} 가입일 */
 	user_register_date: {type: Date, default: Date.now},
+	/** @type { Date} 업데이트 날짜 */
+	user_update_date: {type: Date, default: Date.now},
 
 	/** 다른 스키마와의 관계 */
 	/** @type {Array.<String>} 내 반려동물들들 */
