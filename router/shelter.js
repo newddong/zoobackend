@@ -137,7 +137,7 @@ router.post('/getShelterProtectAnimalList', (req, res) => {
 			return;
 		}
 
-		let animalList = ShelterAnimal.model.find({protect_animal_belonged_shelter_id: req.session.loginUser});
+		let animalList = ShelterAnimal.model.find({protect_animal_belonged_shelter_id: req.session.loginUser}).where('protect_animal_status').ne('adopt');
 		animalList.limit(req.body.request_number);
 		animalList = await animalList.sort('-_id').exec();
 		if (animalList.length < 1) {
@@ -147,7 +147,16 @@ router.post('/getShelterProtectAnimalList', (req, res) => {
 		}
 
 		//res.status(200);
-		res.json({status: 200, msg: animalList});
+		// res.json({status: 200, msg: animalList});
+		res.json({
+			status: 200,
+			msg: {
+				hasRequest: animalList.filter(v => v.protect_animal_protect_request_id != ''),
+				noRequest: animalList.filter(v => {
+					if (v.protect_animal_protect_request_id == null || v.protect_animal_protect_request_id == '') return v;
+				}),
+			},
+		});
 	});
 });
 
