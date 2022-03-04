@@ -440,6 +440,7 @@ router.post('/getAdoptInfo', (req, res) => {
 				.populate('protect_act_applicant_id')
 				.populate('protect_act_request_article_id')
 				.populate('protect_act_protect_animal_id')
+				.populate('protect_act_request_shelter_id')
 				.exec();
 
 			if (ProtectActivityApplicant.protect_act_status == 'accept') {
