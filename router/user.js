@@ -87,6 +87,7 @@ router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 			user_nickname: req.body.user_nickname,
 			user_profile_uri: req.file?.location,
 			user_is_verified_phone_number: true,
+			user_interests: new Object(),
 		});
 
 		const newUser = await user.save();
@@ -137,6 +138,7 @@ router.post('/assignShelter', uploadS3.single('user_profile_uri'), (req, res) =>
 			user_password: req.body.user_password,
 			user_profile_uri: req.file?.location,
 			user_type: 'shelter',
+			user_interests: new Object(),
 		});
 		const newShelter = await shelter.save();
 		res.json({status: 200, msg: newShelter});
@@ -227,6 +229,7 @@ router.post('/updateUserInformation', uploadS3.single('user_profile_uri'), (req,
 		if (req.file) {
 			userInfo.user_profile_uri = req.file?.location;
 		}
+
 		userInfo = await userInfo.save();
 
 		//res.status(200);
@@ -246,8 +249,6 @@ router.post('/updateUserDetailInformation', (req, res) => {
 		// let user_interests = typeof req.body.user_interests == 'string' ? JSON.parse('[' + req.body.user_interests + ']') : req.body.user_interests;
 		let user_interests = typeof req.body.user_interests == 'string' ? JSON.parse(req.body.user_interests) : req.body.user_interests;
 
-		console.log('user_interests->', user_interests);
-
 		let user_address = typeof req.body.user_address == 'string' ? JSON.parse(req.body.user_address) : req.body.user_address;
 
 		if (req.body.user_birthday) {
@@ -264,7 +265,6 @@ router.post('/updateUserDetailInformation', (req, res) => {
 		}
 
 		userInfo = await userInfo.save();
-		//res.status(200);
 		res.json({status: 200, msg: userInfo});
 	});
 });
@@ -290,6 +290,7 @@ router.post('/updatePetDetailInformation', (req, res) => {
 		pet.pet_neutralization = req.body.pet_neutralization;
 		pet.pet_birthday = req.body.pet_birthday;
 		pet.pet_weight = req.body.pet_weight;
+		pet.user_interests = new Object();
 		pet = await pet.save();
 
 		res.json({status: 200, msg: pet});
@@ -326,8 +327,10 @@ router.post('/addUserToFamily', (req, res) => {
 		}
 
 		pet.pet_family.push(targetUser._id);
-		await pet.save();
+		pet.user_interests = new Object();
+		pet = await pet.save();
 		targetUser.user_my_pets.push(pet._id);
+		targetUser.user_interests = new Object();
 		targetUser = await targetUser.save();
 
 		//res.status(200);
@@ -508,6 +511,8 @@ router.post('/removeUserFromFamily', (req, res) => {
 			return !family.equals(targetUser._id);
 		});
 
+		targetUser.user_interests = new Object();
+		pet.user_interests = new Object();
 		targetUser = await targetUser.save();
 		pet = await pet.save();
 
@@ -541,6 +546,7 @@ router.post('/followUser', (req, res) => {
 			.lean();
 
 		targetUser.user_follower_count++;
+		targetUser.user_interests = new Object();
 		await targetUser.save();
 		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_follow_count: 1}});
 
@@ -566,6 +572,7 @@ router.post('/unFollowUser', (req, res) => {
 			.lean();
 
 		targetUser.user_follower_count--;
+		targetUser.user_interests = new Object();
 		await targetUser.save();
 		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_follow_count: -1}});
 
