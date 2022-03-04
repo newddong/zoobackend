@@ -393,6 +393,34 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /shelter/getAdoptInfo:
+    post:
+      tags:
+        - shelter
+      summary: 우리 보호소 출신 동물 - 입양처 보기 조회
+      description: 우리 보호소 출신 동물 - 입양처 보기 조회
+      operationId: getAdoptInfo
+      requestBody:
+        description: 우리 보호소 출신 동물 - 입양처 보기 조회
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - protect_animal_object_id
+              type: object
+              properties:
+                protect_animal_object_id:
+                  type: string
+                  description: 보호동물 ID
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$
