@@ -170,17 +170,22 @@ paths:
       requestBody:
         description: updateComment
         content:
-          application/x-www-form-urlencoded:
+          multipart/form-data:
             schema:
               type: object
               required:
                 - commentobject_id
-                - comment_contents
-                - comment_is_secure
               properties:
                 commentobject_id:
                   type: string
                   description: 수정할 댓글/대댓글 commentobject_id
+                comment_photo_remove:
+                  type: boolean
+                  description: true일때 이미지 삭제
+                comment_photo_uri:
+                  type: string
+                  format: binary
+                  description: 추가할 댓글 첨부 이미지 uri (추가할 경우 기존 이미지는 삭제 됨)
                 comment_contents:
                   type: string
                   description: 콘텐츠 내용
