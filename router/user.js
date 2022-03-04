@@ -110,6 +110,7 @@ router.post('/assignPet', uploadS3.single('user_profile_uri'), (req, res) => {
 			user_nickname: req.body.user_nickname,
 			user_profile_uri: req.file?.location,
 			user_type: 'pet',
+			user_interests: new Object(),
 		});
 		const newPet = await pet.save();
 		const petOwner = await User.model.findById(req.body.userobject_id).exec();
