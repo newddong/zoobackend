@@ -4,12 +4,13 @@ const User = require('../schema/user');
 const Feed = require('../schema/feed');
 const Hash = require('../schema/hash');
 const HashFeed = require('../schema/hashfeed');
+const FeedUserTag = require('../schema/feedusertag');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MEDIA_INFO, ALERT_NOT_VALID_OBJECT_ID} = require('./constants');
 
 //피드 글쓰기
-router.post('/createFeed',uploadS3.array('media_uri'), (req, res) => {
+router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let feed = await Feed.makeNewdoc({
 			feed_content: req.body.feed_content,
@@ -24,7 +25,7 @@ router.post('/createFeed',uploadS3.array('media_uri'), (req, res) => {
 		}
 
 		if (req.files && req.files.length > 0) {
-		let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
+			let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
 
 			feed.feed_medias = req.files.map((v, i) => {
 				let result = feedMedia[i];
@@ -32,29 +33,56 @@ router.post('/createFeed',uploadS3.array('media_uri'), (req, res) => {
 				return result;
 			});
 			feed.feed_thumbnail = feed.feed_medias[0].media_uri;
+
+			feed.feed_medias.forEach(v=>{
+				v.tags.forEach(v=>{
+					createUserTag(v.user,feed);
+				})
+			})
 		}
 
 		let newFeed = await feed.save();
 
-		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g,'').split(',') : req.body.hashtag_keyword;
+		
+
+
+
+		let hashTags =
+			typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g, '').split(',') : req.body.hashtag_keyword;
 		if (hashTags) {
 			hashTags.forEach(hashKeyword => {
 				createHash(hashKeyword, feed._id);
 			});
 		}
-		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
+		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_upload_count: 1}});
 		res.json({status: 200, msg: newFeed});
 	});
 });
 
 async function createHash(hashKeyword, documentId) {
-	let hash = await Hash.model.findOneAndUpdate({hashtag_keyword: hashKeyword}, {$set: {hashtag_keyword: hashKeyword},$inc:{hashtag_feed_count:1}}, {new:true,upsert: true}).exec();
+	let hash = await Hash.model
+		.findOneAndUpdate(
+			{hashtag_keyword: hashKeyword},
+			{$set: {hashtag_keyword: hashKeyword}, $inc: {hashtag_feed_count: 1}},
+			{new: true, upsert: true},
+		)
+		.exec();
 	let hashfeed = await HashFeed.makeNewdoc({
 		hashtag_id: hash._id,
 		hashtag_feed_id: documentId,
 		hashtag_protect_request_id: documentId,
 	});
 	hashfeed.save();
+}
+
+async function createUserTag(user,feed) {
+	let feedUserTag = await FeedUserTag.makeNewdoc({
+		type: 'FeedUserTagObject',
+		usertag_feed_id: feed._id,
+		usertag_protect_request_id: feed._id,
+		usertag_user_id: user._id,
+	});
+	feedUserTag.save();
 }
 
 //실종 게시물 쓰기
@@ -90,14 +118,15 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 
 		let newMissing = await missing.save();
 
-		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g,'').split(',') : req.body.hashtag_keyword;
+		let hashTags =
+			typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g, '').split(',') : req.body.hashtag_keyword;
 		if (hashTags) {
 			hashTags.forEach(hashKeyword => {
 				createHash(hashKeyword, missing._id);
 			});
 		}
 
-		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
+		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_upload_count: 1}});
 		res.json({status: 200, msg: newMissing});
 	});
 });
@@ -130,14 +159,15 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 
 		let newReport = await report.save();
 
-		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g,'').split(',') : req.body.hashtag_keyword;
+		let hashTags =
+			typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g, '').split(',') : req.body.hashtag_keyword;
 		if (hashTags) {
 			hashTags.forEach(hashKeyword => {
 				createHash(hashKeyword, report._id);
 			});
 		}
 
-		await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
+		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_upload_count: 1}});
 		res.json({status: 200, msg: newReport});
 	});
 });
@@ -184,6 +214,31 @@ router.post('/getFeedListByUserId', (req, res) => {
 		}
 	});
 });
+
+//특정 유저가 태그된 피드 목록을 불러온다.
+router.post('/getUserTaggedFeedList', (req, res)=>{
+	controller(req,res, async () => {
+		let user = await User.model.findById(req.body.userobject_id);
+		if (!user) {
+			//res.status(400);
+			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
+			return;
+		}
+
+		let taggedFeeds = await FeedUserTag.model.find({
+			usertag_user_id : user._id
+		}).populate('usertag_feed_id').sort(
+			'-id'
+		).exec();
+		if (taggedFeeds.length < 1) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+		res.json({status: 200,  msg: taggedFeeds});
+		return;
+	})
+})
+
 
 //실종/제보 요청을 가져온다.
 router.post('/getMissingReportList', (req, res) => {

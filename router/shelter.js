@@ -411,4 +411,46 @@ router.post('/deleteProtectRequest', (req, res) => {
 	});
 });
 
+//우리 보호소 출신 동물 - 입양처 보기 조회
+router.post('/getAdoptInfo', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		if (req.session.user_type != 'shelter') {
+			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
+			return;
+		}
+
+		let shelterAnimal = await ShelterAnimal.model.findById(req.body.protect_animal_object_id).exec();
+
+		console.log('shelterAnimal=>', shelterAnimal);
+
+		if (!shelterAnimal) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		let result = new Object();
+
+		for (let i = 0; i < shelterAnimal.protect_act_applicants.length; i++) {
+			let protect_act_applicants = new Object();
+			protect_act_applicants_id = shelterAnimal.protect_act_applicants[i];
+
+			//신청서 검색
+			let ProtectActivityApplicant = await ProtectActivity.model
+				.findById(protect_act_applicants_id)
+				.populate('protect_act_applicant_id')
+				.populate('protect_act_request_article_id')
+				.populate('protect_act_protect_animal_id')
+				.populate('protect_act_request_shelter_id')
+				.exec();
+
+			if (ProtectActivityApplicant.protect_act_status == 'accept') {
+				result = ProtectActivityApplicant;
+				break;
+			}
+		}
+
+		res.json({status: 200, msg: result});
+	});
+});
+
 module.exports = router;

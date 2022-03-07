@@ -146,7 +146,7 @@ router.post('/deleteComment', (req, res) => {
 });
 
 //댓글 수정
-router.post('/updateComment', (req, res) => {
+router.post('/updateComment', uploadS3.single('comment_photo_uri'), (req, res) => {
 	controller(req, res, async () => {
 		let comments = await Comment.model.findById(req.body.commentobject_id).exec();
 		let comment_writer_id = JSON.stringify(comments.comment_writer_id).replace(/\"/gi, '');
@@ -157,8 +157,23 @@ router.post('/updateComment', (req, res) => {
 			return;
 		}
 
-		comments.comment_contents = req.body.comment_contents;
-		comments.comment_is_secure = req.body.comment_is_secure;
+		//이미지만 삭제할 경우 속성 삭제
+		if (req.body.comment_photo_remove) {
+			comments.comment_photo_uri = undefined;
+		}
+
+		if (req.file) {
+			comments.comment_photo_uri = req.file?.location;
+		}
+
+		if (req.body.comment_contents) {
+			comments.comment_contents = req.body.comment_contents;
+		}
+
+		if (req.body.comment_is_secure != '') {
+			comments.comment_is_secure = req.body.comment_is_secure;
+		}
+
 		comments.comment_update_date = Date.now();
 		comments = await comments.save();
 
