@@ -6,7 +6,7 @@ const Hash = require('../schema/hash');
 const HashFeed = require('../schema/hashfeed');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
-const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MEDIA_INFO} = require('./constants');
+const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MEDIA_INFO, ALERT_NOT_VALID_OBJECT_ID} = require('./constants');
 
 //피드 글쓰기
 router.post('/createFeed',uploadS3.array('media_uri'), (req, res) => {
@@ -246,5 +246,45 @@ router.post('/getSuggestFeedList', (req, res) => {
 		res.json({status: 200, msg: result});
 	});
 });
+
+//피드 수정
+router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let targetFeed = await Feed.model.findById(req.body.feedobject_id);
+		if(!targetFeed){
+			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
+			return;
+		}
+		
+		await Feed.model.findOneAndUpdate({_id:req.body.feedobject_id},{$set:{
+			feed_content: req.body.feed_content,
+			feed_location: req.body.feed_location,
+			feed_type: 'feed',
+			feed_is_protect_diary: req.body.feed_is_protect_diary,
+		}})
+
+		if (req.files && req.files.length > 0) {
+		let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
+
+			feed.feed_medias = req.files.map((v, i) => {
+				let result = feedMedia[i];
+				result.media_uri = v.location;
+				return result;
+			});
+			feed.feed_thumbnail = feed.feed_medias[0].media_uri;
+		}
+
+
+		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g,'').split(',') : req.body.hashtag_keyword;
+		if (hashTags) {
+			hashTags.forEach(hashKeyword => {
+				createHash(hashKeyword, feed._id);
+			});
+		}
+		// await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
+		res.json({status: 200, msg: 'edit success'});
+	});
+})
+
 
 module.exports = router;
