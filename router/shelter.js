@@ -146,14 +146,12 @@ router.post('/getShelterProtectAnimalList', (req, res) => {
 			return;
 		}
 
-		//res.status(200);
-		// res.json({status: 200, msg: animalList});
 		res.json({
 			status: 200,
 			msg: {
-				hasRequest: animalList.filter(v => v.protect_animal_protect_request_id != ''),
+				hasRequest: animalList.filter(v => (v.protect_animal_protect_request_id ? v : null)),
 				noRequest: animalList.filter(v => {
-					if (v.protect_animal_protect_request_id == null || v.protect_animal_protect_request_id == '') return v;
+					if (v.protect_animal_protect_request_id == undefined || v.protect_animal_protect_request_id == '') return v;
 				}),
 			},
 		});
@@ -308,6 +306,14 @@ router.post('/setShelterProtectAnimalStatus', (req, res) => {
 		if (userType == 'user') {
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
 			return;
+		}
+
+		if (req.body.protect_animal_adoptor_id) {
+			shelterAnimal.protect_animal_adoptor_id = req.body.protect_animal_adoptor_id;
+		}
+
+		if (req.body.protect_animal_protector_id) {
+			shelterAnimal.protect_animal_protector_id = req.body.protect_animal_protector_id;
 		}
 
 		shelterAnimal.protect_animal_status = targetStatus;

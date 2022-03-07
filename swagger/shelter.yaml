@@ -282,7 +282,13 @@ paths:
                   description: 보호소의 보호중인 동물 ID
                 protect_animal_status:
                   type: string
-                  description: 변경할 보호소의 동물 상태 ('rescue'|'protect'|'adopt'|'discuss'|'rainbowbridge')
+                  description: 변경할 보호소의 동물 상태 ('rescue'|'protect'|'adopt'|'discuss'|'rainbowbridge'|'registered_protect'|'registered_adopt')
+                protect_animal_adoptor_id:
+                  type: string
+                  description: 입양자 (UserObjectID)
+                protect_animal_protector_id:
+                  type: string
+                  description: 임시보호자 (UserObjectID)
       responses:
         '200':
           $ref: '#/components/responses/200'
