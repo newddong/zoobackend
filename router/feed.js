@@ -309,34 +309,50 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 		if(!targetFeed){
 			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
-		}
+		};
 		
 		await Feed.model.findOneAndUpdate({_id:req.body.feedobject_id},{$set:{
 			feed_content: req.body.feed_content,
 			feed_location: req.body.feed_location,
 			feed_type: 'feed',
 			feed_is_protect_diary: req.body.feed_is_protect_diary,
-		}})
+		}});
 
 		if (req.files && req.files.length > 0) {
 		let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
 
-			feed.feed_medias = req.files.map((v, i) => {
+		targetFeed.feed_medias = req.files.map((v, i) => {
 				let result = feedMedia[i];
 				result.media_uri = v.location;
 				return result;
 			});
-			feed.feed_thumbnail = feed.feed_medias[0].media_uri;
 		}
 
-
-		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g,'').split(',') : req.body.hashtag_keyword;
-		if (hashTags) {
-			hashTags.forEach(hashKeyword => {
-				createHash(hashKeyword, feed._id);
+		if (req.files && req.files.length > 0) {
+		let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
+		// console.log(feedMedia);
+		// console.log(req.body)
+			targetFeed.feed_medias = req.files.map((v, i) => {
+				let result = feedMedia[i];
+				result.media_uri = v.location;
+				return result;
 			});
+			targetFeed.feed_thumbnail = targetFeed.feed_medias[0].media_uri;
+
+			targetFeed.feed_medias.forEach(v=>{
+				v.tags.forEach(v=>{
+					createUserTag(v.user,targetFeed);
+				})
+			})
 		}
-		// await User.model.findOneAndUpdate({_id:req.session.loginUser},{$inc:{user_upload_count:1}});
+
+		// console.log(req.body);
+		// let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g,'').split(',') : req.body.hashtag_keyword;
+		// if (hashTags) {
+		// 	hashTags.forEach(hashKeyword => {
+		// 		createHash(hashKeyword, targetFeed._id);
+		// 	});
+		// }
 		res.json({status: 200, msg: 'edit success'});
 	});
 })
