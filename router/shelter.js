@@ -310,6 +310,14 @@ router.post('/setShelterProtectAnimalStatus', (req, res) => {
 			return;
 		}
 
+		if (req.body.protect_animal_adoptor_id) {
+			shelterAnimal.protect_animal_adoptor_id = req.body.protect_animal_adoptor_id;
+		}
+
+		if (req.body.protect_animal_protector_id) {
+			shelterAnimal.protect_animal_protector_id = req.body.protect_animal_protector_id;
+		}
+
 		shelterAnimal.protect_animal_status = targetStatus;
 		await shelterAnimal.save();
 

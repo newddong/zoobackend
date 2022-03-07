@@ -149,6 +149,12 @@ paths:
                   type: string
                   format: binary
                   description: 반려동물 프로필 사진
+                protect_act_protect_animal_id:
+                  type: string
+                  description: 보호소의 보호동물 Object_ID (보호소로부터 입양, 임보되었을 경우에만 기입)
+                protect_animal_status:
+                  type: string
+                  description: 보호소 동물 상태 ('registered_adopt' || 'registered_protect') (보호소로부터 입양, 임보되었을 경우에만 기입)
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -941,6 +947,28 @@ paths:
                 pet_status:
                   type: string
                   description: 반려동물의 상태값 (protect|adopt|companion)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/getAnimalListNotRegisterWithCompanion:
+    post:
+      tags:
+        - user
+      summary: 입양 및 임보로 승인된 동물중 반려 동물로 등록되지 않은 동물 목록 (로그인한 계정에 준함)
+      description: 입양 및 임보로 승인된 동물중 반려 동물로 등록되지 않은 동물 목록 (로그인한 계정에 준함)
+      operationId: getAnimalListNotRegisterWithCompanion
+      requestBody:
+        description: 입양 및 임보로 승인된 동물중 반려 동물로 등록되지 않은 동물 목록 (로그인한 계정에 준함)
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
       responses:
         '200':
           $ref: '#/components/responses/200'

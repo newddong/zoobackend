@@ -225,7 +225,7 @@ router.post('/setProtectActivityStatus', (req, res) => {
 		// 	.exec();
 		// console.log('protectActivity_others_end ==>', protectActivity_others_end);
 
-		res.json({status: 200, msg: '완료'});
+		res.json({status: 200, msg: protectActivity});
 	});
 });
 

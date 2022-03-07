@@ -6,6 +6,8 @@ const PetType = require('../schema/pettype');
 const uploadS3 = require('../common/uploadS3');
 const Follow = require('../schema/follow');
 const Address = require('../schema/address');
+const ShelterProtect = require('../schema/shelterProtectAnimal');
+
 const {controller, controllerLoggedIn} = require('./controller');
 const {
 	ALREADY_LOGIN,
@@ -23,6 +25,7 @@ const {
 } = require('./constants');
 const {nicknameDuplicationCheck} = require('./utilfunction');
 const session = require('express-session');
+const mongoose = require('mongoose');
 
 //로그인
 router.post('/userLogin', (req, res) => {
@@ -89,8 +92,8 @@ router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 			user_is_verified_phone_number: true,
 			user_interests: new Object(),
 		});
-
 		const newUser = await user.save();
+
 		res.json({status: 200, msg: newUser});
 	});
 });
@@ -113,10 +116,18 @@ router.post('/assignPet', uploadS3.single('user_profile_uri'), (req, res) => {
 			user_type: 'pet',
 			user_interests: new Object(),
 		});
+
+		if (req.body.protect_animal_status) {
+			const shelterProtectAnimal = await ShelterProtect.model.findById(req.body.protect_act_protect_animal_id).exec();
+			shelterProtectAnimal.protect_animal_status = req.body.protect_animal_status;
+			const result = await shelterProtectAnimal.save();
+		}
+
 		const newPet = await pet.save();
 		const petOwner = await User.model.findById(req.body.userobject_id).exec();
 		petOwner.user_my_pets.push(newPet._id);
 		await petOwner.save();
+
 		res.json({status: 200, msg: newPet});
 	});
 });
@@ -638,6 +649,24 @@ router.post('/setPetStatus', (req, res) => {
 
 		await pet.save();
 		res.json({status: 200, msg: pet});
+	});
+});
+
+//입양 및 임보로 승인된 동물중 반려 동물로 등록되지 않은 동물 목록 (로그인한 계정에 준함)
+router.post('/getAnimalListNotRegisterWithCompanion', (req, res) => {
+	controller(req, res, async () => {
+		let shelterProtect = await ShelterProtect.model
+			.find({
+				$or: [
+					{$and: [{protect_animal_protector_id: mongoose.Types.ObjectId(req.session.loginUser)}, {protect_animal_status: 'protect'}]},
+					{$and: [{protect_animal_adoptor_id: mongoose.Types.ObjectId(req.session.loginUser)}, {protect_animal_status: 'adopt'}]},
+				],
+			})
+			.exec();
+
+		// let shelterProtect = await ShelterProtect.model.find({}).exec();
+
+		res.json({status: 200, msg: shelterProtect});
 	});
 });
 
