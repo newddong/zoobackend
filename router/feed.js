@@ -34,18 +34,14 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 			});
 			feed.feed_thumbnail = feed.feed_medias[0].media_uri;
 
-			feed.feed_medias.forEach(v=>{
-				v.tags.forEach(v=>{
-					createUserTag(v.user,feed);
-				})
-			})
+			feed.feed_medias.forEach(v => {
+				v.tags.forEach(v => {
+					createUserTag(v.user, feed);
+				});
+			});
 		}
 
 		let newFeed = await feed.save();
-
-		
-
-
 
 		let hashTags =
 			typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g, '').split(',') : req.body.hashtag_keyword;
@@ -75,7 +71,21 @@ async function createHash(hashKeyword, documentId) {
 	hashfeed.save();
 }
 
-async function createUserTag(user,feed) {
+async function deleteHash(hashKeyword, documentId) {
+	let hash = await Hash.model
+		.findOneAndUpdate(
+			{hashtag_keyword: hashKeyword},
+			{$set: {hashtag_keyword: hashKeyword}, $inc: {hashtag_feed_count: -1}},
+			{new: true},
+		)
+		.exec();
+	await HashFeed.model.deleteOne({
+		hashtag_id : hash._id,
+		hashtag_feed_id: documentId
+	})
+}
+
+async function createUserTag(user, feed) {
 	let feedUserTag = await FeedUserTag.makeNewdoc({
 		type: 'FeedUserTagObject',
 		usertag_feed_id: feed._id,
@@ -216,8 +226,8 @@ router.post('/getFeedListByUserId', (req, res) => {
 });
 
 //특정 유저가 태그된 피드 목록을 불러온다.
-router.post('/getUserTaggedFeedList', (req, res)=>{
-	controller(req,res, async () => {
+router.post('/getUserTaggedFeedList', (req, res) => {
+	controller(req, res, async () => {
 		let user = await User.model.findById(req.body.userobject_id);
 		if (!user) {
 			//res.status(400);
@@ -225,20 +235,21 @@ router.post('/getUserTaggedFeedList', (req, res)=>{
 			return;
 		}
 
-		let taggedFeeds = await FeedUserTag.model.find({
-			usertag_user_id : user._id
-		}).populate('usertag_feed_id').sort(
-			'-id'
-		).exec();
+		let taggedFeeds = await FeedUserTag.model
+			.find({
+				usertag_user_id: user._id,
+			})
+			.populate('usertag_feed_id')
+			.sort('-id')
+			.exec();
 		if (taggedFeeds.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
-		res.json({status: 200,  msg: taggedFeeds});
+		res.json({status: 200, msg: taggedFeeds});
 		return;
-	})
-})
-
+	});
+});
 
 //실종/제보 요청을 가져온다.
 router.post('/getMissingReportList', (req, res) => {
@@ -306,56 +317,57 @@ router.post('/getSuggestFeedList', (req, res) => {
 router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let targetFeed = await Feed.model.findById(req.body.feedobject_id);
-		if(!targetFeed){
+		if (!targetFeed) {
 			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
-		};
-		
-		await Feed.model.findOneAndUpdate({_id:req.body.feedobject_id},{$set:{
-			feed_content: req.body.feed_content,
-			feed_location: req.body.feed_location,
-			feed_type: 'feed',
-			feed_is_protect_diary: req.body.feed_is_protect_diary,
-		}});
+		}
+		targetFeed.feed_content = req.body.feed_content;
+		targetFeed.feed_location = req.body.feed_location;
+		targetFeed.feed_type = 'feed';
+		targetFeed.feed_is_protect_diary = req.body.feed_is_protect_diary;
+
+		let feedMedias = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
+		console.log(feedMedias);
 
 		if (req.files && req.files.length > 0) {
-		let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
-
-		targetFeed.feed_medias = req.files.map((v, i) => {
-				let result = feedMedia[i];
-				result.media_uri = v.location;
-				return result;
+			targetFeed.feed_medias = feedMedias.map(media => {
+				let uri = req.files.find(file => media.media_uri.includes(file.originalname));
+				if(uri){
+					return {...media,
+						media_uri: uri.location,
+					};
+				}else{
+					return media;
+				}
 			});
 		}
 
-		if (req.files && req.files.length > 0) {
-		let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
-		// console.log(feedMedia);
-		// console.log(req.body)
-			targetFeed.feed_medias = req.files.map((v, i) => {
-				let result = feedMedia[i];
-				result.media_uri = v.location;
-				return result;
-			});
-			targetFeed.feed_thumbnail = targetFeed.feed_medias[0].media_uri;
+		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g, '').split(',') : req.body.hashtag_keyword;
+		let previousHashes = await HashFeed.model.find({hashtag_feed_id:targetFeed._id}).populate('hashtag_id').exec();
 
-			targetFeed.feed_medias.forEach(v=>{
-				v.tags.forEach(v=>{
-					createUserTag(v.user,targetFeed);
-				})
-			})
-		}
+		hashTags.forEach(hash=>{
+			if(!previousHashes.find(prev => prev.hashtag_id.hashtag_keyword == hash)){
+				createHash(hash, targetFeed._id);
+			}
+		})
 
-		// console.log(req.body);
-		// let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g,'').split(',') : req.body.hashtag_keyword;
-		// if (hashTags) {
-		// 	hashTags.forEach(hashKeyword => {
-		// 		createHash(hashKeyword, targetFeed._id);
-		// 	});
-		// }
+		previousHashes.forEach( prev=>{
+			if(!hashTags.find(hash => prev.hashtag_id.hashtag_keyword == hash)){
+				deleteHash(prev.hashtag_id.hashtag_keyword, targetFeed._id);
+			}
+		})
+
+
+
+
+
+
+
+
+		targetFeed.feed_thumbnail = targetFeed.feed_medias[0].media_uri;
+		await targetFeed.save();
 		res.json({status: 200, msg: 'edit success'});
 	});
-})
-
+});
 
 module.exports = router;
