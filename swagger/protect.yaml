@@ -254,7 +254,7 @@ paths:
                   description: 변경할 보호요청 게시물의 오브젝트 아이디
                 protect_request_status:
                   type: string
-                  description: 변경할 보호요청 게시물의 상태('rescue'|'discuss'|'nearrainbow'|'complete')
+                  description: 변경할 보호요청 게시물의 상태('rescue'|'discuss'|'rainbowbridge'|'complete')
       responses:
         '200':
           $ref: '#/components/responses/200'
