@@ -416,10 +416,19 @@ router.post('/deleteProtectRequest', (req, res) => {
 		protectRequest.protect_request_is_delete = true;
 		await protectRequest.save();
 
-		//보호소의 동물보호 컬렉션의 게시물 참조 필드값도 삭제해야 함.
-		let shelterAnimal = await ShelterAnimal.model.findOne({protect_animal_protect_request_id: protectRequest._id});
-		shelterAnimal.protect_animal_protect_request_id = undefined;
-		await shelterAnimal.save();
+		//보호소의 동물보호 컬렉션의 게시물 참조 필드값도 삭제.
+		let shelterAnimal = await ShelterAnimal.model.findOne({protect_animal_protect_request_id: req.body.protect_request_object_id});
+
+		if (shelterAnimal != null && shelterAnimal.hasOwnProperty('protect_animal_protect_request_id')) {
+			shelterAnimal.protect_animal_protect_request_id = undefined;
+			await shelterAnimal.save();
+		}
+
+		//해당 동물보호 요청게시물에 신청서가 존재할 경우 신청서는 모두 done으로 변경
+		let protectActivity = await ProtectActivity.model
+			.find({protect_act_request_article_id: req.body.protect_request_object_id})
+			.updateMany({$set: {protect_act_status: 'done'}})
+			.exec();
 
 		res.json({status: 200, msg: protectRequest});
 	});
