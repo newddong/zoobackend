@@ -1,0 +1,97 @@
+paths:
+  /notice/createNotice:
+    post:
+      tags:
+        - notice
+      summary: 알림 설정 정보를 생성한다.
+      description: 알림 설정 정보를 생성한다.
+      operationId: createNotice
+      requestBody:
+        description: 알림 설정 정보를 생성한다.
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /notice/getNotice:
+    post:
+      tags:
+        - notice
+      summary: 알림 설정 정보를 불러온다.
+      description: 알림 설정 정보를 불러온다.
+      operationId: getNotice
+      requestBody:
+        description: 알림 설정 정보를 불러온다.
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+            properties:
+              notice_user_id:
+                type: string
+                description: 알림 정보를 불러올 사용자 ID (userObjectID)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /notice/updateNotice:
+    post:
+      tags:
+        - notice
+      summary: 알림 설정 정보를 수정한다.
+      description: 알림 설정 정보를 수정한다.
+      operationId: updateNotice
+      requestBody:
+        description: 알림 설정 정보를 수정한다.
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                notice_all:
+                  type: boolean
+                  description: 전체 알림
+                notice_newfollower:
+                  type: boolean
+                  description: 팔로워 새 게시글 알림
+                notice_favorite_protect_request:
+                  type: boolean
+                  description: 즐겨찾은 보호요청 상태 변경 알림
+                notice_pet_vaccination:
+                  type: boolean
+                  description: 반려동물의 접종 예정일 알림
+                notice_my_post:
+                  type: boolean
+                  description: 내 게시글 알림
+                notice_comment_on_my_post:
+                  type: boolean
+                  description: 내 게시글에 달린 댓글 알림
+                notice_tag_follower:
+                  type: boolean
+                  description: 나를 태그하거나 팔로우시 알림
+                notice_my_applicant:
+                  type: boolean
+                  description: 내 신청서 상태 변경시 알림
+                notice_alarm:
+                  type: boolean
+                  description: 공지 알림
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'

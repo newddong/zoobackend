@@ -1,0 +1,78 @@
+paths:
+  /settingpublic/createSettingPublic:
+    post:
+      tags:
+        - settingpublic
+      summary: 공개 설정 정보를 생성한다.
+      description: 공개 설정 정보를 생성한다.
+      operationId: createSettingPublic
+      requestBody:
+        description: 공개 설정 정보를 생성한다.
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /settingpublic/getSettingPublic:
+    post:
+      tags:
+        - settingpublic
+      summary: 공개 설정 정보를 불러온다. (로그인 계정)
+      description: 공개 설정 정보를 불러온다. (로그인 계정)
+      operationId: getSettingPublic
+      requestBody:
+        description: 공개 설정 정보를 불러온다. (로그인 계정)
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /settingpublic/updateSettingPublic:
+    post:
+      tags:
+        - settingpublic
+      summary: 공개 설정 정보를 업데이트 한다.
+      description: 공개 설정 정보를 업데이트 한다.
+      operationId: updateSettingPublic
+      requestBody:
+        description: 공개 설정 정보를 업데이트 한다.
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                setting_public_all:
+                  type: boolean
+                  description: 공개 설정 전체 공개
+                setting_public_my_feed:
+                  type: boolean
+                  description: 공개 설정 내 피드 비공개
+                setting_public_my_tag_post:
+                  type: boolean
+                  description: 공개 설정 내 태그 게시글 비공개
+                setting_public_community_post:
+                  type: boolean
+                  description: 공개 설정 내 커뮤니티 게시글 비공개
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'

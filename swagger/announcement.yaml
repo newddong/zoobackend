@@ -1,0 +1,61 @@
+paths:
+  /announcement/createAnnouncement:
+    post:
+      tags:
+        - announcement
+      summary: 공지사항 생성
+      description: 공지사항 생성한다.
+      operationId: createAnnouncement
+      requestBody:
+        description: 공지사항 생성
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - announcement_title
+                - announcement_contents
+              properties:
+                announcement_title:
+                  type: string
+                  description: 공지사항 제목
+                announcement_uri:
+                  type: array
+                  description: 공지사항 첨부 이미지 uri
+                  items:
+                    type: string
+                    format: binary
+                announcement_contents:
+                  type: string
+                  description: 공지사항 본문 내용
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /announcement/getAllAnnouncement:
+    post:
+      tags:
+        - announcement
+      summary: 공지사항 내용을 모두 불러온다.
+      description: 공지사항 내용을 모두 불러온다.
+      operationId: getAllAnnouncement
+      requestBody:
+        description: 공지사항 내용을 모두 불러온다.
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
