@@ -428,6 +428,88 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /feed/editFeed:
+    post:
+      tags:
+        - feed
+      summary: 피드 게시물 수정
+      description: 피드 게시물을 수정하고, 첨부파일(그림/동영상)을 변경한다.
+      operationId: editFeed
+      requestBody:
+        description: 피드 게시물 정보
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - feedobject_id
+                - feed_content
+                - feed_is_protect_diary
+              properties:
+                feedobject_id:
+                  type: string
+                  description: 피드 오브젝트의 몽고디비 아이디
+                feed_content:
+                  type: string
+                  description: 피드 텍스트 내용
+                feed_location:
+                  type: string
+                  description: 피드 작성 지역
+                feed_avatar_id:
+                  type: string
+                  description: 피드의 작성자로 지정하고 싶은 반려동물 ID
+                feed_is_protect_diary:
+                  type: boolean
+                  description: 임보일기여부
+                media_uri:
+                  type: array
+                  description: 피드 첨부파일 uri리스트
+                  items:
+                    type: string
+                    format: binary
+                feed_medias:
+                  type: array
+                  description: 첨부 객체정보 리스트(첨부파일이 있을때 입력해줘야 오류 발생하지않음)
+                  items:
+                    type: object
+                    properties:
+                      is_video:
+                        type: boolean
+                        description: 동영상 여부
+                      duration:
+                        type: integer
+                        description: 동영상 재생 시간
+                      # media_uri:
+                      #   type: string
+                      #   description: 미디어의 uri(서버에서 처리)
+                      tags:
+                        type: array
+                        description: 미디어의 태그 목록
+                        items:
+                          type: object
+                          properties:
+                            tag_user_id:
+                              type: string
+                              description: 태그된 유저의 아이디
+                            position_x:
+                              type: integer
+                              description: 태그의 사진 프레임에서 x좌표
+                            position_y:
+                              type: integer
+                              description: 태그의 사진 프레임에서 y좌표
+                hashtag_keyword:
+                  type: array
+                  description: 피드에 들어갈 해시태그 키워드의 목록
+                  items:
+                    type: string
+                    description: 해시태그 키워드
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
  #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 #$2:\n  type: $1\n  description: $3

@@ -332,16 +332,26 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 		if (req.files && req.files.length > 0) {
 			targetFeed.feed_medias = feedMedias.map(media => {
 				let uri = req.files.find(file => media.media_uri.includes(file.originalname));
+				console.log('media',media)
 				if(uri){
-					return {...media,
+					return ({...media,
+						tags: [...media.tags],
 						media_uri: uri.location,
-					};
+					});
 				}else{
-					return media;
+					return ({
+						...media,
+						tags: [...media.tags]
+					});
 				}
 			});
+		}else{
+			targetFeed.feed_medias = feedMedias;
 		}
+		
 
+
+		console.log(JSON.stringify(targetFeed.feed_medias));
 		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g, '').split(',') : req.body.hashtag_keyword;
 		let previousHashes = await HashFeed.model.find({hashtag_feed_id:targetFeed._id}).populate('hashtag_id').exec();
 
