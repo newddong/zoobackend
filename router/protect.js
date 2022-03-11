@@ -244,7 +244,7 @@ router.post('/setProtectRequestStatus', (req, res) => {
 
 		// const userType = viewer.user_type;
 		const userType = req.session.user_type;
-		const statusList = ['rescue', 'discuss', 'nearrainbow', 'complete'];
+		const statusList = ['rescue', 'discuss', 'rainbowbridge', 'complete'];
 		const targetStatus = req.body.protect_request_status; //요청
 
 		if (!statusList.some(v => v == targetStatus)) {

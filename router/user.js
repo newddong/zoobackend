@@ -643,6 +643,10 @@ router.post('/setPetStatus', (req, res) => {
 			return;
 		}
 
+		if (req.body.pet_adopter) {
+			pet.pet_adopter = req.body.pet_adopter;
+		}
+
 		pet.pet_status = targetStatus;
 		pet.user_interests = new Object();
 		pet.user_update_date = Date.now();

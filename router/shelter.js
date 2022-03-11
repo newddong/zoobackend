@@ -92,7 +92,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos_uri'
 //동물보호요청을 가져온다.(추천 알고리즘이 필요, 지금은 모든 요청 게시물이 다 뜸)
 router.post('/getProtectRequestList', (req, res) => {
 	controller(req, res, async () => {
-		let requestList = ProtectRequest.model.find();
+		let requestList = ProtectRequest.model.find().where('protect_request_is_delete').ne(true);
 
 		if (req.body.protect_animal_species) {
 			requestList.find({protect_animal_species: {$regex: req.body.protect_animal_species}});
@@ -328,7 +328,10 @@ router.post('/setShelterProtectAnimalStatus', (req, res) => {
  */
 router.post('/getProtectRequestListByProtectAnimalId', (req, res) => {
 	controller(req, res, async () => {
-		let protectRequestList = await ProtectRequest.model.find({'protect_animal_id._id': mongoose.Types.ObjectId(req.body.protect_animal_id)});
+		let protectRequestList = await ProtectRequest.model
+			.find({'protect_animal_id._id': mongoose.Types.ObjectId(req.body.protect_animal_id)})
+			.where('protect_request_is_delete')
+			.ne(true);
 
 		// console.log('req.body.protectRequestList=>', protectRequestList);
 
@@ -412,6 +415,20 @@ router.post('/deleteProtectRequest', (req, res) => {
 		protectRequest.protect_request_update_date = Date.now();
 		protectRequest.protect_request_is_delete = true;
 		await protectRequest.save();
+
+		//보호소의 동물보호 컬렉션의 게시물 참조 필드값도 삭제.
+		let shelterAnimal = await ShelterAnimal.model.findOne({protect_animal_protect_request_id: req.body.protect_request_object_id});
+
+		if (shelterAnimal != null && shelterAnimal.hasOwnProperty('protect_animal_protect_request_id')) {
+			shelterAnimal.protect_animal_protect_request_id = undefined;
+			await shelterAnimal.save();
+		}
+
+		//해당 동물보호 요청게시물에 신청서가 존재할 경우 신청서는 모두 done으로 변경
+		let protectActivity = await ProtectActivity.model
+			.find({protect_act_request_article_id: req.body.protect_request_object_id})
+			.updateMany({$set: {protect_act_status: 'done'}})
+			.exec();
 
 		res.json({status: 200, msg: protectRequest});
 	});

@@ -940,6 +940,7 @@ paths:
               type: object
               required:
                 - userobject_id
+                - pet_status
               properties:
                 userobject_id:
                   type: string
@@ -947,6 +948,9 @@ paths:
                 pet_status:
                   type: string
                   description: 반려동물의 상태값 (protect|adopt|companion)
+                pet_adopter:
+                  type: string
+                  description: 반려동물 입양자 UserObjectID
       responses:
         '200':
           $ref: '#/components/responses/200'

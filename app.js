@@ -82,6 +82,10 @@ const hash = require('./router/hash');
 const address = require('./router/address');
 const admin = require('./router/admin');
 const interests = require('./router/interests');
+const announcement = require('./router/announcement');
+const servicecenter = require('./router/servicecenter');
+const notice = require('./router/notice');
+const settingpublic = require('./router/settingpublic');
 const router = express.Router();
 
 const dbconnection = database();
@@ -97,6 +101,10 @@ app.use('/hash', hash);
 app.use('/address', address);
 app.use('/admin', admin);
 app.use('/interests', interests);
+app.use('/announcement', announcement);
+app.use('/servicecenter', servicecenter);
+app.use('/notice', notice);
+app.use('/settingpublic', settingpublic);
 app.use('/', router);
 
 //Launch Server
