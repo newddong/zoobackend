@@ -888,6 +888,9 @@ paths:
                 userobject_id:
                   type: string
                   description: 팔로우 목록을 열람할 유저의 아이디.
+                user_nickname:
+                  type: string
+                  description: 팔로우 목록 중 찾고자 하는 닉네임.
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -916,6 +919,9 @@ paths:
                 userobject_id:
                   type: string
                   description: 팔로워 목록을 열람할 유저의 아이디.
+                user_nickname:
+                  type: string
+                  description: 팔로워 목록 중 찾고자 하는 닉네임.
       responses:
         '200':
           $ref: '#/components/responses/200'
