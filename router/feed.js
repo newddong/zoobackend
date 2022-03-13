@@ -5,6 +5,7 @@ const Feed = require('../schema/feed');
 const Hash = require('../schema/hash');
 const HashFeed = require('../schema/hashfeed');
 const FeedUserTag = require('../schema/feedusertag');
+const FavoriteFeed = require('../schema/favoritefeed');
 const LikeFeed = require('../schema/likefeed');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
@@ -428,6 +429,49 @@ router.post('/getLikedFeedList', (req, res) => {
 		
 	});
 })
+
+//피드 즐겨찾기 설정/취소
+router.post('/favoriteFeed', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let targetFeed = await Feed.model.findById(req.body.feedobject_id);
+		if(!targetFeed){
+			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
+			return;
+		}
+
+		let is_favorite =  req.body.is_favorite;
+
+		let favoriteFeed = await FavoriteFeed.model
+		.findOneAndUpdate(
+			{favorite_feed_id: targetFeed._id, favorite_feed_user_id: req.body.userobject_id},
+			{$set: {favorite_feed_update_date: Date.now(), favorite_feed_is_delete: !is_favorite}},
+			{new: true, upsert: true},
+		).exec();
+		targetFeed = await Feed.model.findOneAndUpdate({_id:targetFeed._id},{$inc:{feed_favorite_count:is_favorite?1:-1}},{new: true}).exec();
+
+		res.json({status: 200, msg: {favoriteFeed: favoriteFeed, targetFeed: targetFeed}});
+	});
+});
+
+//유저의 피드 즐겨찾기 목록 조회
+router.post('/getFavoriteFeedListByUserId', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let user = await User.model.findById(req.body.userobject_id);
+		if (!user) {
+			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
+			return;
+		}
+
+		let feedlist = await FavoriteFeed.model.find({
+			favorite_feed_user_id : user._id,
+			favorite_feed_is_delete : false
+		}).populate({path:'favorite_feed_id',populate:'feed_writer_id'}).sort('-_id').lean();
+		feedlist = feedlist.map(v=>v.favorite_feed_id);
+
+		res.json({status:200, msg:feedlist});
+	});
+});
+
 
 
 module.exports = router;
