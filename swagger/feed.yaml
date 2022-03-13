@@ -293,6 +293,9 @@ paths:
                 # - user_type
               type: object
               properties:
+                login_userobject_id:
+                  type: string
+                  description: 로그인한 유저의 오브젝트 ID
                 userobject_id:
                   type: string
                   description: 피드 리스트를 불로오고자 하는 유저의 몽고디비 아이디
@@ -384,13 +387,15 @@ paths:
       description: 추천 피드 리스트를 불러옴(홈화면)
       operationId: getSuggestFeedList
       requestBody:
-        description: 
+        description: 피드 리스트 요청 파라메터
         content:
           application/x-www-form-urlencoded:
             schema:
-              required:
               type: object
               properties:
+                login_userobject_id:
+                  type: string
+                  description: 로그인한 유저의 오브젝트 ID
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -503,6 +508,40 @@ paths:
                   items:
                     type: string
                     description: 해시태그 키워드
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /feed/likeFeed:
+    post:
+      tags:
+        - feed
+      summary: 피드 좋아요/취소
+      description: 피드에 좋아요를 누르거나 취소할 경우 사용할 API
+      operationId: likeFeed
+      requestBody:
+        description: 피드 좋아요/취소 파라메터
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - feedobject_id
+                - userobject_id
+                - is_like
+              properties:
+                feedobject_id:
+                  type: string
+                  description: 좋아요를 설정/취소할 대상 피드 게시물의 아이디
+                userobject_id:
+                  type: string
+                  description: 좋아요를 설정/취소한 유저의 아이디(Mongodb ID)
+                is_like:
+                  type: boolean
+                  description: 좋아요를 설정할때는 true, 취소할때는 false를 보내 좋아요를 설정/취소
       responses:
         '200':
           $ref: '#/components/responses/200'

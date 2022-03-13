@@ -5,6 +5,7 @@ const Feed = require('../schema/feed');
 const Hash = require('../schema/hash');
 const HashFeed = require('../schema/hashfeed');
 const FeedUserTag = require('../schema/feedusertag');
+const LikeFeed = require('../schema/likefeed');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MEDIA_INFO, ALERT_NOT_VALID_OBJECT_ID} = require('./constants');
@@ -191,20 +192,32 @@ router.post('/getFeedListByUserId', (req, res) => {
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
+
+		let likedFeedList = [];
+		if(req.body.login_userobject_id){
+			likedFeedList = await LikeFeed.model.find({like_feed_user_id : req.body.login_userobject_id, like_feed_is_delete : false}).lean();
+		}
+
 		if (user.user_type == 'pet') {
 			let petFeeds = await Feed.model
 				.find({feed_avatar_id: req.body.userobject_id})
 				.populate('feed_avatar_id')
 				.limit(req.body.request_number)
 				.sort('-_id')
-				.exec();
+				.lean();
 			if (petFeeds.length < 1) {
 				//res.status(404);
 				res.json({status: 404, user_type: 'pet', msg: ALERT_NO_RESULT});
 				return;
 			}
 			//res.status(200);
-			res.json({status: 200, user_type: 'pet', msg: petFeeds});
+			res.json({status: 200, user_type: 'pet', msg: petFeeds.map((feed)=>{
+				if(likedFeedList.find((likedFeed)=>likedFeed.like_feed_id == feed._id)){
+					return {...feed, feed_is_like : true};
+				}else{
+					return {...feed, feed_is_like : false};
+				}
+			})});
 			return;
 		} else {
 			let userFeeds = await Feed.model
@@ -212,14 +225,20 @@ router.post('/getFeedListByUserId', (req, res) => {
 				.populate('feed_writer_id')
 				.limit(req.body.request_number)
 				.sort('-_id')
-				.exec();
+				.lean();
 			if (userFeeds < 1) {
 				//res.status(404);
 				res.json({status: 404, user_type: user.user_type, msg: ALERT_NO_RESULT});
 				return;
 			}
 			//res.status(200);
-			res.json({status: 200, user_type: user.user_type, msg: userFeeds});
+			res.json({status: 200, user_type: user.user_type, msg: userFeeds.map((feed)=>{
+				if(likedFeedList.find((likedFeed)=>likedFeed.like_feed_id == feed._id)){
+					return {...feed, feed_is_like : true};
+				}else{
+					return {...feed, feed_is_like : false};
+				}
+			})});
 			return;
 		}
 	});
@@ -303,13 +322,22 @@ router.post('/getSuggestFeedList', (req, res) => {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
-		// let recentFeeds = feed.slice(0,4);
-		// let randomFeeds = feed.slice(5);
-		// randomFeeds.sort(()=>Math.random()-0.5);//섞음
-		// let result = recentFeeds.concat(randomFeeds);
-		let result = feed;
-		//res.status(200);
-		res.json({status: 200, msg: result});
+		
+		let likedFeedList = [];
+		if(req.body.login_userobject_id){
+			likedFeedList = await LikeFeed.model.find({like_feed_user_id : req.body.login_userobject_id, like_feed_is_delete : false}).lean();
+		}
+		
+		feed = feed.map((feed)=>{
+			if(likedFeedList.find((likedFeed)=>likedFeed.like_feed_id == feed._id)){
+				return {...feed, feed_is_like : true};
+			}else{
+				return {...feed, feed_is_like : false};
+			}
+		})
+
+		
+		res.json({status: 200, msg: feed, liked: likedFeedList});
 	});
 });
 
@@ -347,8 +375,6 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 		}else{
 			targetFeed.feed_medias = feedMedias;
 		}
-		
-
 
 		console.log(JSON.stringify(targetFeed.feed_medias));
 		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g, '').split(',') : req.body.hashtag_keyword;
@@ -365,18 +391,43 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 				deleteHash(prev.hashtag_id.hashtag_keyword, targetFeed._id);
 			}
 		})
-
-
-
-
-
-
-
-
 		targetFeed.feed_thumbnail = targetFeed.feed_medias[0].media_uri;
 		await targetFeed.save();
 		res.json({status: 200, msg: 'edit success'});
 	});
 });
+
+
+//피드 좋아요/취소
+router.post('/likeFeed', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let targetFeed = await Feed.model.findById(req.body.feedobject_id);
+		if(!targetFeed){
+			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
+			return;
+		}
+
+		let is_like =  req.body.is_like;
+
+		let likeFeed = await LikeFeed.model
+		.findOneAndUpdate(
+			{like_feed_id: targetFeed._id, like_feed_user_id: req.body.userobject_id},
+			{$set: {like_feed_update_date: Date.now(), like_feed_is_delete: !is_like}},
+			{new: true, upsert: true},
+		).exec();
+		console.log('논리',typeof is_like)
+		targetFeed = await Feed.model.findOneAndUpdate({_id:targetFeed._id},{$inc:{feed_like_count:is_like?1:-1}},{new: true}).exec();
+
+		res.json({status: 200, msg: {likeFeed: likeFeed, targetFeed: targetFeed}});
+	});
+});
+
+//유저가 좋아요를 누른 피드 리스트
+router.post('/getLikedFeedList', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		
+	});
+})
+
 
 module.exports = router;

@@ -68,6 +68,9 @@ paths:
                 request_number:
                   type: integer
                   description: 댓글의 요청 숫자
+                login_userobject_id:
+                  type: string
+                  description: 로그인한 유저의 아이디
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -101,6 +104,9 @@ paths:
                 request_number:
                   type: integer
                   description: 댓글의 요청 숫자
+                login_userobject_id:
+                  type: string
+                  description: 로그인한 유저의 아이디
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -127,6 +133,9 @@ paths:
                 commentobject_id:
                   type: string
                   description: 대댓글
+                login_userobject_id:
+                  type: string
+                  description: 로그인한 유저의 아이디
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -199,7 +208,40 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
-
+  /comment/likeComment:
+    post:
+      tags:
+        - comment
+      summary: 댓글/대댓글 좋아요/좋아요 취소 설정
+      description: 댓글/대댓글 오브젝트에 좋아요/좋아요 취소를 설정한다.
+      operationId: 댓글/대댓글 좋아요/좋아요 취소 기능
+      requestBody:
+        description: likeComment
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - commentobject_id
+                - is_like
+                - userobject_id
+              properties:
+                commentobject_id:
+                  type: string
+                  description: 좋아요를 설정할 댓글/대댓글 commentobject_id
+                is_like:
+                  type: boolean
+                  description: 좋아요의 T/F
+                userobject_id:
+                  type: string
+                  description: 댓글에 좋아요를 설정/취소한 유저의 오브젝트 아이디
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
   #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 #$2:\n  type: $1\n  description: $3
