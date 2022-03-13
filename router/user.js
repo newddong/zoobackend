@@ -620,6 +620,8 @@ router.post('/unFollowUser', (req, res) => {
 router.post('/getFollows', (req, res) => {
 	controller(req, res, async () => {
 		let targetUser = await User.model.findById(req.body.userobject_id).lean();
+		let user_nickname = req.body.user_nickname;
+
 		if (!targetUser) {
 			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
 			return;
@@ -627,7 +629,10 @@ router.post('/getFollows', (req, res) => {
 
 		let follow = await Follow.model.find({follower_id: targetUser._id, follow_is_delete: false}).populate('follow_id').lean();
 
-		res.json({status: 200, msg: follow});
+		if (user_nickname) {
+			userList = follow.filter(v => v.follow_id.user_nickname.includes(user_nickname));
+			res.json({status: 200, msg: userList});
+		} else res.json({status: 200, msg: follow});
 	});
 });
 
@@ -635,6 +640,8 @@ router.post('/getFollows', (req, res) => {
 router.post('/getFollowers', (req, res) => {
 	controller(req, res, async () => {
 		let targetUser = await User.model.findById(req.body.userobject_id).lean();
+		let user_nickname = req.body.user_nickname;
+
 		if (!targetUser) {
 			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
 			return;
@@ -642,7 +649,10 @@ router.post('/getFollowers', (req, res) => {
 
 		let follow = await Follow.model.find({follow_id: targetUser._id, follow_is_delete: false}).populate('follower_id').lean();
 
-		res.json({status: 200, msg: follow});
+		if (user_nickname) {
+			userList = follow.filter(v => v.follower_id.user_nickname.includes(user_nickname));
+			res.json({status: 200, msg: userList});
+		} else res.json({status: 200, msg: follow});
 	});
 });
 
@@ -696,41 +706,6 @@ router.post('/getAnimalListNotRegisterWithCompanion', (req, res) => {
 		// let shelterProtect = await ShelterProtect.model.find({}).exec();
 
 		res.json({status: 200, msg: shelterProtect});
-	});
-});
-
-//대상 유저가 팔로우 한 유저 중 닉네임으로 검색한다.
-router.post('/getFollowsWithNickname', (req, res) => {
-	controller(req, res, async () => {
-		let user_nickname = req.body.user_nickname;
-		let targetUser = await User.model.findById(req.body.userobject_id).lean();
-
-		if (!targetUser) {
-			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
-			return;
-		}
-
-		let follow = await Follow.model.find({follower_id: targetUser._id, follow_is_delete: false}).populate('follow_id').lean();
-
-		userList = follow.filter(v => v.follow_id.user_nickname == user_nickname);
-		res.json({status: 200, msg: userList});
-	});
-});
-
-//대상 유저를 팔로워 한 유저 중 닉네임으로 검색한다.
-router.post('/getFollowersWithNickname', (req, res) => {
-	controller(req, res, async () => {
-		let user_nickname = req.body.user_nickname;
-		let targetUser = await User.model.findById(req.body.userobject_id).lean();
-
-		if (!targetUser) {
-			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
-			return;
-		}
-
-		let follow = await Follow.model.find({follow_id: targetUser._id, follow_is_delete: false}).populate('follower_id').lean();
-		userList = follow.filter(v => v.follower_id.user_nickname == user_nickname);
-		res.json({status: 200, msg: userList});
 	});
 });
 
