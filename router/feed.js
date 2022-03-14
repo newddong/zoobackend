@@ -70,7 +70,7 @@ async function createHash(hashKeyword, documentId) {
 		hashtag_feed_id: documentId,
 		hashtag_protect_request_id: documentId,
 	});
-	hashfeed.save();
+	await hashfeed.save();
 }
 
 async function deleteHash(hashKeyword, documentId) {
@@ -94,7 +94,19 @@ async function createUserTag(user, feed) {
 		usertag_protect_request_id: feed._id,
 		usertag_user_id: user._id,
 	});
-	feedUserTag.save();
+	await feedUserTag.save();
+	console.log('유저 태그 생성',feedUserTag);
+}
+
+async function deleteUserTag(user, feed) {
+	let feedUserTag = await FeedUserTag.model
+		.findOneAndUpdate(
+			{usertag_feed_id : feed._id, usertag_user_id : user._id},
+			{$set: {usertag_is_delete: true}},
+			{new: true}
+		)
+		.exec();
+	console.log('유저 태그 삭제',feedUserTag);
 }
 
 //실종 게시물 쓰기
@@ -259,14 +271,14 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 			.find({
 				usertag_user_id: user._id,
 			})
-			.populate('usertag_feed_id')
+			.populate({path:'usertag_feed_id',populate:'feed_writer_id'})
 			.sort('-id')
-			.exec();
+			.lean();
 		if (taggedFeeds.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
-		res.json({status: 200, msg: taggedFeeds});
+		res.json({status: 200, msg: taggedFeeds.map(v=>v.usertag_feed_id)});
 		return;
 	});
 });
@@ -357,6 +369,22 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 		targetFeed.feed_update_date = Date.now();
 
 		let feedMedias = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
+		let receivedTags = feedMedias.map(media=>media.tags).flat();
+		let tagsInDB = targetFeed.feed_medias.map(media=>media.tags).flat();
+		console.log('수신 리스트', receivedTags);
+		console.log('디비 리스트', tagsInDB);
+		receivedTags.forEach(tags=>{
+			console.log('생성결과', !tagsInDB.find(tagsInDB=>tagsInDB.user._id == tags.user._id))
+			if(!tagsInDB.find(tagsInDB=>tagsInDB.user._id == tags.user._id)){
+				createUserTag(tags.user, targetFeed)
+			}
+		})
+		tagsInDB.forEach(tagsInDB=>{
+			console.log('삭제결과', !receivedTags.find(tag=> tag.user._id == tagsInDB.user._id))
+			if(!receivedTags.find(tag=> tag.user._id == tagsInDB.user._id)){
+				deleteUserTag(tagsInDB.user, targetFeed)
+			}
+		})
 
 		if (req.files && req.files.length > 0) {
 			targetFeed.feed_medias = feedMedias.map(media => {
@@ -377,7 +405,8 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 			targetFeed.feed_medias = feedMedias;
 		}
 
-		console.log(JSON.stringify(targetFeed.feed_medias));
+		
+
 		let hashTags = typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g, '').split(',') : req.body.hashtag_keyword;
 		let previousHashes = await HashFeed.model.find({hashtag_feed_id:targetFeed._id}).populate('hashtag_id').exec();
 
