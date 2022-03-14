@@ -20,7 +20,7 @@ router.post('/createSettingPublic', (req, res) => {
 //공개 설정 정보 불러오기
 router.post('/getSettingPublic', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		let settingPublic = await SettingPublic.model.find({notice_user_id: mongoose.Types.ObjectId(req.session.loginUser)});
+		let settingPublic = await SettingPublic.model.find({setting_public_user_id: mongoose.Types.ObjectId(req.session.loginUser)});
 		if (!settingPublic) {
 			res.json({status: 400, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
@@ -32,7 +32,7 @@ router.post('/getSettingPublic', (req, res) => {
 //공개 설정 상태 업데이트
 router.post('/updateSettingPublic', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		let settingPublic = await SettingPublic.model.findOne({notice_user_id: mongoose.Types.ObjectId(req.session.loginUser)}).exec();
+		let settingPublic = await SettingPublic.model.findOne({setting_public_user_id: mongoose.Types.ObjectId(req.session.loginUser)}).exec();
 		if (!settingPublic) {
 			res.json({status: 400, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
