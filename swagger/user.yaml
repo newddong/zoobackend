@@ -1070,13 +1070,13 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-  /user/deleteMemoBoxWithOpponentID:
+  /user/deleteMemoBoxWithUserObjectID:
     post:
       tags:
         - user
-      summary: 쪽지 삭제 (상대방 사용자 대화 내용 모두 삭제)
-      description: 쪽지 삭제 (상대방 사용자 대화 내용 모두 삭제)
-      operationId: deleteMemoBoxWithOpponentID
+      summary: 쪽지 삭제 (userObjectID로 삭제 - 상대방 사용자 대화 내용 모두 삭제)
+      description: 쪽지 삭제 (userObjectID로 삭제 - 상대방 사용자 대화 내용 모두 삭제)
+      operationId: deleteMemoBoxWithUserObjectID
       requestBody:
         description: 요청 정보
         content:
@@ -1084,9 +1084,9 @@ paths:
             schema:
               type: object
               required:
-                - user_object_id_to_delete
+                - user_object_id
               properties:
-                user_object_id_to_delete:
+                user_object_id:
                   type: array
                   description: 삭제할 user_object _id
                   items:

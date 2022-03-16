@@ -725,11 +725,11 @@ router.post('/createMemoBox', (req, res) => {
 	});
 });
 
-//쪽지 삭제 (상대방 사용자 대화 내용 모두 삭제)
-router.post('/deleteMemoBoxWithOpponentID', (req, res) => {
+//쪽지 삭제 (userObjectID로 삭제 - 상대방 사용자 대화 내용 모두 삭제)
+router.post('/deleteMemoBoxWithUserObjectID', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		//배열로 받은 삭제할 유저들의 쪽지를 split 시킴
-		objectArray = req.body.user_object_id_to_delete.split(',');
+		objectArray = req.body.user_object_id.split(',');
 		made_Array_objectid = new Array();
 
 		//find 검색의 in 조건절로 넣어주기 위해 mongoose.Types.ObjectId 데이터 형의 Array를 만들어 준다.
@@ -753,8 +753,6 @@ router.post('/deleteMemoBoxWithOpponentID', (req, res) => {
 			.populate({path: 'memobox_receive_id', select: 'user_nickname user_profile_uri'})
 			.sort('-_id')
 			.exec();
-
-		// console.log('resultMemoBox--->', resultMemoBox);
 
 		tempObject = resultMemoBox;
 
@@ -816,7 +814,7 @@ router.post('/deleteMemoBoxWithMemoBoxObjectID', (req, res) => {
 	});
 });
 
-//쪽지를 보내고 받은 모든 대상으로 1개씩만 가져오기
+//쪽지를 보내고 받은 모든 대상으로 1개씩만 가져오기 order by:DESC
 router.post('/getMemoBoxAllList', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let memoBox = await MemoBox.model
@@ -836,8 +834,6 @@ router.post('/getMemoBoxAllList', (req, res) => {
 			.sort('-_id')
 			.lean();
 
-		console.log('memoBox--->', memoBox);
-
 		//쪽지의 상대방이 누구인지 송수신 속성값에 있는 것을 opponent 속성값 하나에 넣는다. (group으로 묶기 위함)
 		for (let i = 0; i < memoBox.length; i++) {
 			if (JSON.stringify(memoBox[i].memobox_send_id).replace(/[\"]/gi, '') == req.session.loginUser) {
@@ -846,7 +842,6 @@ router.post('/getMemoBoxAllList', (req, res) => {
 				memoBox[i].opponent = JSON.stringify(memoBox[i].memobox_send_id).replace(/[\"]/gi, '');
 			}
 		}
-
 		result = memoBox;
 		checkComplete = Array();
 		// 신규의 opponent만 배열에 넣고 나머지는 모두 버려서 사용자별로 1개씩만 앱에서 표출 되도록 함.
@@ -881,7 +876,7 @@ router.post('/getMemoBoxAllList', (req, res) => {
 	});
 });
 
-//특정 대상과의 쪽지 내용 불러오기 order by:ASC
+//특정 사용자와의 쪽지 내용 불러오기 order by:ASC
 router.post('/getMemoBoxWithReceiveID', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let memoBox = await MemoBox.model
