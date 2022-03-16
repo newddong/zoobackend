@@ -6,6 +6,7 @@ const PetType = require('../schema/pettype');
 const uploadS3 = require('../common/uploadS3');
 const Follow = require('../schema/follow');
 const Address = require('../schema/address');
+const MemoBox = require('../schema/memobox');
 const ShelterProtect = require('../schema/shelterProtectAnimal');
 
 const {controller, controllerLoggedIn} = require('./controller');
@@ -706,6 +707,239 @@ router.post('/getAnimalListNotRegisterWithCompanion', (req, res) => {
 		// let shelterProtect = await ShelterProtect.model.find({}).exec();
 
 		res.json({status: 200, msg: shelterProtect});
+	});
+});
+
+//쪽지 보내기
+router.post('/createMemoBox', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let memoBox = await MemoBox.makeNewdoc({
+			memobox_send_id: req.session.loginUser,
+			memobox_receive_id: req.body.memobox_receive_id,
+			memobox_contents: req.body.memobox_contents,
+			memobox_date: Date.now(),
+		});
+
+		let resultMemoBox = await memoBox.save();
+		res.json({status: 200, msg: resultMemoBox});
+	});
+});
+
+//쪽지 삭제 (상대방 사용자 대화 내용 모두 삭제)
+router.post('/deleteMemoBoxWithOpponentID', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		//배열로 받은 삭제할 유저들의 쪽지를 split 시킴
+		objectArray = req.body.user_object_id_to_delete.split(',');
+		made_Array_objectid = new Array();
+
+		//find 검색의 in 조건절로 넣어주기 위해 mongoose.Types.ObjectId 데이터 형의 Array를 만들어 준다.
+		for (let i = 0; i < objectArray.length; i++) {
+			made_Array_objectid.push(mongoose.Types.ObjectId(objectArray[i]));
+		}
+
+		//송수신중 로그인한 계정이 속해있고 삭제 대상의 유저 object에 속할 경우 업데이트 진행
+		let resultMemoBox = await MemoBox.model
+			.find({
+				$or: [
+					{
+						$and: [{memobox_send_id: {$in: made_Array_objectid}}, {memobox_receive_id: mongoose.Types.ObjectId(req.session.loginUser)}],
+					},
+					{
+						$and: [{memobox_send_id: mongoose.Types.ObjectId(req.session.loginUser)}, {memobox_receive_id: {$in: made_Array_objectid}}],
+					},
+				],
+			})
+			.populate({path: 'memobox_send_id', select: 'user_nickname user_profile_uri'})
+			.populate({path: 'memobox_receive_id', select: 'user_nickname user_profile_uri'})
+			.sort('-_id')
+			.exec();
+
+		// console.log('resultMemoBox--->', resultMemoBox);
+
+		tempObject = resultMemoBox;
+
+		//삭제할 정보 구축
+		let addDelete = Object();
+		let memobox_delete_info = Array();
+		addDelete.deleted_user = req.session.loginUser;
+		addDelete.deleted_date = Date.now();
+		memobox_delete_info.push(addDelete);
+
+		//속성에 대입 및 업데이트
+		for (let j = 0; j < tempObject.length; j++) {
+			tempObject[j].memobox_delete_info = memobox_delete_info;
+			tempObject[j].save();
+		}
+
+		res.json({status: 200, msg: tempObject});
+	});
+});
+
+//쪽지 삭제 (memoboxObjectID로 삭제)
+router.post('/deleteMemoBoxWithMemoBoxObjectID', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		//배열로 받은 memoboxObjectID를 split 시킴
+		objectArray = req.body.memobox_object_id.split(',');
+		made_Array_objectid = new Array();
+
+		//find 검색의 in 조건절로 넣어주기 위해 mongoose.Types.ObjectId 데이터 형의 Array를 만들어 준다.
+		for (let i = 0; i < objectArray.length; i++) {
+			made_Array_objectid.push(mongoose.Types.ObjectId(objectArray[i]));
+		}
+
+		//송수신중 로그인한 계정이 속해있고 삭제 대상의 유저 object에 속할 경우 업데이트 진행
+		let resultMemoBox = await MemoBox.model
+			.find()
+			.where('_id')
+			.in(made_Array_objectid)
+			.populate({path: 'memobox_send_id', select: 'user_nickname user_profile_uri'})
+			.populate({path: 'memobox_receive_id', select: 'user_nickname user_profile_uri'})
+			.sort('-_id')
+			.exec();
+
+		tempObject = resultMemoBox;
+
+		//삭제할 정보 구축
+		let addDelete = Object();
+		let memobox_delete_info = Array();
+		addDelete.deleted_user = req.session.loginUser;
+		addDelete.deleted_date = Date.now();
+		memobox_delete_info.push(addDelete);
+
+		//속성에 대입 및 업데이트
+		for (let j = 0; j < tempObject.length; j++) {
+			tempObject[j].memobox_delete_info = memobox_delete_info;
+			tempObject[j].save();
+		}
+
+		res.json({status: 200, msg: tempObject});
+	});
+});
+
+//쪽지를 보내고 받은 모든 대상으로 1개씩만 가져오기
+router.post('/getMemoBoxAllList', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let memoBox = await MemoBox.model
+			.find({
+				$and: [
+					{
+						$or: [
+							{memobox_send_id: mongoose.Types.ObjectId(req.session.loginUser)},
+							{memobox_receive_id: mongoose.Types.ObjectId(req.session.loginUser)},
+						],
+					},
+					{
+						'memobox_delete_info.deleted_user': {$ne: mongoose.Types.ObjectId(req.session.loginUser)},
+					},
+				],
+			})
+			.sort('-_id')
+			.lean();
+
+		console.log('memoBox--->', memoBox);
+
+		//쪽지의 상대방이 누구인지 송수신 속성값에 있는 것을 opponent 속성값 하나에 넣는다. (group으로 묶기 위함)
+		for (let i = 0; i < memoBox.length; i++) {
+			if (JSON.stringify(memoBox[i].memobox_send_id).replace(/[\"]/gi, '') == req.session.loginUser) {
+				memoBox[i].opponent = JSON.stringify(memoBox[i].memobox_receive_id).replace(/[\"]/gi, '');
+			} else {
+				memoBox[i].opponent = JSON.stringify(memoBox[i].memobox_send_id).replace(/[\"]/gi, '');
+			}
+		}
+
+		result = memoBox;
+		checkComplete = Array();
+		// 신규의 opponent만 배열에 넣고 나머지는 모두 버려서 사용자별로 1개씩만 앱에서 표출 되도록 함.
+		for (let i = 0; i < result.length; i++) {
+			if (i == 0) checkComplete.push(result[0]);
+			else {
+				for (let j = 0; j < checkComplete.length; j++) {
+					if (checkComplete[j].opponent == result[i].opponent) {
+						break;
+					} else if (j == checkComplete.length - 1) {
+						checkComplete.push(result[i]);
+					}
+				}
+			}
+		}
+
+		//populate 때문에 아래와 같이 로직이 구현되었는데 모델을 안쓰고 checkComplete에서 바로 poplulate를 쓰는 방법이 있는지 추후 확인 필요.
+		resultArray = Array();
+		for (let i = 0; i < checkComplete.length; i++) {
+			resultArray.push(checkComplete[i]._id);
+		}
+
+		let resutlList = await MemoBox.model
+			.find()
+			.where('_id')
+			.in(resultArray)
+			.populate({path: 'memobox_send_id', select: 'user_nickname user_profile_uri'})
+			.populate({path: 'memobox_receive_id', select: 'user_nickname user_profile_uri'})
+			.sort('-_id');
+
+		res.json({status: 200, msg: resutlList});
+	});
+});
+
+//특정 대상과의 쪽지 내용 불러오기 order by:ASC
+router.post('/getMemoBoxWithReceiveID', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let memoBox = await MemoBox.model
+			.find({
+				$and: [
+					{
+						$or: [
+							{
+								$and: [
+									{memobox_send_id: mongoose.Types.ObjectId(req.session.loginUser)},
+									{memobox_receive_id: mongoose.Types.ObjectId(req.body.user_object_id)},
+								],
+							},
+							{
+								$and: [
+									{memobox_send_id: mongoose.Types.ObjectId(req.body.user_object_id)},
+									{memobox_receive_id: mongoose.Types.ObjectId(req.session.loginUser)},
+								],
+							},
+						],
+					},
+					{
+						'memobox_delete_info.deleted_user': {$ne: mongoose.Types.ObjectId(req.session.loginUser)},
+					},
+				],
+			})
+			.populate({path: 'memobox_send_id', select: 'user_nickname user_profile_uri'})
+			.populate({path: 'memobox_receive_id', select: 'user_nickname user_profile_uri'})
+			.sort('_id')
+			.exec();
+		res.json({status: 200, msg: memoBox});
+	});
+});
+
+//쪽지 신고하기 (memoboxObjectID로 신고)
+router.post('/setMemoBoxWithReport', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		//배열로 받은 memoboxObjectID를 split 시킴
+		objectArray = req.body.memobox_object_id.split(',');
+		made_Array_objectid = new Array();
+
+		//find 검색의 in 조건절로 넣어주기 위해 mongoose.Types.ObjectId 데이터 형의 Array를 만들어 준다.
+		for (let i = 0; i < objectArray.length; i++) {
+			made_Array_objectid.push(mongoose.Types.ObjectId(objectArray[i]));
+		}
+
+		//송수신중 로그인한 계정이 속해있고 삭제 대상의 유저 object에 속할 경우 업데이트 진행
+		let resultMemoBox = await MemoBox.model
+			.find()
+			.where('_id')
+			.in(made_Array_objectid)
+			.populate({path: 'memobox_send_id', select: 'user_nickname user_profile_uri'})
+			.populate({path: 'memobox_receive_id', select: 'user_nickname user_profile_uri'})
+			.updateMany({$set: {memobox_report_info: {report_user: req.session.loginUser, report_date: Date.now()}}})
+			.sort('-_id')
+			.exec();
+
+		res.json({status: 200, msg: resultMemoBox});
 	});
 });
 
