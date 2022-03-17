@@ -858,21 +858,13 @@ router.post('/getMemoBoxAllList', (req, res) => {
 			}
 		}
 
-		//populate 때문에 아래와 같이 로직이 구현되었는데 모델을 안쓰고 checkComplete에서 바로 poplulate를 쓰는 방법이 있는지 추후 확인 필요.
-		resultArray = Array();
 		for (let i = 0; i < checkComplete.length; i++) {
-			resultArray.push(checkComplete[i]._id);
+			userinfo = await User.model.findById(checkComplete[i].opponent).select('user_nickname user_profile_uri');
+			checkComplete[i].opponent_user_nickname = userinfo.user_nickname;
+			checkComplete[i].opponent_user_profile_uri = userinfo.user_profile_uri;
 		}
 
-		let resutlList = await MemoBox.model
-			.find()
-			.where('_id')
-			.in(resultArray)
-			.populate({path: 'memobox_send_id', select: 'user_nickname user_profile_uri'})
-			.populate({path: 'memobox_receive_id', select: 'user_nickname user_profile_uri'})
-			.sort('-_id');
-
-		res.json({status: 200, msg: resutlList});
+		res.json({status: 200, msg: checkComplete});
 	});
 });
 
