@@ -38,15 +38,15 @@ router.post('/updateNotice', (req, res) => {
 			return;
 		}
 
-		if (req.body.notice_all) notice.notice_all = req.body.notice_all;
-		if (req.body.notice_newfollowe) notice.notice_newfollower = req.body.notice_newfollower;
-		if (req.body.notice_favorite_protect_request) notice.notice_favorite_protect_request = req.body.notice_favorite_protect_request;
-		if (req.body.notice_pet_vaccination) notice.notice_pet_vaccination = req.body.notice_pet_vaccination;
-		if (req.body.notice_my_post) notice.notice_my_post = req.body.notice_my_post;
-		if (req.body.notice_comment_on_my_post) notice.notice_comment_on_my_post = req.body.notice_comment_on_my_post;
-		if (req.body.notice_tag_follower) notice.notice_tag_follower = req.body.notice_tag_follower;
-		if (req.body.notice_my_applicant) notice.notice_my_applicant = req.body.notice_my_applicant;
-		if (req.body.notice_alarm) notice.notice_alarm = req.body.notice_alarm;
+		notice.notice_all = req.body.notice_all;
+		notice.notice_newfollower = req.body.notice_newfollower;
+		notice.notice_favorite_protect_request = req.body.notice_favorite_protect_request;
+		notice.notice_pet_vaccination = req.body.notice_pet_vaccination;
+		notice.notice_my_post = req.body.notice_my_post;
+		notice.notice_comment_on_my_post = req.body.notice_comment_on_my_post;
+		notice.notice_tag_follower = req.body.notice_tag_follower;
+		notice.notice_my_applicant = req.body.notice_my_applicant;
+		notice.notice_alarm = req.body.notice_alarm;
 
 		notice.notice_update_date = Date.now();
 		await notice.save();

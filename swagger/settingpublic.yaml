@@ -55,6 +55,11 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
+              required:
+                - setting_public_all
+                - setting_public_my_feed
+                - setting_public_my_tag_post
+                - setting_public_community_post
               type: object
               properties:
                 setting_public_all:

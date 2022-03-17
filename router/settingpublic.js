@@ -38,11 +38,10 @@ router.post('/updateSettingPublic', (req, res) => {
 			return;
 		}
 
-		if (req.body.setting_public_all) settingPublic.setting_public_all = req.body.setting_public_all;
-		if (req.body.setting_public_my_feed) settingPublic.setting_public_my_feed = req.body.setting_public_my_feed;
-		if (req.body.setting_public_my_tag_post) settingPublic.setting_public_my_tag_post = req.body.setting_public_my_tag_post;
-		if (req.body.setting_public_community_post) settingPublic.setting_public_community_post = req.body.setting_public_community_post;
-
+		settingPublic.setting_public_all = req.body.setting_public_all;
+		settingPublic.setting_public_my_feed = req.body.setting_public_my_feed;
+		settingPublic.setting_public_my_tag_post = req.body.setting_public_my_tag_post;
+		settingPublic.setting_public_community_post = req.body.setting_public_community_post;
 		settingPublic.setting_public_update_date = Date.now();
 		settingPublic.save();
 

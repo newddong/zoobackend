@@ -59,6 +59,16 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
+              required:
+                - notice_all
+                - notice_newfollower
+                - notice_favorite_protect_request
+                - notice_pet_vaccination
+                - notice_my_post
+                - notice_comment_on_my_post
+                - notice_tag_follower
+                - notice_my_applicant
+                - notice_alarm
               type: object
               properties:
                 notice_all:
