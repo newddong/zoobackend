@@ -1,0 +1,71 @@
+paths:
+  /helpbycategory/createHelpByCategory:
+    post:
+      tags:
+        - helpbycategory
+      summary: 카테고리 도움말 생성
+      description: 카테고리 도움말 생성
+      operationId: createHelpByCategory
+      requestBody:
+        description: 카테고리 도움말 생성
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - help_by_category_common_code_id
+                - help_by_category_title
+                - help_by_category_contents
+              type: object
+              properties:
+                help_by_category_common_code_id:
+                  type: string
+                  description: 공통 코드 ID
+                help_by_category_title:
+                  type: string
+                  description: 카테고리별 도움말 제목
+                help_by_category_contents:
+                  type: string
+                  description: 카테고리별 도움말 내용
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /helpbycategory/getHelpByCategoryDynamicQuery:
+    post:
+      tags:
+        - helpbycategory
+      summary: 카테고리 도움말 불러오기
+      description: 카테고리 도움말 불러오기
+      operationId: getHelpByCategoryDynamicQuery
+      requestBody:
+        description: 카테고리 도움말 불러오기
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - help_by_category_common_code_id
+              type: object
+              properties:
+                help_by_category_common_code_id:
+                  type: string
+                  description: 공통 코드 Object_ID (topic 카테고리)
+                help_by_category_title:
+                  type: string
+                  description: 카테고리별 도움말 제목
+                help_by_category_contents:
+                  type: string
+                  description: 카테고리별 도움말 내용
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

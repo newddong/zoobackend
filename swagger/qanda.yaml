@@ -1,0 +1,173 @@
+paths:
+  /qanda/createQandA:
+    post:
+      tags:
+        - qanda
+      summary: 문의하기 생성
+      description: 문의하기 생성
+      operationId: createQandA
+      requestBody:
+        description: 문의하기 생성
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - qanda_common_code_id
+                - qanda_question_title
+                - qanda_question_contents
+              type: object
+              properties:
+                qanda_common_code_id:
+                  type: string
+                  description: 공통 코드 Object_ID (topic 카테고리)
+                qanda_question_title:
+                  type: string
+                  description: 문의 제목
+                qanda_question_contents:
+                  type: string
+                  description: 문의 내용
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /qanda/getQandInfo:
+    post:
+      tags:
+        - qanda
+      summary: 문의하기 불러오기
+      description: 문의하기 불러오기
+      operationId: getQandInfo
+      requestBody:
+        description: 문의하기 불러오기
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                qanda_object_id:
+                  type: string
+                  description: Q&A Object_ID
+                qanda_user_id:
+                  type: string
+                  description: Q&A 사용자 계정 Object_ID
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /qanda/updateQandAWithUser:
+    post:
+      tags:
+        - qanda
+      summary: 문의하기 수정(사용자)
+      description: 문의하기 수정(사용자)
+      operationId: updateQandAWithUser
+      requestBody:
+        description: 문의하기 생성
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - qanda_object_id
+              type: object
+              properties:
+                qanda_object_id:
+                  type: string
+                  description: 수정할 QandA Object_ID
+                qanda_common_code_id:
+                  type: string
+                  description: 공통 코드 Object_ID (topic 카테고리)
+                qanda_question_title:
+                  type: string
+                  description: 수정할 문의 제목
+                qanda_question_contents:
+                  type: string
+                  description: 수정할 문의 내용
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /qanda/deleteQandA:
+    post:
+      tags:
+        - qanda
+      summary: 문의하기 삭제
+      description: 문의하기 삭제
+      operationId: deleteQandA
+      requestBody:
+        description: 문의하기 생성
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - qanda_object_id
+              type: object
+              properties:
+                qanda_object_id:
+                  type: array
+                  description: 삭제할 QandA Object_ID
+                  items:
+                    type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /qanda/updateQandAWithAdmin:
+    post:
+      tags:
+        - qanda
+      summary: 문의하기 답변달기 및 수정하기
+      description: 문의하기 답변달기 및 수정하기
+      operationId: updateQandAWithAdmin
+      requestBody:
+        description: 문의하기 답변달기 및 수정하기
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - qanda_object_id
+              type: object
+              properties:
+                qanda_object_id:
+                  type: string
+                  description: 답변달기 및 수정할 QandA Object_ID
+                qanda_common_code_id:
+                  type: string
+                  description: 공통 코드 Object_ID (topic 카테고리)
+                qanda_status:
+                  type: string
+                  description: Q&A 상태
+                qanda_answer_contents:
+                  type: string
+                  description: Q&A 답변 내용
+                qanda_is_delete:
+                  type: boolean
+                  description: 삭제 여부
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

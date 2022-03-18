@@ -1,0 +1,92 @@
+paths:
+  /commoncode/createCommonCode:
+    post:
+      tags:
+        - commoncode
+      summary: 공통 코드 정보 생성
+      description: 공통 코드 정보 생성
+      operationId: createNotice
+      requestBody:
+        description: 공통 코드 정보 생성
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - common_code_c_name
+                - common_code_value
+              type: object
+              properties:
+                common_code_c_name:
+                  type: string
+                  enum: ['interestsobjects', 'helpbycategoryobjects', 'userobjects']
+                  description: 컬렉션 이름
+                common_code_f_name:
+                  type: string
+                  description: 필드 이름
+                common_code_value:
+                  type: string
+                  description: 코드 값
+                common_code_msg_kor:
+                  type: string
+                  description: 한글
+                common_code_msg_eng:
+                  type: string
+                  description: 영문
+                common_code_category:
+                  type: string
+                  enum: ['root', 'topic', 'definition']
+                  description: 카테고리 (root:최상의 범주 | topic:주제 | definition:코드 정의)
+                common_code_spare:
+                  type: string
+                  description: 추후 사용을 위한 임시 필드
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /commoncode/getCommonCodeDynamicQuery:
+    post:
+      tags:
+        - commoncode
+      summary: 공통 코드 정보 불러오기
+      description: 공통 코드 정보 불러오기
+      operationId: commoncode
+      requestBody:
+        description: 공통 코드 정보 불러오기
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - common_code_c_name
+              type: object
+              properties:
+                common_code_c_name:
+                  type: string
+                  enum: ['helpbycategoryobjects']
+                  description: 컬렉션 이름
+                common_code_f_name:
+                  type: string
+                  description: 필드 이름
+                common_code_value:
+                  type: string
+                  description: 코드 값
+                common_code_category:
+                  type: string
+                  enum: ['root', 'topic', 'definition']
+                  description: 카테고리 (root:최상의 범주 | topic:주제 | definition:코드 정의)
+                common_code_spare:
+                  type: string
+                  description: 추후 사용을 위한 필드
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

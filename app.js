@@ -86,6 +86,9 @@ const announcement = require('./router/announcement');
 const servicecenter = require('./router/servicecenter');
 const notice = require('./router/notice');
 const settingpublic = require('./router/settingpublic');
+const commoncode = require('./router/commoncode');
+const helpbycategory = require('./router/helpbycategory');
+const qanda = require('./router/qanda');
 const router = express.Router();
 
 const dbconnection = database();
@@ -105,6 +108,9 @@ app.use('/announcement', announcement);
 app.use('/servicecenter', servicecenter);
 app.use('/notice', notice);
 app.use('/settingpublic', settingpublic);
+app.use('/commoncode', commoncode);
+app.use('/helpbycategory', helpbycategory);
+app.use('/qanda', qanda);
 app.use('/', router);
 
 //Launch Server
