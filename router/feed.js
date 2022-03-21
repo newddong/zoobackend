@@ -361,7 +361,7 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 		if (!targetFeed) {
 			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
-		}
+		}//대상 피드 오브젝트가 유효한 오브젝트인지 확인
 		targetFeed.feed_content = req.body.feed_content;
 		targetFeed.feed_location = req.body.feed_location;
 		targetFeed.feed_type = 'feed';
@@ -371,8 +371,6 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 		let feedMedias = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
 		let receivedTags = feedMedias.map(media=>media.tags).flat();
 		let tagsInDB = targetFeed.feed_medias.map(media=>media.tags).flat();
-		console.log('수신 리스트', receivedTags);
-		console.log('디비 리스트', tagsInDB);
 		receivedTags.forEach(tags=>{
 			console.log('생성결과', !tagsInDB.find(tagsInDB=>tagsInDB.user._id == tags.user._id))
 			if(!tagsInDB.find(tagsInDB=>tagsInDB.user._id == tags.user._id)){
@@ -385,24 +383,36 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 				deleteUserTag(tagsInDB.user, targetFeed)
 			}
 		})
+		/*FeedMedias에 담긴 피드 태그의 정보를 바탕으로 피드의 태그 정보를 업데이트
+		* 업데이트 요청의 tag와 db상의 tag리스트를 가공하여
+		* 업데이트 요청에는 존재하나 db상의 tag리스트에 없을때 - tag를 db에 새로 생성
+		* 업데이트 요청에는 없으나 db상의 tag리스트에 있을때 - tag를 db에서 삭제
+		* 요청과 db에 모두 존재할때 - db에서 tag정보를 변경하지 않음 //TODO : 좌표가 바뀌었을때 업데이트 하도록 변경해야함
+		*/
+
 
 		if (req.files && req.files.length > 0) {
 			targetFeed.feed_medias = feedMedias.map(media => {
 				let uri = req.files.find(file => media.media_uri.includes(file.originalname));
+				//요청으로 받은 feed_medias필드의 오브젝트의 uri와 s3에 업데이트된 파일의 실제 이름을 비교하여
+				//req.files(s3에 업데이트를 완료한 뒤 multer s3라이브러리가 반환한 객체들의 array)에서 해당 파일에 대한 정보를 얻음
 				if(uri){
 					return ({...media,
 						tags: [...media.tags],
 						media_uri: uri.location,
 					});
+					//req.files에 feed_medias 필드에 있는 파일이 존재할때 media_uri를 업데이트
 				}else{
 					return ({
 						...media,
 						tags: [...media.tags]
 					});
+					//req.files에 feed_medias 필드에 있는 파일이 없을때 media_uri를 업데이트하지 않음
 				}
 			});
 		}else{
 			targetFeed.feed_medias = feedMedias;
+			//req.files가 없을때(피드 수정시 이미지를 삭제하거나 새로 업데이트 하지 않을 경우) 요청된 feed_medias를 그대로 디비에 업데이트
 		}
 
 		
@@ -421,7 +431,16 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 				deleteHash(prev.hashtag_id.hashtag_keyword, targetFeed._id);
 			}
 		})
+		/*FeedContent에 담긴 해시 태그의 정보를 바탕으로 피드의 해시태그 정보를 업데이트
+		* 업데이트 요청의 hashtag와 db상의 hashtag리스트를 가공하여
+		* 업데이트 요청에는 존재하나 db상의 hashtag리스트에 없을때 - hashtag를 db에 새로 생성
+		* 업데이트 요청에는 없으나 db상의 hashtag리스트에 있을때 - hashtag를 db에서 삭제
+		* 요청과 db에 모두 존재할때 - db에서 hashtag정보를 변경하지 않음
+		*/
+
+
 		targetFeed.feed_thumbnail = targetFeed.feed_medias[0].media_uri;
+		//피드 썸네일을 피드의 이미지 리스트중 가장 먼저인 이미지로 설정
 		await targetFeed.save();
 		res.json({status: 200, msg: 'edit success'});
 	});
