@@ -89,8 +89,8 @@ const settingpublic = require('./router/settingpublic');
 const commoncode = require('./router/commoncode');
 const helpbycategory = require('./router/helpbycategory');
 const qanda = require('./router/qanda');
+const community = require('./router/community');
 const router = express.Router();
-
 const dbconnection = database();
 
 //Api routes
@@ -111,6 +111,7 @@ app.use('/settingpublic', settingpublic);
 app.use('/commoncode', commoncode);
 app.use('/helpbycategory', helpbycategory);
 app.use('/qanda', qanda);
+app.use('/community', community);
 app.use('/', router);
 
 //Launch Server

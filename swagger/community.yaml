@@ -1,0 +1,30 @@
+paths:
+  /community/changeLocalPathToS3Path:
+    post:
+      tags:
+        - community
+      summary: 로컬경로 s3로 변경
+      description: 로컬경로 s3로 변경
+      operationId: changeLocalPathToS3Path
+      requestBody:
+        description: 로컬 정보
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - s3path
+              properties:
+                s3path:
+                  type: array
+                  description: 첨부파일 uri리스트
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
