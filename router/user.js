@@ -502,20 +502,23 @@ router.post('/getUserListByNickname', (req, res) => {
 				.equals(req.session.loginUser)
 				.where('follow_id')
 				.in(follow_id_array)
+				.where('follow_is_delete')
+				.ne(true)
 				.select({follow_id: 1, _id: 0});
 
+			//특수문자 제외하고 Array로 생성
 			let follower_list_result = new Array();
 			for (let z = 0; z < follower_list.length; z++) {
 				follower_list_result.push(JSON.stringify(follower_list[z].follow_id).replace(/[\"]/gi, ''));
 			}
 
+			//검색 결과에서 팔로우에 해당되는 인원들에 대해 follow 속성을 붙여서 true, false 표기
 			for (let g = 0; g < userList.length; g++) {
 				if (follower_list_result.some(v => v == JSON.stringify(userList[g]._id).replace(/[\"]/gi, ''))) {
 					userList[g].follow = true;
 				} else userList[g].follow = false;
 			}
 		}
-
 		res.json({status: 200, msg: userList});
 	});
 });
@@ -622,6 +625,7 @@ router.post('/getFollows', (req, res) => {
 	controller(req, res, async () => {
 		let targetUser = await User.model.findById(req.body.userobject_id).lean();
 		let user_nickname = req.body.user_nickname;
+		let userList = new Array();
 
 		if (!targetUser) {
 			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
@@ -630,10 +634,47 @@ router.post('/getFollows', (req, res) => {
 
 		let follow = await Follow.model.find({follower_id: targetUser._id, follow_is_delete: false}).populate('follow_id').lean();
 
+		// if (user_nickname) {
+		// 	userList = follow.filter(v => v.follow_id.user_nickname.includes(user_nickname));
+		// 	res.json({status: 200, msg: userList});
+		// } else res.json({status: 200, msg: follow});
+
 		if (user_nickname) {
 			userList = follow.filter(v => v.follow_id.user_nickname.includes(user_nickname));
-			res.json({status: 200, msg: userList});
-		} else res.json({status: 200, msg: follow});
+		} else {
+			userList = follow;
+		}
+
+		let follow_id_array = new Array();
+		//결과 리스트의 _id를 가져와서 follow_id 리스트를 만든다.
+		for (let k = 0; k < userList.length; k++) {
+			follow_id_array.push(JSON.stringify(userList[k].follow_id._id).replace(/[\"]/gi, ''));
+		}
+
+		//팔로워 컬렉션에서 내가 팔로워이고 팔로우 array에 속한 리스트를 가져옴 (이 사람들이 처음 검색 결과에서 내가 팔로우 한 사람들임)
+		follower_list = await Follow.model
+			.find({})
+			.where('follower_id')
+			.equals(req.session.loginUser)
+			.where('follow_id')
+			.in(follow_id_array)
+			.where('follow_is_delete')
+			.ne(true)
+			.select({follow_id: 1, _id: 0});
+
+		//특수문자 제외하고 Array로 생성
+		let follower_list_result = new Array();
+		for (let z = 0; z < follower_list.length; z++) {
+			follower_list_result.push(JSON.stringify(follower_list[z].follow_id).replace(/[\"]/gi, ''));
+		}
+
+		//검색 결과에서 팔로우에 해당되는 인원들에 대해 follow 속성을 붙여서 true, false 표기
+		for (let g = 0; g < userList.length; g++) {
+			if (follower_list_result.some(v => v == JSON.stringify(userList[g].follow_id._id).replace(/[\"]/gi, ''))) {
+				userList[g].follow = true;
+			} else userList[g].follow = false;
+		}
+		res.json({status: 200, msg: userList});
 	});
 });
 
@@ -642,6 +683,7 @@ router.post('/getFollowers', (req, res) => {
 	controller(req, res, async () => {
 		let targetUser = await User.model.findById(req.body.userobject_id).lean();
 		let user_nickname = req.body.user_nickname;
+		let userList = new Array();
 
 		if (!targetUser) {
 			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
@@ -649,11 +691,47 @@ router.post('/getFollowers', (req, res) => {
 		}
 
 		let follow = await Follow.model.find({follow_id: targetUser._id, follow_is_delete: false}).populate('follower_id').lean();
+		// if (user_nickname) {
+		// 	userList = follow.filter(v => v.follower_id.user_nickname.includes(user_nickname));
+		// 	res.json({status: 200, msg: userList});
+		// } else res.json({status: 200, msg: follow});
 
 		if (user_nickname) {
-			userList = follow.filter(v => v.follower_id.user_nickname.includes(user_nickname));
-			res.json({status: 200, msg: userList});
-		} else res.json({status: 200, msg: follow});
+			userList = follow.filter(v => v.follow_id.user_nickname.includes(user_nickname));
+		} else {
+			userList = follow;
+		}
+
+		let follow_id_array = new Array();
+		//결과 리스트의 _id를 가져와서 follow_id 리스트를 만든다.
+		for (let k = 0; k < userList.length; k++) {
+			follow_id_array.push(JSON.stringify(userList[k].follower_id._id).replace(/[\"]/gi, ''));
+		}
+		//팔로워 컬렉션에서 내가 팔로워이고 팔로우 array에 속한 리스트를 가져옴 (이 사람들이 처음 검색 결과에서 내가 팔로우 한 사람들임)
+		follower_list = await Follow.model
+			.find({})
+			.where('follower_id')
+			.equals(req.session.loginUser)
+			.where('follow_id')
+			.in(follow_id_array)
+			.where('follow_is_delete')
+			.ne(true)
+			.select({follow_id: 1, _id: 0});
+
+		//특수문자 제외하고 Array로 생성
+		let follower_list_result = new Array();
+		for (let z = 0; z < follower_list.length; z++) {
+			follower_list_result.push(JSON.stringify(follower_list[z].follow_id).replace(/[\"]/gi, ''));
+		}
+
+		//검색 결과에서 팔로우에 해당되는 인원들에 대해 follow 속성을 붙여서 true, false 표기
+		for (let g = 0; g < userList.length; g++) {
+			if (follower_list_result.some(v => v == JSON.stringify(userList[g].follower_id._id).replace(/[\"]/gi, ''))) {
+				userList[g].follow = true;
+			} else userList[g].follow = false;
+		}
+
+		res.json({status: 200, msg: userList});
 	});
 });
 

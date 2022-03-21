@@ -155,7 +155,7 @@ paths:
                   description: 공통 코드 Object_ID (topic 카테고리)
                 qanda_status:
                   type: string
-                  description: Q&A 상태
+                  description: Q&A 상태  (waiting 대기중 | confirmming  관리자 확인중 | complete 답변완료)
                 qanda_answer_contents:
                   type: string
                   description: Q&A 답변 내용
