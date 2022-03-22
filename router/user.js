@@ -809,7 +809,6 @@ router.post('/getFollowers', (req, res) => {
 				userList[g].follow = true;
 			} else userList[g].follow = false;
 		}
-		console.log('userList =>', userList);
 		res.json({status: 200, msg: userList});
 	});
 });
