@@ -579,16 +579,52 @@ router.post('/followUser', (req, res) => {
 
 		let follow = await Follow.model
 			.findOneAndUpdate(
-				{follow_id: targetUser._id, follower_id: req.session.loginUser},
-				{$set: {follow_id: targetUser._id, follower_id: req.session.loginUser, follow_is_delete: false}, $currentDate: {follow_update_date: true}},
+				{follow_id: req.session.loginUser, follower_id: targetUser._id},
+				{$set: {follow_id: req.session.loginUser, follower_id: targetUser._id, follow_is_delete: false}, $currentDate: {follow_update_date: true}},
 				{new: true, upsert: true},
 			)
 			.lean();
 
-		targetUser.user_follower_count++;
-		targetUser.user_interests = new Object();
+		//기존 팔로우, 팔로워 데이터를 증가하는 것이 아닌 팔로우, 팔로워 정보를 변경할때 FollowObject를 카운트한 후 해당 갯수를 넣는 방식으로 변경
+		//상대방 계정 팔로우, 팔로워 업데이트 하기
+		let user_follow_count = await Follow.model
+			.find({follow_id: mongoose.Types.ObjectId(req.body.follow_userobject_id)})
+			.where('follow_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+		let user_follower_count = await Follow.model
+			.find({follower_id: mongoose.Types.ObjectId(req.body.follow_userobject_id)})
+			.where('follow_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+		targetUser.user_follow_count = user_follow_count;
+		targetUser.user_follower_count = user_follower_count;
 		await targetUser.save();
-		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_follow_count: 1}});
+
+		//로그인 계정 팔로우, 팔로워 업데이트 하기
+		let loginUser_follow_count = await Follow.model
+			.find({follow_id: mongoose.Types.ObjectId(req.session.loginUser)})
+			.where('follow_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+		let loginUser_follower_count = await Follow.model
+			.find({follower_id: mongoose.Types.ObjectId(req.session.loginUser)})
+			.where('follow_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+		await User.model.findOneAndUpdate(
+			{_id: req.session.loginUser},
+			{$set: {user_follow_count: loginUser_follow_count, user_follower_count: loginUser_follower_count}},
+		);
+
+		// targetUser.user_follower_count++;
+		// targetUser.user_interests = new Object();
+		// await targetUser.save();
+		// await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_follow_count: 1}});
 
 		res.json({status: 200, msg: follow});
 	});
@@ -605,16 +641,52 @@ router.post('/unFollowUser', (req, res) => {
 
 		let follow = await Follow.model
 			.findOneAndUpdate(
-				{follower_id: req.session.loginUser, follow_id: req.body.follow_userobject_id},
+				{follow_id: req.session.loginUser, follower_id: targetUser._id},
 				{$set: {follow_is_delete: true}, $currentDate: {follow_update_date: true}},
 				{new: true, upsert: false},
 			)
 			.lean();
 
-		targetUser.user_follower_count--;
-		targetUser.user_interests = new Object();
+		//기존 팔로우, 팔로워 데이터를 증가하는 것이 아닌 팔로우, 팔로워 정보를 변경할때 FollowObject를 카운트한 후 해당 갯수를 넣는 방식으로 변경
+		//상대방 계정 팔로우, 팔로워 업데이트 하기
+		let user_follow_count = await Follow.model
+			.find({follow_id: mongoose.Types.ObjectId(req.body.follow_userobject_id)})
+			.where('follow_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+		let user_follower_count = await Follow.model
+			.find({follower_id: mongoose.Types.ObjectId(req.body.follow_userobject_id)})
+			.where('follow_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+		targetUser.user_follow_count = user_follow_count;
+		targetUser.user_follower_count = user_follower_count;
 		await targetUser.save();
-		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_follow_count: -1}});
+
+		//로그인 계정 팔로우, 팔로워 업데이트 하기
+		let loginUser_follow_count = await Follow.model
+			.find({follow_id: mongoose.Types.ObjectId(req.session.loginUser)})
+			.where('follow_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+		let loginUser_follower_count = await Follow.model
+			.find({follower_id: mongoose.Types.ObjectId(req.session.loginUser)})
+			.where('follow_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+		await User.model.findOneAndUpdate(
+			{_id: req.session.loginUser},
+			{$set: {user_follow_count: loginUser_follow_count, user_follower_count: loginUser_follower_count}},
+		);
+
+		// targetUser.user_follower_count--;
+		// targetUser.user_interests = new Object();
+		// await targetUser.save();
+		// await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_follow_count: -1}});
 
 		res.json({status: 200, msg: follow});
 	});
@@ -631,46 +703,48 @@ router.post('/getFollows', (req, res) => {
 			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
 			return;
 		}
-
-		let follow = await Follow.model.find({follower_id: targetUser._id, follow_is_delete: false}).populate('follow_id').lean();
-
+		let follow = await Follow.model
+			.find({follow_id: targetUser._id, follow_is_delete: false})
+			.populate({path: 'follow_id', select: 'user_type user_nickname user_introduction user_profile_uri'})
+			.populate({path: 'follower_id', select: 'user_type user_nickname user_introduction user_profile_uri'})
+			.lean();
 		// if (user_nickname) {
 		// 	userList = follow.filter(v => v.follow_id.user_nickname.includes(user_nickname));
 		// 	res.json({status: 200, msg: userList});
 		// } else res.json({status: 200, msg: follow});
 
 		if (user_nickname) {
-			userList = follow.filter(v => v.follow_id.user_nickname.includes(user_nickname));
+			userList = follow.filter(v => v.follower_id.user_nickname.includes(user_nickname));
 		} else {
 			userList = follow;
 		}
 
-		let follow_id_array = new Array();
-		//결과 리스트의 _id를 가져와서 follow_id 리스트를 만든다.
+		let follower_id_array = new Array();
+		//결과 리스트의 _id를 가져와서 follower_id_array 리스트를 만든다.
 		for (let k = 0; k < userList.length; k++) {
-			follow_id_array.push(JSON.stringify(userList[k].follow_id._id).replace(/[\"]/gi, ''));
+			follower_id_array.push(JSON.stringify(userList[k].follower_id._id).replace(/[\"]/gi, ''));
 		}
 
-		//팔로워 컬렉션에서 내가 팔로워이고 팔로우 array에 속한 리스트를 가져옴 (이 사람들이 처음 검색 결과에서 내가 팔로우 한 사람들임)
+		//팔로우 컬렉션에서 팔로우이고 팔로우 array에 속한 리스트를 가져옴 (이 사람들이 처음 검색 결과에서 내가 팔로우 한 사람들임)
 		follower_list = await Follow.model
 			.find({})
-			.where('follower_id')
-			.equals(req.session.loginUser)
 			.where('follow_id')
-			.in(follow_id_array)
+			.equals(req.session.loginUser)
+			.where('follower_id')
+			.in(follower_id_array)
 			.where('follow_is_delete')
 			.ne(true)
-			.select({follow_id: 1, _id: 0});
+			.select({follower_id: 1, _id: 0});
 
 		//특수문자 제외하고 Array로 생성
 		let follower_list_result = new Array();
 		for (let z = 0; z < follower_list.length; z++) {
-			follower_list_result.push(JSON.stringify(follower_list[z].follow_id).replace(/[\"]/gi, ''));
+			follower_list_result.push(JSON.stringify(follower_list[z].follower_id).replace(/[\"]/gi, ''));
 		}
 
-		//검색 결과에서 팔로우에 해당되는 인원들에 대해 follow 속성을 붙여서 true, false 표기
+		//검색 결과에서 팔로워에 해당되는 인원들에 대해 follow 속성을 붙여서 true, false 표기
 		for (let g = 0; g < userList.length; g++) {
-			if (follower_list_result.some(v => v == JSON.stringify(userList[g].follow_id._id).replace(/[\"]/gi, ''))) {
+			if (follower_list_result.some(v => v == JSON.stringify(userList[g].follower_id._id).replace(/[\"]/gi, ''))) {
 				userList[g].follow = true;
 			} else userList[g].follow = false;
 		}
@@ -678,7 +752,7 @@ router.post('/getFollows', (req, res) => {
 	});
 });
 
-//대상 유저를 팔로우 한 유저를 검색한다.
+//대상 유저를 팔로우 한 유저를 검색한다. (팔로워 리스트)
 router.post('/getFollowers', (req, res) => {
 	controller(req, res, async () => {
 		let targetUser = await User.model.findById(req.body.userobject_id).lean();
@@ -690,7 +764,11 @@ router.post('/getFollowers', (req, res) => {
 			return;
 		}
 
-		let follow = await Follow.model.find({follow_id: targetUser._id, follow_is_delete: false}).populate('follower_id').lean();
+		let follow = await Follow.model
+			.find({follower_id: targetUser._id, follow_is_delete: false})
+			.populate({path: 'follow_id', select: 'user_type user_nickname user_introduction user_profile_uri'})
+			.populate({path: 'follower_id', select: 'user_type user_nickname user_introduction user_profile_uri'})
+			.lean();
 		// if (user_nickname) {
 		// 	userList = follow.filter(v => v.follower_id.user_nickname.includes(user_nickname));
 		// 	res.json({status: 200, msg: userList});
@@ -703,34 +781,35 @@ router.post('/getFollowers', (req, res) => {
 		}
 
 		let follow_id_array = new Array();
-		//결과 리스트의 _id를 가져와서 follow_id 리스트를 만든다.
+		//검색 결과 리스트의 _id를 가져와서 follow_id 리스트를 만든다.
 		for (let k = 0; k < userList.length; k++) {
-			follow_id_array.push(JSON.stringify(userList[k].follower_id._id).replace(/[\"]/gi, ''));
+			follow_id_array.push(JSON.stringify(userList[k].follow_id._id).replace(/[\"]/gi, ''));
 		}
-		//팔로워 컬렉션에서 내가 팔로워이고 팔로우 array에 속한 리스트를 가져옴 (이 사람들이 처음 검색 결과에서 내가 팔로우 한 사람들임)
+
+		//팔로우 컬렉션에서 내가 팔로우이고 위의 검색 결과에서 나온 리스트가 팔로워로 들어가 있는 리스트
 		follower_list = await Follow.model
 			.find({})
-			.where('follower_id')
-			.equals(req.session.loginUser)
 			.where('follow_id')
+			.equals(req.session.loginUser)
+			.where('follower_id')
 			.in(follow_id_array)
 			.where('follow_is_delete')
 			.ne(true)
-			.select({follow_id: 1, _id: 0});
+			.select({follower_id: 1, _id: 0});
 
 		//특수문자 제외하고 Array로 생성
 		let follower_list_result = new Array();
 		for (let z = 0; z < follower_list.length; z++) {
-			follower_list_result.push(JSON.stringify(follower_list[z].follow_id).replace(/[\"]/gi, ''));
+			follower_list_result.push(JSON.stringify(follower_list[z].follower_id).replace(/[\"]/gi, ''));
 		}
 
 		//검색 결과에서 팔로우에 해당되는 인원들에 대해 follow 속성을 붙여서 true, false 표기
 		for (let g = 0; g < userList.length; g++) {
-			if (follower_list_result.some(v => v == JSON.stringify(userList[g].follower_id._id).replace(/[\"]/gi, ''))) {
+			if (follower_list_result.some(v => v == JSON.stringify(userList[g].follow_id._id).replace(/[\"]/gi, ''))) {
 				userList[g].follow = true;
 			} else userList[g].follow = false;
 		}
-
+		console.log('userList =>', userList);
 		res.json({status: 200, msg: userList});
 	});
 });

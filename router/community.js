@@ -6,7 +6,7 @@ const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
 
-//
+// 로컬정보를 s3 정보로 변경
 router.post('/changeLocalPathToS3Path', uploadS3.array('s3path'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		res.json({status: 200, msg: req.files});
