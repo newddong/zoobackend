@@ -13,7 +13,7 @@ paths:
             schema:
               type: object
               required:
-                - s3path
+                - s3path_uri
               properties:
                 s3path:
                   type: array
