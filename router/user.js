@@ -449,8 +449,6 @@ router.post('/getUserListByNickname', (req, res) => {
 		let petName = '';
 		let userList = [];
 
-		// console.log('userType=>', userType);
-
 		if (nickname.includes('/')) {
 			let namearray = nickname.split('/');
 			petName = namearray[0];
@@ -490,26 +488,26 @@ router.post('/getUserListByNickname', (req, res) => {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		} else {
-			let follow_id_array = new Array();
+			let follower_id_array = new Array();
 			//결과 리스트의 _id를 가져와서 follow_id 리스트를 만든다.
 			for (let k = 0; k < userList.length; k++) {
-				follow_id_array.push(JSON.stringify(userList[k]._id).replace(/[\"]/gi, ''));
+				follower_id_array.push(JSON.stringify(userList[k]._id).replace(/[\"]/gi, ''));
 			}
 			//팔로워 컬렉션에서 내가 팔로워이고 팔로우 array에 속한 리스트를 가져옴 (이 사람들이 처음 검색 결과에서 내가 팔로우 한 사람들임)
 			follower_list = await Follow.model
 				.find({})
-				.where('follower_id')
-				.equals(req.session.loginUser)
 				.where('follow_id')
-				.in(follow_id_array)
+				.equals(req.session.loginUser)
+				.where('follower_id')
+				.in(follower_id_array)
 				.where('follow_is_delete')
 				.ne(true)
-				.select({follow_id: 1, _id: 0});
+				.select({follower_id: 1, _id: 0});
 
 			//특수문자 제외하고 Array로 생성
 			let follower_list_result = new Array();
 			for (let z = 0; z < follower_list.length; z++) {
-				follower_list_result.push(JSON.stringify(follower_list[z].follow_id).replace(/[\"]/gi, ''));
+				follower_list_result.push(JSON.stringify(follower_list[z].follower_id).replace(/[\"]/gi, ''));
 			}
 
 			//검색 결과에서 팔로우에 해당되는 인원들에 대해 follow 속성을 붙여서 true, false 표기
