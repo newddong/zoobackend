@@ -90,6 +90,7 @@ const commoncode = require('./router/commoncode');
 const helpbycategory = require('./router/helpbycategory');
 const qanda = require('./router/qanda');
 const community = require('./router/community');
+const faq = require('./router/faq');
 const router = express.Router();
 const dbconnection = database();
 
@@ -112,6 +113,7 @@ app.use('/commoncode', commoncode);
 app.use('/helpbycategory', helpbycategory);
 app.use('/qanda', qanda);
 app.use('/community', community);
+app.use('/faq', faq);
 app.use('/', router);
 
 //Launch Server

@@ -1,0 +1,55 @@
+paths:
+  /faq/createFaq:
+    post:
+      tags:
+        - faq
+      summary: 자주 묻는 질문 생성
+      description: 자주 묻는 질문 생성
+      operationId: createFaq
+      requestBody:
+        description: 자주 묻는 질문 생성
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - faq_title
+                - faq_contents
+              properties:
+                faq_title:
+                  type: string
+                  description: 자주 묻는 질문 제목
+                faq_contents:
+                  type: string
+                  description: 자주 묻는 질문 내용
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /faq/getFaq:
+    post:
+      tags:
+        - faq
+      summary: 자주 묻는 질문을 모두 불러온다.
+      description: 자주 묻는 질문을 모두 불러온다.
+      operationId: getFaq
+      requestBody:
+        description: 자주 묻는 질문을 모두 불러온다.
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
