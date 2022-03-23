@@ -1,0 +1,55 @@
+paths:
+  /termsofservice/createTermsOfService:
+    post:
+      tags:
+        - termsofservice
+      summary: 이용 약관 생성
+      description: 이용 약관 생성
+      operationId: createTermsOfService
+      requestBody:
+        description: 이용 약관 생성
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - terms_of_service_title
+                - terms_of_service_contents
+              properties:
+                terms_of_service_title:
+                  type: string
+                  description: 이용약관 제목
+                terms_of_service_contents:
+                  type: string
+                  description: 이용약관 내용
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /termsofservice/getTermsOfService:
+    post:
+      tags:
+        - termsofservice
+      summary: 이용 약관 불러오기
+      description: 이용 약관 불러오기
+      operationId: getTermsOfService
+      requestBody:
+        description: 이용 약관 불러오기
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
