@@ -34,4 +34,20 @@ router.post('/getHelpByCategoryDynamicQuery', (req, res) => {
 		res.json({status: 200, msg: result});
 	});
 });
+
+//카테고리 제목 검색
+router.post('/getSearchHelpByCategoryList', (req, res) => {
+	controller(req, res, async () => {
+		let keyword = req.body.searchKeyword;
+
+		helpByCategoryList = await HelpByCategory.model.find({help_by_category_title: {$regex: keyword}}).lean();
+
+		if (helpByCategoryList.length < 1) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+		res.json({status: 200, msg: helpByCategoryList});
+	});
+});
+
 module.exports = router;

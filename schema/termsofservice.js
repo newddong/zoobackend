@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const TermsOfServiceObject = {
-	/** @type { String} 자주 묻는 질문 제목 */
+	/** @type { String} 이용약관 제목 */
 	terms_of_service_title: {type: String},
-	/** @type { String} 자주 묻는 질문 내용 */
+	/** @type { String} 이용약관 내용 */
 	terms_of_service_contents: {type: String},
-	/** @type { Date} 업데이트 날짜 */
+	/** @type { Date} 이용약관 업데이트 날짜 */
 	terms_of_service_date: {type: Date, default: Date.now()},
 };
 
