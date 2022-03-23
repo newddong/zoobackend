@@ -15,7 +15,7 @@ paths:
               required:
                 - s3path_uri
               properties:
-                s3path:
+                s3path_uri:
                   type: array
                   description: 첨부파일 uri리스트
                   items:
