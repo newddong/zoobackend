@@ -124,6 +124,10 @@ router.post('/assignPet', uploadS3.single('user_profile_uri'), (req, res) => {
 			const result = await shelterProtectAnimal.save();
 		}
 
+		if (req.body.user_profile) {
+			pet.user_profile_uri = req.body.user_profile;
+		}
+
 		const newPet = await pet.save();
 		const petOwner = await User.model.findById(req.body.userobject_id).exec();
 		petOwner.user_my_pets.push(newPet._id);
