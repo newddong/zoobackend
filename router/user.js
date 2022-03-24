@@ -194,7 +194,7 @@ router.post('/getUserProfile', (req, res) => {
 
 		let follow = false;
 		if (req.session && req.session.loginUser) {
-			follow = await Follow.model.findOne({follow_id: userInfo._id, follower_id: req.session.loginUser}).lean();
+			follow = await Follow.model.findOne({follow_id: req.session.loginUser, follower_id: userInfo._id}).lean();
 		}
 		follow = follow != null && !follow.follow_is_delete;
 
