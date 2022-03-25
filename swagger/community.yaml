@@ -28,3 +28,97 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
+  /community/createCommunity:
+    post:
+      tags:
+        - community
+      summary: 커뮤니티 게시물 신규 작성
+      description: 커뮤니티 게시물 신규 작성
+      operationId: createCommunity
+      requestBody:
+        description: 커뮤니티 게시물 신규 작성
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - community_title
+                - community_content
+              properties:
+                community_title:
+                  type: string
+                  description: 커뮤니티 제목
+                community_content:
+                  type: string
+                  description: 커뮤니티 본문
+                community_avatar_id:
+                  type: string
+                  description: 커뮤니티의 작성자로 지정하고 싶은 반려동물 ID
+                community_location:
+                  type: string
+                  description: 커뮤니티 작성 지역
+                community_is_temporary:
+                  type: boolean
+                  description: 임시저장 여부
+                community_type:
+                  type: String
+                  enum: ['free', 'review']
+                  description: 게시글의 타입
+                community_interests:
+                  type: object
+                  description: 관심사 항목 키워드
+                  properties:
+                    interests_trip:
+                      type: array
+                      items:
+                        type: string
+                      description: 여행 · 숙박 · 까페
+                    interests_hospital:
+                      type: array
+                      items:
+                        type: string
+                      description: 병원 · 건강
+                    interests_interior:
+                      type: array
+                      items:
+                        type: string
+                      description: 펫 인테리어 · 놀이
+                    interests_etc:
+                      type: array
+                      items:
+                        type: string
+                      description: 기타
+                    interests_review:
+                      type: array
+                      items:
+                        type: string
+                      description: 후기
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /community/getCommunityList:
+    post:
+      tags:
+        - community
+      summary: 커뮤니티를 불러옴 (홈)
+      description: 커뮤니티를 불러옴 (홈화면)
+      operationId: getCommunityList
+      requestBody:
+        description: 커뮤니티 요청 파라메터
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

@@ -5,7 +5,7 @@ paths:
         - commoncode
       summary: 공통 코드 정보 생성
       description: 공통 코드 정보 생성
-      operationId: createNotice
+      operationId: createCommonCode
       requestBody:
         description: 공통 코드 정보 생성
         content:
@@ -18,7 +18,7 @@ paths:
               properties:
                 common_code_c_name:
                   type: string
-                  enum: ['interestsobjects', 'helpbycategoryobjects', 'userobjects']
+                  enum: ['interestsobjects', 'helpbycategoryobjects', 'communityobjects']
                   description: 컬렉션 이름
                 common_code_f_name:
                   type: string
@@ -54,7 +54,7 @@ paths:
         - commoncode
       summary: 공통 코드 정보 불러오기
       description: 공통 코드 정보 불러오기
-      operationId: commoncode
+      operationId: getCommonCodeDynamicQuery
       requestBody:
         description: 공통 코드 정보 불러오기
         content:
@@ -66,7 +66,7 @@ paths:
               properties:
                 common_code_c_name:
                   type: string
-                  enum: ['helpbycategoryobjects']
+                  enum: ['helpbycategoryobjects', 'communityobjects']
                   description: 컬렉션 이름
                 common_code_f_name:
                   type: string
