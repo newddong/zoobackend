@@ -1164,6 +1164,34 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /user/getChekingFollow:
+    post:
+      tags:
+        - user
+      summary: 로그인 계정으로 해당 아이디가 팔로우인지 확인
+      description: 로그인 계정으로 해당 아이디가 팔로우인지 확인
+      operationId: getChekingFollow
+      requestBody:
+        description: 요청 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - follow_userobject_id
+              type: object
+              properties:
+                follow_userobject_id:
+                  type: string
+                  description: 체크할 상대방 userObject ID
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$
