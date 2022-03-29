@@ -74,6 +74,8 @@ const CommunityObject = {
 	community_type: {type: String, default: 'free'},
 	/** @type { String} 자유게시판의 타입 - 잡담(talk) | 질문(qustion) | 모임(meeting) */
 	community_free_type: {type: String},
+	/** @type { String} 글 내용 동물 타입 - 개(doc) | 고양이(cat) | 그 외(etc) */
+	community_animal_type: {type: String},
 	/** @type { Object} 관심사 항목 키워드 (공통 코드에 의해 확장 가능) */
 	community_interests: {type: Object},
 	/** @type { Community_address} 리뷰 주소  */

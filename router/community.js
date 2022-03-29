@@ -23,6 +23,7 @@ router.post('/createCommunity', (req, res) => {
 			community_is_temporary: req.session.community_is_temporary,
 			community_type: req.body.community_type,
 			community_free_type: req.body.community_free_type,
+			community_animal_type: req.body.community_animal_type,
 			community_interests: typeof req.body.community_interests == 'string' ? JSON.parse(req.body.community_interests) : req.body.community_interests,
 			community_address: typeof req.body.community_address == 'string' ? JSON.parse(req.body.community_address) : req.body.community_address,
 		});

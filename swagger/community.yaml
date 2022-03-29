@@ -60,6 +60,10 @@ paths:
                   type: String
                   enum: ['talk', 'qustion', 'meeting']
                   description: 자유게시글 타입 (잡담|'talk', 질문|'qustion', 모임|'meeting')
+                community_animal_type:
+                  type: String
+                  enum: ['doc', 'cat', 'etc']
+                  description: 리뷰 글 내용 동물 타입 (개|'doc', 고양이|'cat', 그외|'etc')
                 community_avatar_id:
                   type: string
                   description: 커뮤니티의 작성자로 지정하고 싶은 반려동물 ID
