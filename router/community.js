@@ -62,24 +62,4 @@ router.post('/getCommunityList', (req, res) => {
 	});
 });
 
-//커뮤니티 카테고리 분류로 불러오기
-router.post('/getCommunityList', (req, res) => {
-	controller(req, res, async () => {
-		let community = await Community.model.find().populate('community_writer_id').populate('community_avatar_id').sort('-_id').lean();
-		if (!community) {
-			//res.status(404);
-			res.json({status: 404, msg: ALERT_NO_RESULT});
-			return;
-		}
-
-		res.json({
-			status: 200,
-			msg: {
-				free: community.filter(v => v.community_type == 'free'),
-				review: community.filter(v => v.community_type == 'review'),
-			},
-		});
-	});
-});
-
 module.exports = router;
