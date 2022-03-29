@@ -32,6 +32,9 @@ paths:
                 protect_request_object_id:
                   type: string
                   description: 댓글이 작성된 동물보호 요청 게시물
+                community_object_id:
+                  type: string
+                  description: 댓글이 작성된 커뮤니티 게시물
                 comment_is_secure:
                   type: boolean
                   description: true일때는 writer와 댓글이 달린 게시글 작성자만 볼수있음

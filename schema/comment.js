@@ -49,6 +49,13 @@ const CommentObject = {
 
 	/** @type { String} 댓글이 작성된 동물보호 요청 게시물의 작성자 */
 	comment_protect_request_writer_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
+
+	/** @type { String} 댓글이 작성된 커뮤니티 게시물 */
+	comment_community_id: {type: Schema.Types.ObjectId, ref: 'CommunityObject'},
+
+	/** @type { String} 댓글이 작성된 커뮤니티 게시물의 작성자 */
+	comment_community_writer_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
+
 	/** @type {Number} 대댓글 숫자 */
 	children_count: {type: Number, default: 0},
 };

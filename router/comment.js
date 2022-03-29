@@ -5,6 +5,7 @@ const Feed = require('../schema/feed');
 const Comment = require('../schema/comment');
 const LikeComment = require('../schema/likecomment');
 const ProtectRequest = require('../schema/protectRequest');
+const Community = require('../schema/community');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
@@ -48,6 +49,18 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 				comment.comment_protect_request_writer_id = targetProtectRequest.protect_request_writer_id; //댓글이 달린 동물보호 요청 게시물의 작성자를 설정(Secure기능을 이용하기 위함)
 			}
 			await targetProtectRequest.save();
+		} else if (req.body.community_object_id && req.body.community_object_id.length > 0) {
+			comment.comment_community_id = req.body.community_object_id;
+			let targetCommunity = await Community.model.findById(req.body.community_object_id);
+			let comment_cnt = await Comment.model.find({comment_community_id: req.body.community_object_id}).count();
+			if (targetCommunity) {
+				targetCommunity.community_recent_comment.comment_id = comment._id; //게시물에 달린 최신 댓글 설정(1개까지)
+				targetCommunity.community_recent_comment.comment_user_nickname = req.session.user_nickname; //코멘트 작성자의 닉네임
+				targetCommunity.community_recent_comment.comment_contents = comment.comment_contents; //코멘트 내용
+				targetCommunity.community_comment_count = comment_cnt + 1;
+				comment.comment_community_object_id = targetCommunity.community_writer_id; //댓글이 달린 커뮤니티 게시물의 작성자를 설정(Secure기능을 이용하기 위함)
+			}
+			await targetCommunity.save();
 		}
 
 		// comment_protect_request_id: req.body.comment_protect_request_id,
@@ -79,19 +92,17 @@ router.post('/getCommentListByFeedId', (req, res) => {
 		}
 
 		let likedCommentList = [];
-		if(req.body.login_userobject_id){
-			likedCommentList = await LikeComment.model.find({like_comment_user_id : req.body.login_userobject_id, like_comment_is_delete : false}).lean();
+		if (req.body.login_userobject_id) {
+			likedCommentList = await LikeComment.model.find({like_comment_user_id: req.body.login_userobject_id, like_comment_is_delete: false}).lean();
 		}
-		
-		commentList = commentList.map((comment)=>{
-			if(likedCommentList.find((likedComment)=>likedComment.like_comment_id == comment._id)){
-				return {...comment, comment_is_like : true};
-			}else{
-				return {...comment, comment_is_like : false};
+
+		commentList = commentList.map(comment => {
+			if (likedCommentList.find(likedComment => likedComment.like_comment_id == comment._id)) {
+				return {...comment, comment_is_like: true};
+			} else {
+				return {...comment, comment_is_like: false};
 			}
-		})
-
-
+		});
 
 		res.json({status: 200, msg: commentList});
 	});
@@ -114,17 +125,17 @@ router.post('/getCommentListByProtectId', (req, res) => {
 		}
 
 		let likedCommentList = [];
-		if(req.body.login_userobject_id){
-			likedCommentList = await LikeComment.model.find({like_comment_user_id : req.body.login_userobject_id, like_comment_is_delete : false}).lean();
+		if (req.body.login_userobject_id) {
+			likedCommentList = await LikeComment.model.find({like_comment_user_id: req.body.login_userobject_id, like_comment_is_delete: false}).lean();
 		}
 
-		commentList = commentList.map((comment)=>{
-			if(likedCommentList.find((likedComment)=>likedComment.like_comment_id == comment._id)){
-				return {...comment, comment_is_like : true};
-			}else{
-				return {...comment, comment_is_like : false};
+		commentList = commentList.map(comment => {
+			if (likedCommentList.find(likedComment => likedComment.like_comment_id == comment._id)) {
+				return {...comment, comment_is_like: true};
+			} else {
+				return {...comment, comment_is_like: false};
 			}
-		})
+		});
 
 		res.json({status: 200, msg: commentList});
 	});
@@ -140,20 +151,18 @@ router.post('/getChildCommentList', (req, res) => {
 			return;
 		}
 
-
 		let likedCommentList = [];
-		if(req.body.login_userobject_id){
-			likedCommentList = await LikeComment.model.find({like_comment_user_id : req.body.login_userobject_id, like_comment_is_delete : false}).lean();
+		if (req.body.login_userobject_id) {
+			likedCommentList = await LikeComment.model.find({like_comment_user_id: req.body.login_userobject_id, like_comment_is_delete: false}).lean();
 		}
-		
-		childComments = childComments.map((comment)=>{
-			if(likedCommentList.find((likedComment)=>likedComment.like_comment_id == comment._id)){
-				return {...comment, comment_is_like : true};
-			}else{
-				return {...comment, comment_is_like : false};
-			}
-		})
 
+		childComments = childComments.map(comment => {
+			if (likedCommentList.find(likedComment => likedComment.like_comment_id == comment._id)) {
+				return {...comment, comment_is_like: true};
+			} else {
+				return {...comment, comment_is_like: false};
+			}
+		});
 
 		res.json({status: 200, msg: childComments});
 	});
@@ -221,30 +230,29 @@ router.post('/updateComment', uploadS3.single('comment_photo_uri'), (req, res) =
 router.post('/likeComment', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let targetComment = await Comment.model.findById(req.body.commentobject_id);
-		if(!targetComment){
+		if (!targetComment) {
 			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
 		}
 
-		let is_like =  req.body.is_like;
+		let is_like = req.body.is_like;
 
 		let likeComment = await LikeComment.model
-		.findOneAndUpdate(
-			{like_comment_id: targetComment._id, like_comment_user_id: req.body.userobject_id},
-			{$set: {like_comment_update_date: Date.now(), like_comment_is_delete: !is_like}},
-			{new: true, upsert: true},
-		).exec();
-		targetComment = await Comment.model.findOneAndUpdate({_id:targetComment._id},{$inc:{comment_like_count:is_like?1:-1}},{new: true}).exec();
+			.findOneAndUpdate(
+				{like_comment_id: targetComment._id, like_comment_user_id: req.body.userobject_id},
+				{$set: {like_comment_update_date: Date.now(), like_comment_is_delete: !is_like}},
+				{new: true, upsert: true},
+			)
+			.exec();
+		targetComment = await Comment.model
+			.findOneAndUpdate({_id: targetComment._id}, {$inc: {comment_like_count: is_like ? 1 : -1}}, {new: true})
+			.exec();
 
 		res.json({status: 200, msg: {likeComment: likeComment, targetComment: targetComment}});
 	});
 });
 
-
-
-
 //=================================이전 router code =============================================================================
-
 
 //댓글 삭제(실제 DB에서 삭제되지는 않음)
 router.post('/deleteComment', async (req, res) => {

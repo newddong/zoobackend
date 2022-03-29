@@ -69,6 +69,8 @@ const CommunityObject = {
 	community_is_delete: {type: Boolean, default: false},
 	/** @type { Boolean} 추천 게시물 여부 */
 	community_is_recomment: {type: Boolean, default: false},
+	/** @type { Boolean} 이미지, 동영상 첨부 여부 */
+	community_is_attached_file: {type: Boolean, default: false},
 
 	/** @type { String} 게시글의 타입 - 자유게시판(free) | 리뷰(review)  */
 	community_type: {type: String, default: 'free'},

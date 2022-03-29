@@ -24,6 +24,7 @@ router.post('/createCommunity', (req, res) => {
 			community_type: req.body.community_type,
 			community_free_type: req.body.community_free_type,
 			community_animal_type: req.body.community_animal_type,
+			community_is_attached_file: req.body.community_is_attached_file,
 			community_interests: typeof req.body.community_interests == 'string' ? JSON.parse(req.body.community_interests) : req.body.community_interests,
 			community_address: typeof req.body.community_address == 'string' ? JSON.parse(req.body.community_address) : req.body.community_address,
 		});
@@ -37,7 +38,31 @@ router.post('/createCommunity', (req, res) => {
 	});
 });
 
-//커뮤니티를 불러옴(홈화면)
+//커뮤니티를 불러옴(전체 홈화면)
+router.post('/getCommunityList', (req, res) => {
+	controller(req, res, async () => {
+		let community = await Community.model
+			.find({community_type: req.body.community_type})
+			.populate('community_writer_id')
+			.populate('community_avatar_id')
+			.sort('-_id')
+			.lean();
+		if (!community) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		res.json({
+			status: 200,
+			msg: {
+				free: community.filter(v => v.community_type == 'free'),
+				review: community.filter(v => v.community_type == 'review'),
+			},
+		});
+	});
+});
+
+//커뮤니티 카테고리 분류로 불러오기
 router.post('/getCommunityList', (req, res) => {
 	controller(req, res, async () => {
 		let community = await Community.model.find().populate('community_writer_id').populate('community_avatar_id').sort('-_id').lean();

@@ -52,6 +52,9 @@ paths:
                 community_content:
                   type: string
                   description: 커뮤니티 본문
+                community_is_attached_file:
+                  type: boolean
+                  description: 이미지, 동영상 첨부 여부
                 community_type:
                   type: String
                   enum: ['free', 'review']
@@ -159,6 +162,13 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
+              required:
+                - community_type
+              properties:
+                community_type:
+                  type: string
+                  enum: ['free', 'review']
+                  description: 게시글의 타입 (자유게시판|'free', 리뷰|'review')
       responses:
         '200':
           $ref: '#/components/responses/200'
