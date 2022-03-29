@@ -45,6 +45,7 @@ paths:
                 - community_title
                 - community_content
                 - community_type
+                - community_is_attached_file
               properties:
                 community_title:
                   type: string

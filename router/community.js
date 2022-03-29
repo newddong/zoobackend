@@ -18,9 +18,10 @@ router.post('/changeLocalPathToS3Path', uploadS3.array('s3path_uri'), (req, res)
 router.post('/createCommunity', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let community = await Community.makeNewdoc({
+			community_writer_id: req.session.loginUser,
 			community_title: req.body.community_title,
 			community_content: req.body.community_content,
-			community_is_temporary: req.session.community_is_temporary,
+			community_is_temporary: req.body.community_is_temporary,
 			community_type: req.body.community_type,
 			community_free_type: req.body.community_free_type,
 			community_animal_type: req.body.community_animal_type,
