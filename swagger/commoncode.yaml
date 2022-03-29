@@ -61,9 +61,15 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               required:
+                - common_code_language
                 - common_code_c_name
+                - common_code_out_type
               type: object
               properties:
+                common_code_language:
+                  type: string
+                  enum: ['kor', 'eng']
+                  description: 언어선택
                 common_code_c_name:
                   type: string
                   enum: ['helpbycategoryobjects', 'communityobjects']
@@ -81,6 +87,10 @@ paths:
                 common_code_spare:
                   type: string
                   description: 추후 사용을 위한 필드
+                common_code_out_type:
+                  type: string
+                  enum: ['list', 'interests']
+                  description: 출력형식 (list:일반나열, interests:관심분야)
       responses:
         '200':
           $ref: '#/components/responses/200'
