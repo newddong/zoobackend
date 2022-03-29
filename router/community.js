@@ -44,7 +44,7 @@ router.post('/getCommunityList', (req, res) => {
 	controller(req, res, async () => {
 		let community = await Community.model
 			.find({community_type: req.body.community_type})
-			.populate('community_writer_id')
+			.populate('community_writer_id', 'user_profile_uri user_nickname')
 			.populate('community_avatar_id')
 			.sort('-_id')
 			.lean();
