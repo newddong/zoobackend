@@ -44,6 +44,7 @@ paths:
               required:
                 - community_title
                 - community_content
+                - community_type
               properties:
                 community_title:
                   type: string
@@ -51,19 +52,20 @@ paths:
                 community_content:
                   type: string
                   description: 커뮤니티 본문
-                community_avatar_id:
-                  type: string
-                  description: 커뮤니티의 작성자로 지정하고 싶은 반려동물 ID
-                community_location:
-                  type: string
-                  description: 커뮤니티 작성 지역
-                community_is_temporary:
-                  type: boolean
-                  description: 임시저장 여부
                 community_type:
                   type: String
                   enum: ['free', 'review']
-                  description: 게시글의 타입
+                  description: 게시글의 타입 (자유게시판|'free', 리뷰|'review')
+                community_free_type:
+                  type: String
+                  enum: ['talk', 'qustion', 'meeting']
+                  description: 자유게시글 타입 (잡담|'talk', 질문|'qustion', 모임|'meeting')
+                community_avatar_id:
+                  type: string
+                  description: 커뮤니티의 작성자로 지정하고 싶은 반려동물 ID
+                community_is_temporary:
+                  type: boolean
+                  description: 임시저장 여부
                 community_interests:
                   type: object
                   description: 관심사 항목 키워드
@@ -93,6 +95,46 @@ paths:
                       items:
                         type: string
                       description: 후기
+                community_address:
+                  type: object
+                  description: 커뮤니티 리뷰 관련 주소
+                  properties:
+                    road_address:
+                      type: object
+                      description: 도로명 주소
+                      properties:
+                        address_name:
+                          type: string
+                          description: 도로명 주소 풀네임
+                        city:
+                          type: string
+                          description: 시,도 1depth (city)
+                        district:
+                          type: string
+                          description: 구,군 2depth (district)
+                    normal_address:
+                      type: object
+                      description: 지번 주소
+                      properties:
+                        address_name:
+                          type: string
+                          description: 도로명 주소 풀네임
+                        city:
+                          type: string
+                          description: 시,도 1depth (city)
+                        district:
+                          type: string
+                          description: 구,군 2depth (district)
+                    region:
+                      type: object
+                      description: 위도, 경도
+                      properties:
+                        latitude:
+                          type: string
+                          description: 위도
+                        longitude:
+                          type: string
+                          description: 경도
       responses:
         '200':
           $ref: '#/components/responses/200'

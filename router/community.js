@@ -20,14 +20,15 @@ router.post('/createCommunity', (req, res) => {
 		let community = await Community.makeNewdoc({
 			community_title: req.body.community_title,
 			community_content: req.body.community_content,
-			community_location: req.body.community_location,
 			community_is_temporary: req.session.community_is_temporary,
 			community_type: req.body.community_type,
-			community_interests: req.body.community_interests,
+			community_free_type: req.body.community_free_type,
+			community_interests: typeof req.body.community_interests == 'string' ? JSON.parse(req.body.community_interests) : req.body.community_interests,
+			community_address: typeof req.body.community_address == 'string' ? JSON.parse(req.body.community_address) : req.body.community_address,
 		});
 
 		if (req.body.community_avatar_id) {
-			feed.community_avatar_id = req.body.community_avatar_id;
+			community.community_avatar_id = req.body.community_avatar_id;
 		}
 
 		let newCommunity = await community.save();

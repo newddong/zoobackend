@@ -1,6 +1,40 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const Road_address = {
+	/** @type { String} 도로명 주소 */
+	address_name: {type: String},
+	/** @type { String} 시,도 */
+	city: {type: String},
+	/** @type { String} 구,군 */
+	district: {type: String},
+};
+
+const Normal_Address = {
+	/** @type { String} 지번 주소 */
+	address_name: {type: String},
+	/** @type { String} 시,도 */
+	city: {type: String},
+	/** @type { String} 구,군 */
+	district: {type: String},
+};
+
+const Region = {
+	/** @type { String} 위도 */
+	latitude: {type: String},
+	/** @type { String} 경도 */
+	longitude: {type: String},
+};
+
+const Community_address = {
+	/** @type { Road_address} 도로명 주소 */
+	road_address: {type: Road_address},
+	/** @type { Normal_Address} 지번 주소 */
+	normal_address: {type: Normal_Address},
+	/** @type { Region} 위도, 경도 */
+	region: {type: Region},
+};
+
 const RecentComment = {
 	/** @type { String} 피드에 달린 최신 댓글의 db아이디 */
 	comment_id: {type: String},
@@ -23,8 +57,6 @@ const CommunityObject = {
 	/** @type { String} 주인공 동물로 지정한 반려동물 계정의 id, 작성자가 avatar_id로 클라이언트에 표시됨 */
 	community_avatar_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
 
-	/** @type { String} 게시글의 작성 지역정보 */
-	community_location: {type: String},
 	/** @type { RecentComment} 게시글에 달린 최신 댓글 */
 	community_recent_comment: RecentComment,
 	/** @type { Date} 커뮤니티  최초 작성일 */
@@ -38,10 +70,14 @@ const CommunityObject = {
 	/** @type { Boolean} 추천 게시물 여부 */
 	community_is_recomment: {type: Boolean, default: false},
 
-	/** @type { String} 게시글의 타입 - 자유게시판(free) | 후기(review)  */
+	/** @type { String} 게시글의 타입 - 자유게시판(free) | 리뷰(review)  */
 	community_type: {type: String, default: 'free'},
-	/** @type { String} 관심사 항목 키워드 (공통 코드에 의해 확장 가능) */
-	community_interests: {type: String},
+	/** @type { String} 자유게시판의 타입 - 잡담(talk) | 질문(qustion) | 모임(meeting) */
+	community_free_type: {type: String},
+	/** @type { Object} 관심사 항목 키워드 (공통 코드에 의해 확장 가능) */
+	community_interests: {type: Object},
+	/** @type { Community_address} 리뷰 주소  */
+	community_address: {type: Community_address},
 
 	/** @type { Number} 게시글에 좋아요를 누른 수 */
 	community_like_count: {type: Number, default: 0},
