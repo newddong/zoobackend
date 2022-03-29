@@ -31,7 +31,7 @@ router.post('/getCommonCodeDynamicQuery', (req, res) => {
 		for (let filed in req.body) {
 			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
 		}
-		result = await CommonCode.model.find(query).exec();
+		result = await CommonCode.model.find(query, {_id: 0, common_code_msg_kor: 1, common_code_msg_eng: 1, common_code_category: 1}).exec();
 		res.json({status: 200, msg: result});
 	});
 });
