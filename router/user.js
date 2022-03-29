@@ -1090,7 +1090,7 @@ router.post('/setMemoBoxWithReport', (req, res) => {
 
 //로그인 대상으로 상대방을 팔로우 했는지 확인
 router.post('/getChekingFollow', (req, res) => {
-	controller(req, res, async () => {
+	controllerLoggedIn(req, res, async () => {
 		let followList = await Follow.model.find({follow_id: req.session.loginUser, follower_id: req.body.follow_userobject_id}).exec();
 		let followCheck = false;
 		if (followList.length > 0) followCheck = true;
