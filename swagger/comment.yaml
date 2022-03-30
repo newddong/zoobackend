@@ -245,6 +245,39 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
+  /comment/getCommentListByCommunityId:
+    post:
+      tags:
+        - comment
+      summary: 커뮤니티 댓글 리스트 불러오기
+      description: 커뮤니티 댓글 리스트 불러오기
+      operationId: getCommentListByCommunityId
+      requestBody:
+        description: 불러올 댓글의 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - community_object_id
+                - request_number
+              properties:
+                community_object_id:
+                  type: string
+                  description: 댓글을 불러올 커뮤니티 게시물의 ID
+                commentobject_id:
+                  type: string
+                  description: 커서 역할을 할 코맨트(해당 ID의 코맨트 이전부터 불러옴)
+                request_number:
+                  type: integer
+                  description: 댓글의 요청 숫자
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
   #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 #$2:\n  type: $1\n  description: $3

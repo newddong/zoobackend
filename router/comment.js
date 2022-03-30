@@ -252,6 +252,43 @@ router.post('/likeComment', (req, res) => {
 	});
 });
 
+//커뮤니티 게시글 댓글 리스트 불러오기
+router.post('/getCommentListByCommunityId', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let community = await Community.model.findById(req.body.community_object_id).exec();
+
+		if (!community) {
+			res.json({status: 400, msg: ALERT_NOT_VALID_OBJECT_ID});
+			return;
+		}
+
+		let commentList = await Comment.model
+			.find({comment_community_id: community._id})
+			.populate('comment_writer_id', 'user_nickname user_profile_uri')
+			.sort('-_id')
+			.lean();
+		if (commentList.length < 1) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		let likedCommentList = [];
+		if (req.body.login_userobject_id) {
+			likedCommentList = await LikeComment.model.find({like_comment_user_id: req.session.loginUser, like_comment_is_delete: false}).lean();
+		}
+
+		commentList = commentList.map(comment => {
+			if (likedCommentList.find(likedComment => likedComment.like_comment_id == comment._id)) {
+				return {...comment, comment_is_like: true};
+			} else {
+				return {...comment, comment_is_like: false};
+			}
+		});
+
+		res.json({status: 200, msg: commentList});
+	});
+});
+
 //=================================이전 router code =============================================================================
 
 //댓글 삭제(실제 DB에서 삭제되지는 않음)
