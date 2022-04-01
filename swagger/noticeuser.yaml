@@ -1,0 +1,44 @@
+paths:
+  /noticeuser/createNoticeUser:
+    post:
+      tags:
+        - noticeuser
+      summary: 소식 정보 생성
+      description: 소식 정보 생성
+      operationId: createNoticeUser
+      requestBody:
+        description: 소식 정보 생성
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - notice_user_receive_id
+              type: object
+              properties:
+                notice_user_receive_id:
+                  type: string
+                  description: 소식 받는 사용자 UserObjectID
+                notice_user_related_id:
+                  type: string
+                  description: 소식 관계자 UserObjectID
+                notice_user_contents_kor:
+                  type: string
+                  description: 소식 내용 (한글)
+                notice_user_contents_eng:
+                  type: string
+                  description: 소식 내용 (영어)
+                notice_user_collection:
+                  type: string
+                  description: 소식 대상 컬렉션 ('follow'|팔로우,'comment'|댓글,'tag'|태그,'favorite'|즐겨찾기,'like'|좋아요,'volunteer'|봉사활동신청서,'protect'|보호요청신청서)
+                notice_user_collection_object_id:
+                  type: string
+                  description: 소식 대상 컬렉션 Object_id
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

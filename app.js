@@ -92,6 +92,7 @@ const qanda = require('./router/qanda');
 const community = require('./router/community');
 const faq = require('./router/faq');
 const termsofservice = require('./router/termsofservice');
+const noticeuser = require('./router/noticeuser');
 const router = express.Router();
 const dbconnection = database();
 
@@ -116,6 +117,7 @@ app.use('/qanda', qanda);
 app.use('/community', community);
 app.use('/faq', faq);
 app.use('/termsofservice', termsofservice);
+app.use('/noticeuser', noticeuser);
 app.use('/', router);
 
 //Launch Server
