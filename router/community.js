@@ -17,25 +17,24 @@ router.post('/changeLocalPathToS3Path', uploadS3.array('s3path_uri'), (req, res)
 // 커뮤니티 게시물 신규 작성
 router.post('/createCommunity', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		let community = await Community.makeNewdoc({
-			community_writer_id: req.session.loginUser,
-			community_title: req.body.community_title,
-			community_content: req.body.community_content,
-			community_is_temporary: req.body.community_is_temporary,
-			community_type: req.body.community_type,
-			community_free_type: req.body.community_free_type,
-			community_animal_type: req.body.community_animal_type,
-			community_is_attached_file: req.body.community_is_attached_file,
-			community_interests: typeof req.body.community_interests == 'string' ? JSON.parse(req.body.community_interests) : req.body.community_interests,
-			community_address: typeof req.body.community_address == 'string' ? JSON.parse(req.body.community_address) : req.body.community_address,
-		});
+		let query = {};
 
-		if (req.body.community_avatar_id) {
-			community.community_avatar_id = req.body.community_avatar_id;
+		//받은 파라미터 확인
+		for (let filed in req.body) {
+			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
 		}
 
-		let newCommunity = await community.save();
-		res.json({status: 200, msg: newCommunity});
+		//임의로 넣어주지 않으면 얼마전에 작성한 게시물의 시간대로 생성 되는 문제 존재함. 해결책으로 현재 시간 별도로 insert 진행.
+		query.community_date = Date.now();
+
+		//오브젝트 형식의 데이터는 별도로 조건문 필요
+		query.community_interests =
+			typeof req.body.community_interests == 'string' ? JSON.parse(req.body.community_interests) : req.body.community_interests;
+		query.community_address = typeof req.body.community_address == 'string' ? JSON.parse(req.body.community_address) : req.body.community_address;
+
+		var community = await Community.makeNewdoc(query);
+		let resultCommunity = await community.save();
+		res.json({status: 200, msg: resultCommunity});
 	});
 });
 
@@ -46,6 +45,8 @@ router.post('/getCommunityList', (req, res) => {
 			.find({community_type: req.body.community_type})
 			.populate('community_writer_id', 'user_profile_uri user_nickname')
 			.populate('community_avatar_id')
+			.where('community_is_delete')
+			.ne(true)
 			.sort('-_id')
 			.lean();
 		if (!community) {
@@ -59,6 +60,46 @@ router.post('/getCommunityList', (req, res) => {
 				free: community.filter(v => v.community_type == 'free'),
 				review: community.filter(v => v.community_type == 'review'),
 			},
+		});
+	});
+});
+
+//커뮤니티 게시물 수정(삭제 기능 포함)
+router.post('/updateAndDeleteCommunity', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		const fields = Object.keys(req.body);
+		const query = {};
+
+		//업데이트 진행되는 필드만 가져옴
+		for (let i = 0; i < fields.length; i++) {
+			query[fields[i]] = Object.values(req.body)[i];
+		}
+
+		//업데이트 날짜에 해당되는 필드는 항상 별도로 추가 입력 필요
+		query.community_update_date = Date.now();
+
+		//오브젝트 데이터는 반드시 이런 형식으로 체크 필요
+		if (query.community_interests) {
+			query.community_interests =
+				typeof req.body.community_interests == 'string' ? JSON.parse(req.body.community_interests) : req.body.community_interests;
+		}
+
+		if (query.community_address) {
+			query.community_address = typeof req.body.community_address == 'string' ? JSON.parse(req.body.community_address) : req.body.community_address;
+		}
+
+		//데이터가 들어온 필드만 업데이트를 진행
+		const result = await Community.model.findByIdAndUpdate(
+			{_id: req.body.community_object_id},
+			{
+				$set: query,
+			},
+			{new: true},
+		);
+
+		res.json({
+			status: 200,
+			msg: result,
 		});
 	});
 });

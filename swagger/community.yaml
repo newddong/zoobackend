@@ -179,3 +179,98 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /community/updateAndDeleteCommunity:
+    post:
+      tags:
+        - community
+      summary: 커뮤니티를 수정
+      description: 커뮤니티를 수정
+      operationId: updateAndDeleteCommunity
+      requestBody:
+        description: 커뮤니티 요청 파라메터
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - community_object_id
+              properties:
+                community_object_id:
+                  type: string
+                  description: 게시글의 object ID
+                community_content:
+                  type: string
+                  description: 커뮤니티 본문
+                community_is_temporary:
+                  type: boolean
+                  description: 임시저장 여부
+                community_is_delete:
+                  type: boolean
+                  description: 삭제 여부
+                community_is_recomment:
+                  type: boolean
+                  description: 추천 게시물 여부
+                community_is_attached_file:
+                  type: boolean
+                  description: 이미지, 동영상 첨부 여부
+                community_free_type:
+                  type: boolean
+                  enum: ['talk', 'qustion', 'meeting']
+                  description: 자유게시판 타입 - (잡담|'talk', 질문|'qustion', 모임'meeting')
+                community_animal_type:
+                  type: boolean
+                  enum: ['doc', 'cat', 'etc']
+                  description: 글 내용 동물 타입 - (개|'doc', 고양이|'cat', 기타|'etc')
+                community_interests:
+                  type: object
+                  description: 관심사 항목 키워드
+                community_address:
+                  type: object
+                  description: 커뮤니티 리뷰 관련 주소
+                  properties:
+                    road_address:
+                      type: object
+                      description: 도로명 주소
+                      properties:
+                        address_name:
+                          type: string
+                          description: 도로명 주소 풀네임
+                        city:
+                          type: string
+                          description: 시,도 1depth (city)
+                        district:
+                          type: string
+                          description: 구,군 2depth (district)
+                    normal_address:
+                      type: object
+                      description: 지번 주소
+                      properties:
+                        address_name:
+                          type: string
+                          description: 도로명 주소 풀네임
+                        city:
+                          type: string
+                          description: 시,도 1depth (city)
+                        district:
+                          type: string
+                          description: 구,군 2depth (district)
+                    region:
+                      type: object
+                      description: 위도, 경도
+                      properties:
+                        latitude:
+                          type: string
+                          description: 위도
+                        longitude:
+                          type: string
+                          description: 경도
+
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

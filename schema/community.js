@@ -62,7 +62,7 @@ const CommunityObject = {
 	/** @type { Date} 커뮤니티  최초 작성일 */
 	community_date: {type: Date, default: Date.now()},
 	/** @type { Date} 커뮤니티  최종 업데이트 날짜 */
-	community_update_date: {type: Date, default: Date.now()},
+	community_update_date: {type: Date},
 	/** @type { Boolean} 임시저장 여부 */
 	community_is_temporary: {type: Boolean, default: false},
 	/** @type { Boolean} 삭제 여부 */
