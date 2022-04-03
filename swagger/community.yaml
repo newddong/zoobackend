@@ -168,8 +168,8 @@ paths:
               properties:
                 community_type:
                   type: string
-                  enum: ['free', 'review']
-                  description: 게시글의 타입 (자유게시판|'free', 리뷰|'review')
+                  enum: ['all', 'free', 'review']
+                  description: 게시글의 타입 (전체글|'all', 자유게시판|'free', 리뷰|'review')
       responses:
         '200':
           $ref: '#/components/responses/200'

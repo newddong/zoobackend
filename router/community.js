@@ -41,14 +41,26 @@ router.post('/createCommunity', (req, res) => {
 //커뮤니티를 불러옴(전체 홈화면)
 router.post('/getCommunityList', (req, res) => {
 	controller(req, res, async () => {
-		let community = await Community.model
-			.find({community_type: req.body.community_type})
-			.populate('community_writer_id', 'user_profile_uri user_nickname')
-			.populate('community_avatar_id')
-			.where('community_is_delete')
-			.ne(true)
-			.sort('-_id')
-			.lean();
+		let community;
+		if (req.body.community_type == 'all') {
+			community = await Community.model
+				.find()
+				.populate('community_writer_id', 'user_profile_uri user_nickname')
+				.populate('community_avatar_id')
+				.where('community_is_delete')
+				.ne(true)
+				.sort('-_id')
+				.lean();
+		} else {
+			community = await Community.model
+				.find({community_type: req.body.community_type})
+				.populate('community_writer_id', 'user_profile_uri user_nickname')
+				.populate('community_avatar_id')
+				.where('community_is_delete')
+				.ne(true)
+				.sort('-_id')
+				.lean();
+		}
 		if (!community) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
