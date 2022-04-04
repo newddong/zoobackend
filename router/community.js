@@ -24,6 +24,8 @@ router.post('/createCommunity', (req, res) => {
 			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
 		}
 
+		query.community_writer_id = req.session.loginUser;
+
 		//임의로 넣어주지 않으면 얼마전에 작성한 게시물의 시간대로 생성 되는 문제 존재함. 해결책으로 현재 시간 별도로 insert 진행.
 		query.community_date = Date.now();
 
