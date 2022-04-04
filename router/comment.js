@@ -7,12 +7,16 @@ const LikeComment = require('../schema/likecomment');
 const ProtectRequest = require('../schema/protectRequest');
 const Community = require('../schema/community');
 const uploadS3 = require('../common/uploadS3');
+const Notice = require('../schema/notice');
+const NoticeUser = require('../schema/noticeuser');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 
 //댓글 대댓글 작성
 router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
+		let feed_writer_id;
+
 		let comment = await Comment.makeNewdoc({
 			comment_photo_uri: req.file?.location,
 			comment_contents: req.body.comment_contents,
@@ -36,6 +40,7 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 				targetFeed.feed_recent_comment.comment_contents = comment.comment_contents; //코멘트 내용
 				targetFeed.feed_comment_count++;
 				comment.comment_feed_writer_id = targetFeed.feed_writer_id; //댓글이 달린 피드의 작성자를 설정(Secure기능을 이용하기 위함)
+				feed_writer_id = targetFeed.feed_writer_id;
 			}
 			await targetFeed.save();
 		} else if (req.body.protect_request_object_id && req.body.protect_request_object_id.length > 0) {
@@ -68,6 +73,29 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 		(await parentComment) && parentComment.save();
 		let newComment = await comment.save();
 		//res.status(200);
+
+		//알림 내역에 댓글 관련 insert
+		//피드 게시물의 작성자 알림 내역 중 댓글 알림 'true' 여부 확인
+		let checkNotice = await Notice.model.findOne({notice_user_id: feed_writer_id});
+		if (checkNotice.notice_comment_on_my_post) {
+			//피드 게시글을 작성한 사용자와 댓글을 남기는 사람이 같을 경우 알림 메세지를 담지 않는다.
+			if (feed_writer_id != req.session.loginUser) {
+				let select_feed_writer_id = await User.model.findById(feed_writer_id);
+				let select_loginUser = await User.model.findById(req.session.loginUser);
+				let noticeUser = NoticeUser.makeNewdoc({
+					notice_user_receive_id: feed_writer_id,
+					notice_user_related_id: req.session.loginUser,
+					notice_user_contents_kor:
+						select_loginUser.user_nickname + '님이 ' + select_feed_writer_id.user_nickname + '님의 게시물에 댓글을 남겼습니다.',
+					notice_user_collection: 'comment',
+					notice_user_collection_object_id: newComment._id,
+					notice_user_date: Date.now(),
+				});
+				let resultNoticeUser = await noticeUser.save();
+				console.log(resultNoticeUser);
+			}
+		}
+
 		res.json({status: 200, msg: newComment});
 	});
 });
