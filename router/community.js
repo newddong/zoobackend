@@ -45,7 +45,7 @@ router.post('/getCommunityList', (req, res) => {
 		if (req.body.community_type == 'all') {
 			community = await Community.model
 				.find()
-				.populate('community_writer_id', 'user_profile_uri user_nickname')
+				.populate('community_writer_id')
 				.populate('community_avatar_id')
 				.where('community_is_delete')
 				.ne(true)
@@ -54,7 +54,7 @@ router.post('/getCommunityList', (req, res) => {
 		} else {
 			community = await Community.model
 				.find({community_type: req.body.community_type})
-				.populate('community_writer_id', 'user_profile_uri user_nickname')
+				.populate('community_writer_id')
 				.populate('community_avatar_id')
 				.where('community_is_delete')
 				.ne(true)
