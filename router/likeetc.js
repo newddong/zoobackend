@@ -35,7 +35,7 @@ router.post('/likeEtc', (req, res) => {
 		let likeEtc = await LikeEtc.model
 			.findOneAndUpdate(
 				{like_etc_post_id: targetPost._id, like_etc_user_id: req.session.loginUser},
-				{$set: {like_etc_post_type: req.body.like_etc_post_type, like_etc_update_date: Date.now(), like_etc_is_delete: !is_like}},
+				{$set: {like_etc_collection_name: req.body.collectionName, like_etc_update_date: Date.now(), like_etc_is_delete: !is_like}},
 				{new: true, upsert: true},
 			)
 			.exec();

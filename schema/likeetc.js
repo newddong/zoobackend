@@ -7,7 +7,7 @@ const LikeEtcObject = {
 	/** @type { String} 좋아요를 누른 유저 */
 	like_etc_user_id: {type: String, ref: 'UserObject'},
 	/** @type { String} 좋아요를 누른 컬렉션 */
-	like_etc_collection: {type: String},
+	like_etc_collection_name: {type: String},
 
 	/** @type { Date} 좋아요 오브젝트가 처음 생성된 일시*/
 	like_etc_date: {type: Date, default: Date.now},

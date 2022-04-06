@@ -3,6 +3,7 @@ const router = express.Router();
 const Community = require('../schema/community');
 const uploadS3 = require('../common/uploadS3');
 const LikeEtc = require('../schema/likeetc');
+const FavoriteEtc = require('../schema/favoriteetc');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
@@ -78,6 +79,19 @@ router.post('/getCommunityList', (req, res) => {
 				return {...community, community_is_like: true};
 			} else {
 				return {...community, community_is_like: false};
+			}
+		});
+
+		let favoritedCommunityList = [];
+		if (req.session.loginUser) {
+			favoritedCommunityList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
+		}
+
+		community = community.map(community => {
+			if (favoritedCommunityList.find(favoritedCommunity => favoritedCommunity.favorite_etc_post_id == community._id)) {
+				return {...community, community_is_favorite: true};
+			} else {
+				return {...community, community_is_favorite: false};
 			}
 		});
 
