@@ -33,7 +33,7 @@ router.post('/getCommonCodeDynamicQuery', (req, res) => {
 		}
 
 		result = await CommonCode.model
-			.find(query, {_id: 0, common_code_value: 1, common_code_msg_kor: 1, common_code_msg_eng: 1, common_code_category: 1})
+			.find(query, {_id: 1, common_code_value: 1, common_code_msg_kor: 1, common_code_msg_eng: 1, common_code_category: 1})
 			.exec();
 
 		//언어별 메시지 셋팅
