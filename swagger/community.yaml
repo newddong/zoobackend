@@ -198,6 +198,9 @@ paths:
                 community_object_id:
                   type: string
                   description: 게시글의 object ID
+                community_title:
+                  type: string
+                  description: 커뮤니티 제목
                 community_content:
                   type: string
                   description: 커뮤니티 본문

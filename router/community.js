@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Community = require('../schema/community');
 const uploadS3 = require('../common/uploadS3');
-const LikeFeed = require('../schema/likefeed');
+const LikeEtc = require('../schema/likeetc');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
@@ -68,6 +68,19 @@ router.post('/getCommunityList', (req, res) => {
 			return;
 		}
 
+		let likedCommunityList = [];
+		if (req.session.loginUser) {
+			likedCommunityList = await LikeEtc.model.find({like_etc_user_id: req.session.loginUser, like_etc_is_delete: false}).lean();
+		}
+
+		community = community.map(community => {
+			if (likedCommunityList.find(likedCommunity => likedCommunity.like_etc_post_id == community._id)) {
+				return {...community, community_is_like: true};
+			} else {
+				return {...community, community_is_like: false};
+			}
+		});
+
 		res.json({
 			status: 200,
 			msg: {
@@ -103,13 +116,16 @@ router.post('/updateAndDeleteCommunity', (req, res) => {
 		}
 
 		//데이터가 들어온 필드만 업데이트를 진행
-		const result = await Community.model.findByIdAndUpdate(
-			{_id: req.body.community_object_id},
-			{
-				$set: query,
-			},
-			{new: true},
-		);
+		const result = await Community.model
+			.findByIdAndUpdate(
+				{_id: req.body.community_object_id},
+				{
+					$set: query,
+				},
+				{new: true},
+			)
+			.populate('community_writer_id')
+			.exec();
 
 		res.json({
 			status: 200,
