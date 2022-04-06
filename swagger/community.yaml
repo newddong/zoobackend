@@ -277,3 +277,31 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /community/getSearchCommunityList:
+    post:
+      tags:
+        - community
+      summary: 커뮤니티 제목, 내용 검색
+      description: 커뮤니티 제목, 내용 검색
+      operationId: getSearchCommunityList
+      requestBody:
+        description: 커뮤니티 요청 파라메터
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - searchKeyword
+              properties:
+                searchKeyword:
+                  type: string
+                  description: 검색 키워드
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

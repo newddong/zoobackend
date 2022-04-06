@@ -148,4 +148,29 @@ router.post('/updateAndDeleteCommunity', (req, res) => {
 	});
 });
 
+//카테고리 제목 검색
+router.post('/getSearchCommunityList', (req, res) => {
+	controller(req, res, async () => {
+		let keyword = req.body.searchKeyword;
+
+		communityList = await Community.model
+			.find({
+				$or: [{community_title: {$regex: keyword}}, {community_content: {$regex: keyword}}],
+			})
+			.lean();
+
+		if (communityList.length < 1) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+		res.json({
+			status: 200,
+			msg: {
+				free: communityList.filter(v => v.community_type == 'free'),
+				review: communityList.filter(v => v.community_type == 'review'),
+			},
+		});
+	});
+});
+
 module.exports = router;
