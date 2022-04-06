@@ -64,7 +64,7 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 				targetCommunity.community_recent_comment.comment_user_nickname = req.session.user_nickname; //코멘트 작성자의 닉네임
 				targetCommunity.community_recent_comment.comment_contents = comment.comment_contents; //코멘트 내용
 				targetCommunity.community_comment_count = comment_cnt + 1;
-				comment.comment_community_object_id = targetCommunity.community_writer_id; //댓글이 달린 커뮤니티 게시물의 작성자를 설정(Secure기능을 이용하기 위함)
+				comment.community_writer_id = targetCommunity.community_writer_id; //댓글이 달린 커뮤니티 게시물의 작성자를 설정(Secure기능을 이용하기 위함)
 				writer_id = targetCommunity.community_writer_id;
 			}
 			await targetCommunity.save();
@@ -291,8 +291,8 @@ router.post('/getCommentListByCommunityId', (req, res) => {
 		}
 
 		let commentList = await Comment.model
-			.find({comment_community_id: community._id})
-			.populate('comment_writer_id', 'user_nickname user_profile_uri')
+			.find({comment_community_id: community._id, comment_parent: {$exists: false}})
+			.populate('comment_writer_id')
 			.sort('-_id')
 			.lean();
 		if (commentList.length < 1) {
