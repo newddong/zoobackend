@@ -179,6 +179,39 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /community/getCommunityListByUserId:
+    post:
+      tags:
+        - community
+      summary: 특정 유저가 작성한 커뮤니티를 불러옴
+      description: 특정 유저가 작성한 커뮤니티를 불러옴
+      operationId: getCommunityListByUserId
+      requestBody:
+        description: 커뮤니티 요청 파라메터
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - userobject_id
+                - community_type
+              properties:
+                userobject_id:
+                  type: string
+                  description: 작성자 userobject_id
+                community_type:
+                  type: string
+                  enum: ['all', 'free', 'review']
+                  description: 게시글의 타입 (전체글|'all', 자유게시판|'free', 리뷰|'review')
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
   /community/updateAndDeleteCommunity:
     post:
       tags:

@@ -4,6 +4,7 @@ const Community = require('../schema/community');
 const uploadS3 = require('../common/uploadS3');
 const LikeEtc = require('../schema/likeetc');
 const FavoriteEtc = require('../schema/favoriteetc');
+const User = require('../schema/user');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
@@ -68,6 +69,76 @@ router.post('/getCommunityList', (req, res) => {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
+
+		let likedCommunityList = [];
+		if (req.session.loginUser) {
+			likedCommunityList = await LikeEtc.model.find({like_etc_user_id: req.session.loginUser, like_etc_is_delete: false}).lean();
+		}
+
+		community = community.map(community => {
+			if (likedCommunityList.find(likedCommunity => likedCommunity.like_etc_post_id == community._id)) {
+				return {...community, community_is_like: true};
+			} else {
+				return {...community, community_is_like: false};
+			}
+		});
+
+		let favoritedCommunityList = [];
+		if (req.session.loginUser) {
+			favoritedCommunityList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
+		}
+
+		community = community.map(community => {
+			if (favoritedCommunityList.find(favoritedCommunity => favoritedCommunity.favorite_etc_post_id == community._id)) {
+				return {...community, community_is_favorite: true};
+			} else {
+				return {...community, community_is_favorite: false};
+			}
+		});
+
+		res.json({
+			status: 200,
+			msg: {
+				free: community.filter(v => v.community_type == 'free'),
+				review: community.filter(v => v.community_type == 'review'),
+			},
+		});
+	});
+});
+
+//특정 유저가 작성한 커뮤니티를 불러옴
+router.post('/getCommunityListByUserId', (req, res) => {
+	controller(req, res, async () => {
+		let user = await User.model.findById(req.body.userobject_id);
+		if (!user) {
+			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
+			return;
+		}
+
+		let query = {};
+		if (user.user_type == 'pet') {
+			if (req.body.community_type == 'all') {
+				query.community_avatar_id = req.body.userobject_id;
+			} else {
+				(community_avatar_id = req.body.userobject_id), (community_type = req.body.community_type);
+			}
+		} else {
+			if (req.body.community_type == 'all') {
+				query.community_writer_id = req.body.userobject_id;
+			} else {
+				(community_writer_id = req.body.userobject_id), (community_type = req.body.community_type);
+			}
+		}
+
+		let community;
+		community = await Community.model
+			.find(query)
+			.populate('community_writer_id')
+			.populate('community_avatar_id')
+			.where('community_is_delete')
+			.ne(true)
+			.sort('-_id')
+			.lean();
 
 		let likedCommunityList = [];
 		if (req.session.loginUser) {
