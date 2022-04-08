@@ -35,6 +35,7 @@ router.post('/createCommunity', (req, res) => {
 		query.community_interests =
 			typeof req.body.community_interests == 'string' ? JSON.parse(req.body.community_interests) : req.body.community_interests;
 		query.community_address = typeof req.body.community_address == 'string' ? JSON.parse(req.body.community_address) : req.body.community_address;
+		query.community_content_without_html = query.community_content.replace(/(<([^>]+)>)/gi, '');
 
 		var community = await Community.makeNewdoc(query);
 		let resultCommunity = await community.save();
@@ -226,7 +227,7 @@ router.post('/getSearchCommunityList', (req, res) => {
 
 		communityList = await Community.model
 			.find({
-				$or: [{community_title: {$regex: keyword}}, {community_content: {$regex: keyword}}],
+				$or: [{community_title: {$regex: keyword}}, {community_content_without_html: {$regex: keyword}}],
 			})
 			.populate('community_writer_id')
 			.lean();

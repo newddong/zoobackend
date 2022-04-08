@@ -52,6 +52,8 @@ const CommunityObject = {
 	community_title: {type: String},
 	/** @type { String} 커뮤니티 본문 (text, image, video 모두 html 형태로 저장) */
 	community_content: {type: String},
+	/** @type { String} 커뮤니티 html 태그가 제거된 순수 text */
+	community_content_without_html: {type: String},
 	/** @type { String} 게시글 작성자의 db고유 아이디 */
 	community_writer_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
 	/** @type { String} 주인공 동물로 지정한 반려동물 계정의 id, 작성자가 avatar_id로 클라이언트에 표시됨 */
