@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const FavoriteEtc = require('../schema/favoriteetc');
+const User = require('../schema/user');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
@@ -10,7 +11,7 @@ function makeSchema(str) {
 	return str.substr(0, index);
 }
 
-//피드 즐겨찾기 설정/취소 (피드외에 신규 추가되는 모든 게시물의 좋아요&취소를 다룸)
+//즐겨찾기 설정/취소 (피드외에 신규 추가되는 모든 게시물의 좋아요&취소를 다룸)
 router.post('/favoriteEtc', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let collectionName = req.body.collectionName;
@@ -52,6 +53,35 @@ router.post('/favoriteEtc', (req, res) => {
 		await targetPost.save();
 
 		res.json({status: 200, msg: {favoriteEtc: favoriteEtc, targetPost: targetPost}});
+	});
+});
+
+//특정 유저의 즐겨찾기 목록 조회 (피드를 제외한 타 게시물)
+router.post('/getFavoriteEtcListByUserId', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let user = await User.model.findById(req.body.userobject_id);
+		if (!user) {
+			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
+			return;
+		}
+
+		//입력한 컬렉션 이름으로 스키마 정보 불러오기
+		let collectionName = req.body.collectionName;
+		let schemaName = makeSchema(collectionName);
+		const Schema = require('../schema/' + schemaName);
+
+		//스키마 정보로 해당되는 게시판의 즐겨찾기 정보 불러오기
+		let feedEtclist = await FavoriteEtc.model
+			.find({
+				favorite_etc_user_id: user._id,
+				favorite_etc_is_delete: false,
+				favorite_etc_collection_name: collectionName,
+			})
+			.populate({path: 'favorite_etc_post_id', model: Schema.model.modelName, populate: 'community_writer_id'})
+			.sort('-_id')
+			.lean();
+
+		res.json({status: 200, msg: feedEtclist});
 	});
 });
 
