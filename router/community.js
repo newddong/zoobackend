@@ -228,6 +228,7 @@ router.post('/getSearchCommunityList', (req, res) => {
 			.find({
 				$or: [{community_title: {$regex: keyword}}, {community_content: {$regex: keyword}}],
 			})
+			.populate('community_writer_id')
 			.lean();
 
 		if (communityList.length < 1) {
