@@ -16,6 +16,14 @@ router.post('/changeLocalPathToS3Path', uploadS3.array('s3path_uri'), (req, res)
 	});
 });
 
+function removeHtml(text) {
+	text = text.replace(/&nbsp;/gi, ' '); // 공백
+	text = text.replace(/\n/gi, ''); // 띄어쓰기
+	// HTML 태그제거
+	text = text.replace(/<(\/)?([a-zA-Z]*)(\s[a-zA-Z]*=[^>]*)?(\s)*(\/)?>/gi, '');
+	return text;
+}
+
 // 커뮤니티 게시물 신규 작성
 router.post('/createCommunity', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
@@ -35,7 +43,7 @@ router.post('/createCommunity', (req, res) => {
 		query.community_interests =
 			typeof req.body.community_interests == 'string' ? JSON.parse(req.body.community_interests) : req.body.community_interests;
 		query.community_address = typeof req.body.community_address == 'string' ? JSON.parse(req.body.community_address) : req.body.community_address;
-		query.community_content_without_html = query.community_content.replace(/(r|a)+(?![^<]*>)+(?![^<]*?<\/span>)+(?![^&]*;)/gi, '');
+		query.community_content_without_html = removeHtml(query.community_content);
 
 		var community = await Community.makeNewdoc(query);
 		let resultCommunity = await community.save();
