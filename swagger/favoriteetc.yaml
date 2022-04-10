@@ -19,7 +19,7 @@ paths:
               properties:
                 collectionName:
                   type: string
-                  enum: ['communityobjects']
+                  enum: ['communityobjects', 'protectrequestobjects']
                   description: 타겟 컬렉션 이름
                 post_object_id:
                   type: string
@@ -56,7 +56,7 @@ paths:
                   description: 조회할 userobject_id
                 collectionName:
                   type: string
-                  enum: ['communityobjects']
+                  enum: ['communityobjects', 'protectrequestobjects']
                   description: 조회할 collectionName
       responses:
         '200':

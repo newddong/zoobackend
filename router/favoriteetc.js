@@ -30,7 +30,14 @@ router.post('/favoriteEtc', (req, res) => {
 		if (typeof req.body.is_favorite == 'string') is_favorite = req.body.is_favorite == 'true' ? true : false;
 		else is_favorite = req.body.is_favorite;
 
-		let favorite_count = schemaName + '_favorite_count';
+		let fieldName = schemaName;
+
+		switch (schemaName) {
+			case 'protectrequest':
+				fieldName = 'protect_request';
+		}
+
+		let favorite_count = fieldName + '_favorite_count';
 
 		//즐겨찾기 컬렉션 데이터 insert 혹은 update.
 		let favoriteEtc = await FavoriteEtc.model
@@ -58,7 +65,7 @@ router.post('/favoriteEtc', (req, res) => {
 
 //특정 유저의 즐겨찾기 목록 조회 (피드를 제외한 타 게시물)
 router.post('/getFavoriteEtcListByUserId', (req, res) => {
-	controllerLoggedIn(req, res, async () => {
+	controller(req, res, async () => {
 		let user = await User.model.findById(req.body.userobject_id);
 		if (!user) {
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
@@ -69,6 +76,17 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 		let collectionName = req.body.collectionName;
 		let schemaName = makeSchema(collectionName);
 		const Schema = require('../schema/' + schemaName);
+		let writer_id = '';
+
+		//모델 이름에 따른 게시물 작성자 populate 설정 변수 지정
+		switch (Schema.model.modelName) {
+			case 'CommunityObject':
+				writer_id = 'community_writer_id';
+				break;
+			case 'ProtectRequestObject':
+				writer_id = 'protect_request_writer_id';
+				break;
+		}
 
 		//스키마 정보로 해당되는 게시판의 즐겨찾기 정보 불러오기
 		let feedEtclist = await FavoriteEtc.model
@@ -77,7 +95,7 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 				favorite_etc_is_delete: false,
 				favorite_etc_collection_name: collectionName,
 			})
-			.populate({path: 'favorite_etc_post_id', model: Schema.model.modelName, populate: 'community_writer_id'})
+			.populate({path: 'favorite_etc_post_id', model: Schema.model.modelName, populate: writer_id})
 			.sort('-_id')
 			.lean();
 
