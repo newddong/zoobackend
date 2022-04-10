@@ -20,7 +20,7 @@ function removeHtml(text) {
 	text = text.replace(/&nbsp;/gi, ' '); // 공백
 	text = text.replace(/\n/gi, ''); // 띄어쓰기
 	// HTML 태그제거
-	text = text.replace(/<(\/)?([a-zA-Z]*)(\s[a-zA-Z]*=[^>]*)?(\s)*(\/)?>/gi, '');
+	text = text.replace(/(<([^>]+)>)/gi, '');
 	return text;
 }
 
