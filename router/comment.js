@@ -16,6 +16,8 @@ const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require(
 router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let writer_id;
+		let targetObject;
+		let targetObject_ID;
 
 		let comment = await Comment.makeNewdoc({
 			comment_photo_uri: req.file?.location,
@@ -33,6 +35,7 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 
 		if (req.body.feedobject_id && req.body.feedobject_id.length > 0) {
 			comment.comment_feed_id = req.body.feedobject_id;
+			targetObject_ID = req.body.feedobject_id;
 			let targetFeed = await Feed.model.findById(req.body.feedobject_id);
 			if (targetFeed) {
 				targetFeed.feed_recent_comment.comment_id = comment._id; //게시물에 달린 최신 댓글 설정(1개까지)
@@ -43,8 +46,10 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 				writer_id = targetFeed.feed_writer_id;
 			}
 			await targetFeed.save();
+			targetObject = Feed;
 		} else if (req.body.protect_request_object_id && req.body.protect_request_object_id.length > 0) {
 			comment.comment_protect_request_id = req.body.protect_request_object_id;
+			targetObject_ID = req.body.protect_request_object_id;
 			let targetProtectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id);
 			if (targetProtectRequest) {
 				targetProtectRequest.protect_recent_comment.comment_id = comment._id; //게시물에 달린 최신 댓글 설정(1개까지)
@@ -55,8 +60,10 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 				writer_id = targetProtectRequest.protect_request_writer_id;
 			}
 			await targetProtectRequest.save();
+			targetObject = ProtectRequest;
 		} else if (req.body.community_object_id && req.body.community_object_id.length > 0) {
 			comment.comment_community_id = req.body.community_object_id;
+			targetObject_ID = req.body.community_object_id;
 			let targetCommunity = await Community.model.findById(req.body.community_object_id);
 			let comment_cnt = await Comment.model.find({comment_community_id: req.body.community_object_id}).count();
 			if (targetCommunity) {
@@ -68,19 +75,19 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 				writer_id = targetCommunity.community_writer_id;
 			}
 			await targetCommunity.save();
+			targetObject = Community;
 		}
 
 		// comment_protect_request_id: req.body.comment_protect_request_id,
 		//TODO : 댓글이 달린 보호요청 게시물의 작성자 설정(Secure기능을 이용하기 위함)
 		(await parentComment) && parentComment.save();
-		let newComment = await comment.save();
-		//res.status(200);
+		let newResult = await comment.save();
 
 		//알림 내역에 댓글 관련 insert
-		//피드 게시물의 작성자 알림 내역 중 댓글 알림 'true' 여부 확인
+		//게시물의 작성자 알림 내역 중 댓글 알림 'true' 여부 확인
 		let checkNotice = await Notice.model.findOne({notice_user_id: writer_id});
 		if (checkNotice.notice_comment_on_my_post) {
-			//피드 게시글을 작성한 사용자와 댓글을 남기는 사람이 같을 경우 알림 메세지를 담지 않는다.
+			//게시글을 작성한 사용자와 댓글을 남기는 사람이 같을 경우 알림 메세지를 담지 않는다.
 			if (writer_id != req.session.loginUser) {
 				let select_opponent = await User.model.findById(writer_id);
 				let select_loginUser = await User.model.findById(req.session.loginUser);
@@ -88,15 +95,17 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 					notice_user_receive_id: writer_id,
 					notice_user_related_id: req.session.loginUser,
 					notice_user_contents_kor: select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + '님의 게시물에 댓글을 남겼습니다.',
-					notice_user_collection: 'comment',
-					notice_user_collection_object_id: newComment._id,
+					notice_object: newResult._id,
+					notice_object_type: Comment.model.modelName,
+					target_object: targetObject_ID,
+					target_object_type: targetObject.model.modelName,
 					notice_user_date: Date.now(),
 				});
 				let resultNoticeUser = await noticeUser.save();
 			}
 		}
 
-		res.json({status: 200, msg: newComment});
+		res.json({status: 200, msg: newResult});
 	});
 });
 

@@ -10,10 +10,16 @@ const NoticeUserObject = {
 	notice_user_contents_kor: {type: String},
 	/** @type { String} 소식 내용 (영어) */
 	notice_user_contents_eng: {type: String},
-	/** @type { String} 소식 대상 컬렉션 ('follow'|팔로우, 'follower'|팔로워,'comment'|댓글,'tag'|태그,'favorite'|즐겨찾기,'like'|좋아요,'volunteer'|봉사활동신청서,'protect'|보호요청신청서)*/
-	notice_user_collection: {type: String},
-	/** @type { String} 소식 대상 ObjectID */
-	notice_user_collection_object_id: {type: String},
+
+	/** @type { String} 알림 대상 Object ID */
+	notice_object: {type: Schema.Types.ObjectId},
+	/** @type { String} 알림 대상 Object type */
+	notice_object_type: {type: String},
+	/** @type { String} 타겟 대상 Object ID */
+	target_object: {type: Schema.Types.ObjectId},
+	/** @type { String} 타겟 대상 Object type */
+	target_object_type: {type: String},
+
 	/** @type { Date} 소식 업데이트 날짜 */
 	notice_user_date: {type: Date, default: Date.now()},
 };
