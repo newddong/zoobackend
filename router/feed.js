@@ -476,8 +476,10 @@ router.post('/likeFeed', (req, res) => {
 					notice_user_receive_id: writer_id,
 					notice_user_related_id: req.session.loginUser,
 					notice_user_contents_kor: select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + '님의 게시물을 좋아합니다.',
-					notice_user_collection: 'feedobjects',
-					notice_user_collection_object_id: targetFeed._id,
+					notice_object: likeFeed._id,
+					notice_object_type: LikeFeed.model.modelName,
+					target_object: req.body.feedobject_id,
+					target_object_type: Feed.model.modelName,
 					notice_user_date: Date.now(),
 				});
 				let resultNoticeUser = await noticeUser.save();
