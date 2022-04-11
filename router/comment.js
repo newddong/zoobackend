@@ -86,7 +86,7 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 		//알림 내역에 댓글 관련 insert
 		//게시물의 작성자 알림 내역 중 댓글 알림 'true' 여부 확인
 		let checkNotice = await Notice.model.findOne({notice_user_id: writer_id});
-		if (checkNotice.notice_comment_on_my_post != null && checkNotice.notice_comment_on_my_post) {
+		if (checkNotice.notice_my_post != null && checkNotice.notice_my_post) {
 			//게시글을 작성한 사용자와 댓글을 남기는 사람이 같을 경우 알림 메세지를 담지 않는다.
 			if (writer_id != req.session.loginUser) {
 				let select_opponent = await User.model.findById(writer_id);

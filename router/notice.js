@@ -39,12 +39,10 @@ router.post('/updateNotice', (req, res) => {
 		}
 
 		notice.notice_all = req.body.notice_all;
-		notice.notice_newfollower = req.body.notice_newfollower;
-		notice.notice_favorite_protect_request = req.body.notice_favorite_protect_request;
 		notice.notice_pet_vaccination = req.body.notice_pet_vaccination;
+		notice.notice_follow = req.body.notice_follow;
 		notice.notice_my_post = req.body.notice_my_post;
-		notice.notice_comment_on_my_post = req.body.notice_comment_on_my_post;
-		notice.notice_tag_follower = req.body.notice_tag_follower;
+		notice.notice_tag = req.body.notice_tag;
 		notice.notice_my_applicant = req.body.notice_my_applicant;
 		notice.notice_alarm = req.body.notice_alarm;
 
