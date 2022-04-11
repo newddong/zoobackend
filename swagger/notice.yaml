@@ -21,6 +21,28 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /notice/createNoticeAll:
+    post:
+      tags:
+        - notice
+      summary: 모든 회원 정보의 알림 설정 정보를 생성한다. (함부로 사용하지 말것 !!!!!!!!!!)
+      description: 모든 회원 정보의 알림 설정 정보를 생성한다. (함부로 사용하지 말것 !!!!!!!!!!)
+      operationId: createNoticeAll
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
   /notice/getNotice:
     post:
       tags:
@@ -66,6 +88,7 @@ paths:
                 - notice_my_post
                 - notice_tag
                 - notice_my_applicant
+                - notice_memobox
                 - notice_alarm
               type: object
               properties:
@@ -87,6 +110,9 @@ paths:
                 notice_my_applicant:
                   type: boolean
                   description: 내 신청서 상태 변경시 알림
+                notice_memobox:
+                  type: boolean
+                  description: 쪽지 알림
                 notice_alarm:
                   type: boolean
                   description: 공지 알림

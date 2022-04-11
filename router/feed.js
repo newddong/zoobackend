@@ -41,7 +41,7 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 
 			feed.feed_medias.forEach(v => {
 				v.tags.forEach(v => {
-					createUserTag(v.user, feed);
+					createUserTag(v.user, feed, req.session.loginUser);
 				});
 			});
 		}
@@ -86,21 +86,68 @@ async function deleteHash(hashKeyword, documentId) {
 	});
 }
 
-async function createUserTag(user, feed) {
+async function createUserTag(user, feed, loginUser) {
 	let feedUserTag = await FeedUserTag.makeNewdoc({
 		type: 'FeedUserTagObject',
 		usertag_feed_id: feed._id,
 		usertag_protect_request_id: feed._id,
 		usertag_user_id: user._id,
 	});
+
+	writer_id = user._id;
 	await feedUserTag.save();
+
+	//알림 내역에 태그 관련 insert
+	let checkNotice = await Notice.model.findOne({notice_user_id: writer_id});
+	if (checkNotice.notice_tag != null && checkNotice.notice_tag) {
+		//게시글을 작성한 사용자와 댓글을 남기는 사람이 같을 경우 알림 메세지를 담지 않는다.
+		if (writer_id != loginUser) {
+			let select_opponent = await User.model.findById(writer_id);
+			let select_loginUser = await User.model.findById(loginUser);
+			let noticeUser = NoticeUser.makeNewdoc({
+				notice_user_receive_id: writer_id,
+				notice_user_related_id: loginUser,
+				notice_user_contents_kor: select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + '님을 태그했습니다.',
+				notice_object: feed._id,
+				notice_object_type: Feed.model.modelName,
+				target_object: feedUserTag._id,
+				target_object_type: FeedUserTag.model.modelName,
+				notice_user_date: Date.now(),
+			});
+			let resultNoticeUser = await noticeUser.save();
+		}
+	}
+
 	console.log('유저 태그 생성', feedUserTag);
 }
 
-async function deleteUserTag(user, feed) {
+async function deleteUserTag(user, feed, loginUser) {
 	let feedUserTag = await FeedUserTag.model
 		.findOneAndUpdate({usertag_feed_id: feed._id, usertag_user_id: user._id}, {$set: {usertag_is_delete: true}}, {new: true})
 		.exec();
+	writer_id = user._id;
+	await feedUserTag.save();
+
+	//알림 내역에 태그 관련 insert
+	let checkNotice = await Notice.model.findOne({notice_user_id: writer_id});
+	if (checkNotice.notice_tag != null && checkNotice.notice_tag) {
+		//게시글을 작성한 사용자와 댓글을 남기는 사람이 같을 경우 알림 메세지를 담지 않는다.
+		if (writer_id != loginUser) {
+			let select_opponent = await User.model.findById(writer_id);
+			let select_loginUser = await User.model.findById(loginUser);
+			let noticeUser = NoticeUser.makeNewdoc({
+				notice_user_receive_id: writer_id,
+				notice_user_related_id: loginUser,
+				notice_user_contents_kor: select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + '님을 태그 삭제했습니다.',
+				notice_object: feed._id,
+				notice_object_type: Feed.model.modelName,
+				target_object: feedUserTag._id,
+				target_object_type: FeedUserTag.model.modelName,
+				notice_user_date: Date.now(),
+			});
+			let resultNoticeUser = await noticeUser.save();
+		}
+	}
 	console.log('유저 태그 삭제', feedUserTag);
 }
 
@@ -376,13 +423,13 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 		receivedTags.forEach(tags => {
 			console.log('생성결과', !tagsInDB.find(tagsInDB => tagsInDB.user._id == tags.user._id));
 			if (!tagsInDB.find(tagsInDB => tagsInDB.user._id == tags.user._id)) {
-				createUserTag(tags.user, targetFeed);
+				createUserTag(tags.user, targetFeed, req.session.loginUser);
 			}
 		});
 		tagsInDB.forEach(tagsInDB => {
 			console.log('삭제결과', !receivedTags.find(tag => tag.user._id == tagsInDB.user._id));
 			if (!receivedTags.find(tag => tag.user._id == tagsInDB.user._id)) {
-				deleteUserTag(tagsInDB.user, targetFeed);
+				deleteUserTag(tagsInDB.user, targetFeed, req.session.loginUser);
 			}
 		});
 		/*FeedMedias에 담긴 피드 태그의 정보를 바탕으로 피드의 태그 정보를 업데이트

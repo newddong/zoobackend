@@ -7,7 +7,7 @@ const NoticeObject = {
 	/** @type { Date} 알림 업데이트 날짜 */
 	notice_update_date: {type: Date, default: Date.now()},
 	/** @type { Boolean} 전체 알림 */
-	notice_all: {type: Boolean, default: false},
+	notice_all: {type: Boolean, default: true},
 
 	/** @type { Boolean} 반려동물의 접종 예정일 알림 */
 	notice_pet_vaccination: {type: Boolean, default: true},
@@ -19,7 +19,9 @@ const NoticeObject = {
 	/** @type { Boolean}  나를 태그하거나 팔로우시 알림 */
 	notice_tag: {type: Boolean, default: true},
 	/** @type { Boolean} 내 신청서 상태 변경시 알림 */
-	notice_my_applicant: {type: Boolean, default: false},
+	notice_my_applicant: {type: Boolean, default: true},
+	/** @type { Boolean} 쪽지 알림 */
+	notice_memobox: {type: Boolean, default: true},
 
 	/** @type { Boolean} 공지 알림 */
 	notice_alarm: {type: Boolean, default: true},
