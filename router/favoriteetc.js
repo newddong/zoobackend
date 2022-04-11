@@ -50,7 +50,7 @@ router.post('/favoriteEtc', (req, res) => {
 
 		//즐겨찾기 컬렉션에서 is delete가 true가 아닌 것만 가져와서 count 확인.
 		let count = await FavoriteEtc.model
-			.findOne({favorite_etc_post_id: mongoose.Types.ObjectId(req.body.post_object_id)})
+			.find({favorite_etc_post_id: mongoose.Types.ObjectId(req.body.post_object_id)})
 			.where('favorite_etc_is_delete')
 			.ne(true)
 			.count();

@@ -42,7 +42,7 @@ router.post('/likeEtc', (req, res) => {
 
 		//좋아요 컬렉션에서 is delete가 true가 아닌 것만 가져와서 count 확인.
 		let count = await LikeEtc.model
-			.findOne({like_etc_post_id: mongoose.Types.ObjectId(req.body.post_object_id)})
+			.find({like_etc_post_id: mongoose.Types.ObjectId(req.body.post_object_id)})
 			.where('like_etc_is_delete')
 			.ne(true)
 			.count();
