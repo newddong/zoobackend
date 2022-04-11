@@ -917,6 +917,25 @@ router.post('/createMemoBox', (req, res) => {
 		});
 
 		let resultMemoBox = await memoBox.save();
+
+		//알림 내역에 쪽지 관련 insert
+		let checkNotice = await Notice.model.findOne({notice_user_id: req.body.memobox_receive_id});
+		if (checkNotice.notice_memobox != null && checkNotice.notice_memobox) {
+			//게시글을 작성한 사용자와 좋아요를 남기는 사람이 같을 경우 알림 메세지를 담지 않는다.
+			let select_opponent = await User.model.findById(req.body.memobox_receive_id);
+			let select_loginUser = await User.model.findById(req.session.loginUser);
+			let message;
+			let noticeUser = NoticeUser.makeNewdoc({
+				notice_user_receive_id: req.body.memobox_receive_id,
+				notice_user_related_id: req.session.loginUser,
+				notice_user_contents_kor: select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + '님에게 쪽지를 보냈습니다.',
+				target_object: resultMemoBox._id,
+				target_object_type: MemoBox.model.modelName,
+				notice_user_date: Date.now(),
+			});
+			let resultNoticeUser = await noticeUser.save();
+		}
+
 		res.json({status: 200, msg: resultMemoBox});
 	});
 });
