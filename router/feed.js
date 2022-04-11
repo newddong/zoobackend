@@ -12,6 +12,7 @@ const NoticeUser = require('../schema/noticeuser');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MEDIA_INFO, ALERT_NOT_VALID_OBJECT_ID} = require('./constants');
+const mongoose = require('mongoose');
 
 //피드 글쓰기
 router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
@@ -450,7 +451,10 @@ router.post('/likeFeed', (req, res) => {
 			return;
 		}
 
-		let is_like = req.body.is_like;
+		//주의 ! (클라이언트에서 넘어오는 값과 스웨거에서 넘어오는 데이터형 확인 필요 !)
+		let is_like;
+		if (typeof req.body.is_like == 'string') is_like = req.body.is_like == 'true' ? true : false;
+		else is_like = req.body.is_like;
 
 		let likeFeed = await LikeFeed.model
 			.findOneAndUpdate(
@@ -460,7 +464,17 @@ router.post('/likeFeed', (req, res) => {
 			)
 			.exec();
 		console.log('논리', typeof is_like);
-		targetFeed = await Feed.model.findOneAndUpdate({_id: targetFeed._id}, {$inc: {feed_like_count: is_like ? 1 : -1}}, {new: true}).exec();
+		// targetFeed = await Feed.model.findOneAndUpdate({_id: targetFeed._id}, {$inc: {feed_like_count: is_like ? 1 : -1}}, {new: true}).exec();
+
+		//좋아요 컬렉션에서 is delete가 true가 아닌 것만 가져와서 count 확인.
+		let count = await LikeFeed.model
+			.find({like_feed_id: mongoose.Types.ObjectId(req.body.feedobject_id)})
+			.where('like_feed_is_delete')
+			.ne(true)
+			.count();
+
+		targetFeed['feed_like_count'] = count;
+		await targetFeed.save();
 
 		let writer_id = targetFeed.feed_writer_id;
 
@@ -472,10 +486,13 @@ router.post('/likeFeed', (req, res) => {
 			if (writer_id != req.session.loginUser) {
 				let select_opponent = await User.model.findById(writer_id);
 				let select_loginUser = await User.model.findById(req.session.loginUser);
+				let message;
+				if (is_like) message = '님의 게시물을 좋아합니다.';
+				else message = "님의 게시물 '좋아요'를 취소했습니다.";
 				let noticeUser = NoticeUser.makeNewdoc({
 					notice_user_receive_id: writer_id,
 					notice_user_related_id: req.session.loginUser,
-					notice_user_contents_kor: select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + '님의 게시물을 좋아합니다.',
+					notice_user_contents_kor: select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + message,
 					notice_object: likeFeed._id,
 					notice_object_type: LikeFeed.model.modelName,
 					target_object: req.body.feedobject_id,
