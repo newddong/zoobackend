@@ -640,8 +640,8 @@ router.post('/followUser', (req, res) => {
 				notice_user_receive_id: req.body.follow_userobject_id,
 				notice_user_related_id: req.session.loginUser,
 				notice_user_contents_kor: select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + '님을 팔로우 하기 시작했습니다.',
-				notice_user_collection: 'follow',
-				notice_user_collection_object_id: follow._id,
+				target_object: follow._id,
+				target_object_type: Follow.model.modelName,
 				notice_user_date: Date.now(),
 			});
 			let resultNoticeUser = await noticeUser.save();
@@ -709,6 +709,24 @@ router.post('/unFollowUser', (req, res) => {
 		// targetUser.user_interests = new Object();
 		// await targetUser.save();
 		// await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_follow_count: -1}});
+
+		//알림 내역에 댓글 관련 insert
+		//알림 내역 중 팔로우 알림 'true' 여부 확인
+		let checkNotice = await Notice.model.findOne({notice_user_id: req.body.follow_userobject_id});
+		if (checkNotice.notice_tag_follower) {
+			let select_opponent = await User.model.findById(req.body.follow_userobject_id);
+			let select_loginUser = await User.model.findById(req.session.loginUser);
+			let noticeUser = NoticeUser.makeNewdoc({
+				notice_user_receive_id: req.body.follow_userobject_id,
+				notice_user_related_id: req.session.loginUser,
+				notice_user_contents_kor: select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + '님의 팔로우를 취소했습니다.',
+				target_object: follow._id,
+				target_object_type: Follow.model.modelName,
+				notice_user_date: Date.now(),
+			});
+			let resultNoticeUser = await noticeUser.save();
+			console.log(resultNoticeUser);
+		}
 
 		res.json({status: 200, msg: follow});
 	});

@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const LikeEtc = require('../schema/likeetc');
+const Notice = require('../schema/notice');
+const NoticeUser = require('../schema/noticeuser');
+const User = require('../schema/user');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
@@ -50,6 +53,41 @@ router.post('/likeEtc', (req, res) => {
 		//타겟 게시물 컬렉션의 좋아요 갯수 입력.
 		targetPost[like_count] = count;
 		await targetPost.save();
+
+		let fieldName = schemaName;
+
+		//보호 요청글에는 좋아요 기능이 없음.
+		// switch (schemaName) {
+		// 	case 'protectrequest':
+		// 		fieldName = 'protect_request';
+		// }
+
+		let writer_id = targetPost[fieldName + '_writer_id'];
+
+		//알림 내역에 좋아요 관련 insert
+		//게시물의 작성자 알림 내역 중 좋아요 알림 'true' 여부 확인
+		let checkNotice = await Notice.model.findOne({notice_user_id: writer_id});
+		if (checkNotice.notice_my_post != null && checkNotice.notice_my_post) {
+			//게시글을 작성한 사용자와 좋아요를 남기는 사람이 같을 경우 알림 메세지를 담지 않는다.
+			if (writer_id != req.session.loginUser) {
+				let select_opponent = await User.model.findById(writer_id);
+				let select_loginUser = await User.model.findById(req.session.loginUser);
+				let message;
+				if (is_like) message = '님의 게시물을 좋아합니다.';
+				else message = "님의 게시물 '좋아요'를 취소했습니다.";
+				let noticeUser = NoticeUser.makeNewdoc({
+					notice_user_receive_id: writer_id,
+					notice_user_related_id: req.session.loginUser,
+					notice_user_contents_kor: select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + message,
+					notice_object: likeEtc._id,
+					notice_object_type: LikeEtc.model.modelName,
+					target_object: targetPost._id,
+					target_object_type: Schema.model.modelName,
+					notice_user_date: Date.now(),
+				});
+				let resultNoticeUser = await noticeUser.save();
+			}
+		}
 
 		res.json({status: 200, msg: {likeEtc: likeEtc, targetPost: targetPost}});
 	});
