@@ -109,7 +109,7 @@ paths:
         - volunteer
       summary: 봉사활동 신청서의 상태를 변경한다.
       description: 봉사활동 신청서의 상태('done'|'notaccept'|'accept'|'waiting'|'cancel')를 변경한다.
-      operationId: getUserVolunteerActivityList
+      operationId: setVolunteerActivityStatus
       requestBody:
         description: 요청 파라메터
         content:
