@@ -5,6 +5,8 @@ const Feed = require('../schema/feed');
 const ShelterAnimal = require('../schema/shelterProtectAnimal');
 const ProtectRequest = require('../schema/protectrequest');
 const VolunteerActivity = require('../schema/volunteerActivityApplicant');
+const Notice = require('../schema/notice');
+const NoticeUser = require('../schema/noticeuser');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {
@@ -137,9 +139,48 @@ router.post('/setVolunteerActivityStatus', (req, res) => {
 		}
 
 		volunteerActivity.volunteer_status = status;
-		await volunteerActivity.save();
+		let newResult = await volunteerActivity.save();
+		let message = '';
 
-		res.json({status: 200, msg: volunteerActivity});
+		switch (status) {
+			case 'accept':
+				message = '승인';
+				break;
+			case 'notaccept':
+				message = '취소(보호소)';
+				break;
+			case 'cancel':
+				message = '활동 취소';
+				break;
+			case 'done':
+				message = '활동 완료';
+				break;
+		}
+
+		for (let i = 0; i < volunteerActivity.volunteer_accompany.length; i++) {
+			applicant_user_id = volunteerActivity.volunteer_accompany[i].member;
+			//알림 내역에 댓글 관련 insert
+			//게시물의 작성자 알림 내역 중 댓글 알림 'true' 여부 확인
+			let checkNotice = await Notice.model.findOne({notice_user_id: applicant_user_id});
+			if (checkNotice.notice_my_applicant != null && checkNotice.notice_my_applicant) {
+				let noticeUser = NoticeUser.makeNewdoc({
+					notice_user_receive_id: applicant_user_id,
+					notice_user_related_id: req.session.loginUser,
+					notice_user_contents_kor:
+						volunteerActivity.volunteer_wish_date[0].toISOString().substr(0, 10) +
+						' 날짜의 봉사활동 신청 상태가 ' +
+						message +
+						'(으)로 변경되었습니다.',
+					target_object: req.body.volunteer_activity_object_id,
+					target_object_type: VolunteerActivity.model.modelName,
+					notice_user_date: Date.now(),
+				});
+				let resultNoticeUser = await noticeUser.save();
+			}
+		}
+
+		// res.json({status: 200, msg: volunteerActivity});
+		res.json({status: 200, msg: newResult});
 	});
 });
 
