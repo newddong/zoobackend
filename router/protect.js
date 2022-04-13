@@ -6,6 +6,8 @@ const ShelterAnimal = require('../schema/shelterProtectAnimal');
 const ProtectRequest = require('../schema/protectrequest');
 const ProtectActivity = require('../schema/protectionActivityApplicant');
 const VolunteerActivity = require('../schema/volunteerActivityApplicant');
+const Notice = require('../schema/notice');
+const NoticeUser = require('../schema/noticeuser');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {
@@ -185,7 +187,7 @@ router.post('/setProtectActivityStatus', (req, res) => {
 		// }
 
 		const userType = req.session.user_type;
-		const statusList = ['accept', 'denied', 'cancel', 'wait'];
+		const statusList = ['accept', 'denied', 'cancel', 'wait', 'done'];
 		const targetStatus = req.body.protect_act_status; //요청
 
 		if (!statusList.some(v => v == targetStatus)) {
@@ -207,7 +209,45 @@ router.post('/setProtectActivityStatus', (req, res) => {
 		protectActivity.protect_act_status = targetStatus;
 		await protectActivity.save();
 
+		applicant_user_id = protectActivity.protect_act_applicant_id;
+		let message = '';
+		switch (targetStatus) {
+			case 'accept':
+				message = '승인';
+				break;
+			case 'denied':
+				message = '거절(보호소)';
+				break;
+			case 'cancel':
+				message = '취소(사용자)';
+				break;
+			case 'done':
+				message = '완료';
+				break;
+		}
+
+		//알림 내역에 보호활동 관련 insert
+		let checkNotice = await Notice.model.findOne({notice_user_id: applicant_user_id});
+		if (checkNotice.notice_my_applicant != null && checkNotice.notice_my_applicant) {
+			let noticeUser = NoticeUser.makeNewdoc({
+				notice_user_receive_id: applicant_user_id,
+				notice_user_related_id: req.session.loginUser,
+				notice_user_contents_kor: '보호 활동 신청이 ' + message + '(으)로 변경되었습니다.',
+				target_object: req.body.protect_act_object_id,
+				target_object_type: ProtectActivity.model.modelName,
+				notice_user_date: Date.now(),
+			});
+			let resultNoticeUser = await noticeUser.save();
+		}
+
 		let protect_act_request_article_id = JSON.stringify(protectActivity.protect_act_request_article_id).replace(/\"/g, '');
+
+		//상태 알림을 하기 위해 다른 신청자들의 리스트를 가져옴.
+		let protectActivity_others_list = await ProtectActivity.model
+			.find({protect_act_request_article_id: protect_act_request_article_id})
+			.where('protect_act_status')
+			.ne('accept')
+			.lean();
 
 		//해당 동물 보호 게시글에 신청한 다른 신청자들의 신청서 컬렉션에 protect_act_status가 완료로 변경
 		let protectActivity_others = await ProtectActivity.model
@@ -216,6 +256,23 @@ router.post('/setProtectActivityStatus', (req, res) => {
 			.ne('accept')
 			.updateMany({$set: {protect_act_status: 'done'}})
 			.exec();
+
+		//알림 내역에 보호활동 관련 insert
+		for (let i = 0; i < protectActivity_others_list.length; i++) {
+			applicant_user_id = protectActivity_others_list[i].protect_act_applicant_id;
+			let checkNotice = await Notice.model.findOne({notice_user_id: protectActivity_others_list[i].protect_act_applicant_id});
+			if (checkNotice.notice_my_applicant != null && checkNotice.notice_my_applicant) {
+				let noticeUser = NoticeUser.makeNewdoc({
+					notice_user_receive_id: applicant_user_id,
+					notice_user_related_id: req.session.loginUser,
+					notice_user_contents_kor: '보호 활동 신청이 ' + '완료(으)로 변경되었습니다.',
+					target_object: req.body.protect_act_object_id,
+					target_object_type: ProtectActivity.model.modelName,
+					notice_user_date: Date.now(),
+				});
+				let resultNoticeUser = await noticeUser.save();
+			}
+		}
 
 		//다른 신청서에 대한 결과값 확인시 아래 주석들을 풀어서 확인할 것!
 		// console.log('protectActivity_others after ==>', protectActivity_others);
