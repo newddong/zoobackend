@@ -55,7 +55,7 @@ router.post('/favoriteEtc', (req, res) => {
 			.ne(true)
 			.count();
 
-		//타겟 게시물 컬렉션의 좋아요 갯수 입력.
+		//타겟 게시물 컬렉션의 즐겨찾기 갯수 입력.
 		targetPost[favorite_count] = count;
 		await targetPost.save();
 

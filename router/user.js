@@ -924,7 +924,6 @@ router.post('/createMemoBox', (req, res) => {
 			//게시글을 작성한 사용자와 좋아요를 남기는 사람이 같을 경우 알림 메세지를 담지 않는다.
 			let select_opponent = await User.model.findById(req.body.memobox_receive_id);
 			let select_loginUser = await User.model.findById(req.session.loginUser);
-			let message;
 			let noticeUser = NoticeUser.makeNewdoc({
 				notice_user_receive_id: req.body.memobox_receive_id,
 				notice_user_related_id: req.session.loginUser,

@@ -156,6 +156,9 @@ const UserObject = {
 
 	/** @type {Array.<String>} 반려동물 가족계정 */
 	pet_family: [{type: Schema.Types.ObjectId, ref: 'UserObject'}],
+
+	/** @type {Array.<String>} 유저 즐겨찾기 갯수 */
+	user_favorite_count: {type: Number, default: 0},
 };
 
 /** @type {mongoose.Schema} */
