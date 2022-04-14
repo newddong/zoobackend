@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const FavoriteEtcObject = {
 	/** @type { String} 즐겨찾기를 누른 게시물의 오브젝트 아이디 */
-	favorite_etc_post_id: {type: String},
+	favorite_etc_target_object_id: {type: String},
 	/** @type { String} 즐겨찾기를 누른 유저 */
 	favorite_etc_user_id: {type: String, ref: 'UserObject'},
 	/** @type { String} 즐겨찾기를 누른 컬렉션 */

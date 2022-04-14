@@ -12,15 +12,15 @@ function makeSchema(str) {
 }
 
 //즐겨찾기 설정/취소 (피드외에 신규 추가되는 모든 게시물의 좋아요&취소를 다룸)
-router.post('/favoriteEtc', (req, res) => {
+router.post('/setFavoriteEtc', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let collectionName = req.body.collectionName;
 		let schemaName = makeSchema(collectionName);
 		const Schema = require('../schema/' + schemaName);
 
-		let targetPost = await Schema.model.findById(req.body.post_object_id);
+		let targetObject = await Schema.model.findById(req.body.target_object_id);
 
-		if (!targetPost) {
+		if (!targetObject) {
 			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
 		}
@@ -42,7 +42,7 @@ router.post('/favoriteEtc', (req, res) => {
 		//즐겨찾기 컬렉션 데이터 insert 혹은 update.
 		let favoriteEtc = await FavoriteEtc.model
 			.findOneAndUpdate(
-				{favorite_etc_post_id: targetPost._id, favorite_etc_user_id: req.session.loginUser},
+				{favorite_etc_target_object_id: targetObject._id, favorite_etc_user_id: req.session.loginUser},
 				{$set: {favorite_etc_collection_name: req.body.collectionName, favorite_etc_update_date: Date.now(), favorite_etc_is_delete: !is_favorite}},
 				{new: true, upsert: true},
 			)
@@ -50,16 +50,16 @@ router.post('/favoriteEtc', (req, res) => {
 
 		//즐겨찾기 컬렉션에서 is delete가 true가 아닌 것만 가져와서 count 확인.
 		let count = await FavoriteEtc.model
-			.find({favorite_etc_post_id: mongoose.Types.ObjectId(req.body.post_object_id)})
+			.find({favorite_etc_target_object_id: mongoose.Types.ObjectId(req.body.post_object_id)})
 			.where('favorite_etc_is_delete')
 			.ne(true)
 			.count();
 
 		//타겟 게시물 컬렉션의 즐겨찾기 갯수 입력.
-		targetPost[favorite_count] = count;
-		await targetPost.save();
+		targetObject[favorite_count] = count;
+		await targetObject.save();
 
-		res.json({status: 200, msg: {favoriteEtc: favoriteEtc, targetPost: targetPost}});
+		res.json({status: 200, msg: {favoriteEtc: favoriteEtc, targetObject: targetObject}});
 	});
 });
 
@@ -95,7 +95,7 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 				favorite_etc_is_delete: false,
 				favorite_etc_collection_name: collectionName,
 			})
-			.populate({path: 'favorite_etc_post_id', model: Schema.model.modelName, populate: writer_id})
+			.populate({path: 'favorite_etc_target_object_id', model: Schema.model.modelName, populate: writer_id})
 			.sort('-_id')
 			.lean();
 

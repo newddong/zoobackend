@@ -9,6 +9,7 @@ const Address = require('../schema/address');
 const MemoBox = require('../schema/memobox');
 const Notice = require('../schema/notice');
 const NoticeUser = require('../schema/noticeuser');
+const FavoriteEtc = require('../schema/favoriteetc');
 const ShelterProtect = require('../schema/shelterProtectAnimal');
 
 const {controller, controllerLoggedIn} = require('./controller');
@@ -195,15 +196,20 @@ router.post('/getUserProfile', (req, res) => {
 		}
 
 		let follow = false;
+		let is_favorite = false;
+		let favorite;
 		if (req.session && req.session.loginUser) {
 			follow = await Follow.model.findOne({follow_id: req.session.loginUser, follower_id: userInfo._id}).lean();
+			favorite = await FavoriteEtc.model.findOne({favorite_etc_user_id: req.session.loginUser, favorite_etc_target_object_id: userInfo._id}).lean();
 		}
 		follow = follow != null && !follow.follow_is_delete;
+		is_favorite = favorite != null && !favorite.favorite_etc_is_delete;
 
 		const profile = {
 			...userInfo,
 			feedList: feedList,
 			is_follow: follow,
+			is_favorite: is_favorite,
 		};
 
 		res.json({status: 200, msg: profile});

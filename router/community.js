@@ -98,7 +98,7 @@ router.post('/getCommunityList', (req, res) => {
 		}
 
 		community = community.map(community => {
-			if (favoritedCommunityList.find(favoritedCommunity => favoritedCommunity.favorite_etc_post_id == community._id)) {
+			if (favoritedCommunityList.find(favoritedCommunity => favoritedCommunity.favorite_etc_target_object_id == community._id)) {
 				return {...community, community_is_favorite: true};
 			} else {
 				return {...community, community_is_favorite: false};
@@ -168,7 +168,7 @@ router.post('/getCommunityListByUserId', (req, res) => {
 		}
 
 		community = community.map(community => {
-			if (favoritedCommunityList.find(favoritedCommunity => favoritedCommunity.favorite_etc_post_id == community._id)) {
+			if (favoritedCommunityList.find(favoritedCommunity => favoritedCommunity.favorite_etc_target_object_id == community._id)) {
 				return {...community, community_is_favorite: true};
 			} else {
 				return {...community, community_is_favorite: false};
@@ -244,6 +244,10 @@ router.post('/getSearchCommunityList', (req, res) => {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
+
+		if (req.session.loginUser != null) console.log(' !=null =============');
+		else console.log(' ==null =============');
+
 		res.json({
 			status: 200,
 			msg: {
