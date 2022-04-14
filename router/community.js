@@ -228,7 +228,7 @@ router.post('/updateAndDeleteCommunity', (req, res) => {
 	});
 });
 
-//카테고리 제목 검색
+//카테고리 검색
 router.post('/getSearchCommunityList', (req, res) => {
 	controller(req, res, async () => {
 		let keyword = req.body.searchKeyword;
@@ -245,8 +245,24 @@ router.post('/getSearchCommunityList', (req, res) => {
 			return;
 		}
 
-		if (req.session.loginUser != null) console.log(' !=null =============');
-		else console.log(' ==null =============');
+		let favoritedCommunityList = [];
+
+		//로그인 상태에서만 is_favorite 표출
+		if (req.session.loginUser) {
+			//내가 즐겨찾기를 누른 데이터 불러오기
+			favoritedCommunityList = await FavoriteEtc.model
+				.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false, favorite_etc_collection_name: 'communityobjects'})
+				.lean();
+
+			//검색 데이터와 내가 즐겨찾기를 누른 데이터 조인해서 is_favorite 체크
+			communityList = communityList.map(communityList => {
+				if (favoritedCommunityList.find(favoritedCommunity => favoritedCommunity.favorite_etc_target_object_id == communityList._id)) {
+					return {...communityList, is_favorite: true};
+				} else {
+					return {...communityList, is_favorite: false};
+				}
+			});
+		}
 
 		res.json({
 			status: 200,
