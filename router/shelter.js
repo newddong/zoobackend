@@ -5,6 +5,7 @@ const Feed = require('../schema/feed');
 const ShelterAnimal = require('../schema/shelterProtectAnimal');
 const ProtectRequest = require('../schema/protectrequest');
 const ProtectActivity = require('../schema/protectionActivityApplicant');
+const FavoriteEtc = require('../schema/favoriteetc');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {
@@ -92,7 +93,7 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos_uri'
 //동물보호요청을 가져온다.(추천 알고리즘이 필요, 지금은 모든 요청 게시물이 다 뜸)
 router.post('/getProtectRequestList', (req, res) => {
 	controller(req, res, async () => {
-		let requestList = ProtectRequest.model.find().where('protect_request_is_delete').ne(true);
+		let requestList = ProtectRequest.model.find().where('protect_request_is_delete').ne(true).lean();
 
 		if (req.body.protect_animal_species) {
 			requestList.find({protect_animal_species: {$regex: req.body.protect_animal_species}});
@@ -118,13 +119,27 @@ router.post('/getProtectRequestList', (req, res) => {
 			requestList.find({$or: [{protect_request_status: 'rescue'}, {protect_request_status: 'discuss'}]});
 		}
 
-		requestList = await requestList.sort('-_id').exec();
-		requestList = requestList.filter(v => v.protect_request_writer_id != null);
-
 		if (requestList.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
+
+		requestList = await requestList.sort('-_id').lean();
+		requestList = requestList.filter(v => v.protect_request_writer_id != null);
+
+		let favoritedList = [];
+		if (req.session.loginUser) {
+			favoritedList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
+
+			requestList = requestList.map(requestList => {
+				if (favoritedList.find(favorited => favorited.favorite_etc_target_object_id == requestList._id)) {
+					return {...requestList, is_favorite: true};
+				} else {
+					return {...requestList, is_favorite: false};
+				}
+			});
+		}
+
 		res.json({status: 200, msg: requestList});
 	});
 });
