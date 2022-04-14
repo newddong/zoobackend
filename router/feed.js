@@ -9,6 +9,7 @@ const FavoriteFeed = require('../schema/favoritefeed');
 const LikeFeed = require('../schema/likefeed');
 const Notice = require('../schema/notice');
 const NoticeUser = require('../schema/noticeuser');
+const FavoriteEtc = require('../schema/favoriteetc');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MEDIA_INFO, ALERT_NOT_VALID_OBJECT_ID} = require('./constants');
@@ -351,10 +352,26 @@ router.post('/getMissingReportList', (req, res) => {
 			});
 		}
 
-		reportMissingList = await reportMissingList.sort('-_id').exec();
 		if (reportMissingList.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
+		}
+		reportMissingList = await reportMissingList.sort('-_id').lean();
+
+		let favoritedFeedList = [];
+
+		//로그인 상태에서만 is_favorite 표출
+		if (req.session.loginUser) {
+			//내가 즐겨찾기를 누른 데이터 불러오기
+			favoritedFeedList = await FavoriteFeed.model.find({favorite_feed_user_id: req.session.loginUser, favorite_feed_is_delete: false}).lean();
+
+			reportMissingList = reportMissingList.map(reportMissingList => {
+				if (favoritedFeedList.find(favoritedFeed => favoritedFeed.favorite_feed_id == reportMissingList._id)) {
+					return {...reportMissingList, is_favorite: true};
+				} else {
+					return {...reportMissingList, is_favorite: false};
+				}
+			});
 		}
 
 		res.json({status: 200, msg: reportMissingList});
