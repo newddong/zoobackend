@@ -56,7 +56,7 @@ paths:
                   description: 조회할 userobject_id
                 collectionName:
                   type: string
-                  enum: ['communityobjects', 'protectrequestobjects']
+                  enum: ['communityobjects', 'protectrequestobjects', 'userobjects']
                   description: 조회할 collectionName
       responses:
         '200':

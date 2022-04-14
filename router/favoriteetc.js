@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const FavoriteEtc = require('../schema/favoriteetc');
 const User = require('../schema/user');
+const Follow = require('../schema/follow');
+const LikeEtc = require('../schema/likeetc');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
@@ -79,6 +81,7 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 		let writer_id = '';
 
 		//모델 이름에 따른 게시물 작성자 populate 설정 변수 지정
+
 		switch (Schema.model.modelName) {
 			case 'CommunityObject':
 				writer_id = 'community_writer_id';
@@ -99,13 +102,50 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 			.sort('-_id')
 			.lean();
 
-		let favoritedList = [];
+		let followList = [];
+		let likedList = [];
+
+		//로그인 했을 경우에만 추가 필드 진행
 		if (req.session.loginUser) {
+			//유저 그룹 형태의 is_follow 추가
+			if (Schema.model.modelName == 'UserObject') {
+				followList = await Follow.model.find({follow_id: req.session.loginUser, follow_is_delete: false}).lean();
+				console.log('followList =>', followList);
+				feedEtclist = feedEtclist.map(feedEtclist => {
+					//둘다 타입이 objectId 형일 경우에는 ObjectId 타입으로 변경해 equals로 비교해야 함 (하나만 ObjectId일 경우에는 불필요)
+					if (
+						followList.find(follow =>
+							mongoose.Types.ObjectId(follow.follower_id).equals(mongoose.Types.ObjectId(feedEtclist.favorite_etc_target_object_id._id)),
+						)
+					) {
+						return {...feedEtclist, is_follow: true};
+					} else {
+						return {...feedEtclist, is_follow: false};
+					}
+				});
+			}
+			//게시판 is_like 추가
+			if (Schema.model.modelName == 'CommunityObject') {
+				//로그인한 내 중심의 좋아요 정보 가져오기
+				likedList = await LikeEtc.model.find({like_etc_user_id: req.session.loginUser, like_etc_is_delete: false}).lean();
+				//지정한 유저의 좋아요 정보 가져오기
+				feedEtclist = feedEtclist.map(feedEtclist => {
+					if (likedList.find(liked => liked.like_etc_post_id == feedEtclist.favorite_etc_target_object_id._id)) {
+						return {...feedEtclist, is_like: true};
+					} else {
+						return {...feedEtclist, is_like: false};
+					}
+				});
+			}
+
+			//모든 그룹에는 is_favorite 추가 (ProtectRequestObject는 is_favorite만 있음.)
+			//로그인한 내 중심의 즐겨찾기 정보 가져오기
 			favoritedList = await FavoriteEtc.model
 				.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false, favorite_etc_collection_name: collectionName})
 				.lean();
-
+			//지정한 유저의 즐겨찾기 정보 가져오기
 			feedEtclist = feedEtclist.map(feedEtclist => {
+				//feedEtclist 생성시 populate에 favorite_etc_target_object_id 가 연결되어 있어 아래 비교문에서 ._id로 접근
 				if (favoritedList.find(favorited => favorited.favorite_etc_target_object_id == feedEtclist.favorite_etc_target_object_id._id)) {
 					return {...feedEtclist, is_favorite: true};
 				} else {
@@ -113,7 +153,6 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 				}
 			});
 		}
-
 		res.json({status: 200, msg: feedEtclist});
 	});
 });
