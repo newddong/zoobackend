@@ -66,7 +66,7 @@ router.post('/setFavoriteEtc', (req, res) => {
 //특정 유저의 즐겨찾기 목록 조회 (피드를 제외한 타 게시물)
 router.post('/getFavoriteEtcListByUserId', (req, res) => {
 	controller(req, res, async () => {
-		let user = await User.model.findById(req.body.userobject_id);
+		let user = await User.model.findById(req.body.userobject_id).lean();
 		if (!user) {
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
@@ -98,6 +98,21 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 			.populate({path: 'favorite_etc_target_object_id', model: Schema.model.modelName, populate: writer_id})
 			.sort('-_id')
 			.lean();
+
+		let favoritedList = [];
+		if (req.session.loginUser) {
+			favoritedList = await FavoriteEtc.model
+				.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false, favorite_etc_collection_name: collectionName})
+				.lean();
+
+			feedEtclist = feedEtclist.map(feedEtclist => {
+				if (favoritedList.find(favorited => favorited.favorite_etc_target_object_id == feedEtclist.favorite_etc_target_object_id._id)) {
+					return {...feedEtclist, is_favorite: true};
+				} else {
+					return {...feedEtclist, is_favorite: false};
+				}
+			});
+		}
 
 		res.json({status: 200, msg: feedEtclist});
 	});
