@@ -13,7 +13,7 @@ function makeSchema(str) {
 	return str.substr(0, index);
 }
 
-//즐겨찾기 설정/취소 (피드외에 신규 추가되는 모든 게시물의 좋아요&취소를 다룸)
+//즐겨찾기 설정/취소 (피드외에 신규 추가되는 모든 게시물의 즐겨찾기를 다룸)
 router.post('/setFavoriteEtc', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let collectionName = req.body.collectionName;
@@ -154,6 +154,52 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 			});
 		}
 		res.json({status: 200, msg: feedEtclist});
+	});
+});
+
+//즐겨찾기 리스트로 취소 (피드외에 신규 추가되는 모든 게시물 및 사용자를 다룸)
+router.post('/setFavoriteEtcCancelList', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let collectionName = req.body.collectionName;
+		let schemaName = makeSchema(collectionName);
+		const Schema = require('../schema/' + schemaName);
+
+		let str_targetList = JSON.stringify(req.body.target_object_id);
+		// 문자열 제거
+		let targetList = str_targetList.replace(/[\[\]\"]/gi, '').split(',');
+		let result = await FavoriteEtc.model
+			.find()
+			.where('favorite_etc_target_object_id')
+			.in(targetList)
+			.updateMany({$set: {favorite_etc_is_delete: true}})
+			.sort('-_id')
+			.lean();
+
+		let fieldName = schemaName;
+
+		switch (schemaName) {
+			case 'protectrequest':
+				fieldName = 'protect_request';
+		}
+
+		let favorite_count = fieldName + '_favorite_count';
+
+		for (let i = 0; i < targetList.length; i++) {
+			let targetObject = await Schema.model.findById(targetList[i]);
+
+			//즐겨찾기 컬렉션에서 is delete가 true가 아닌 것만 가져와서 count 확인.
+			let count = await FavoriteEtc.model
+				.find({favorite_etc_target_object_id: mongoose.Types.ObjectId(targetList[i])})
+				.where('favorite_etc_is_delete')
+				.ne(true)
+				.count();
+
+			//타겟 게시물 컬렉션의 즐겨찾기 갯수 입력.
+			targetObject[favorite_count] = count;
+			await targetObject.save();
+		}
+
+		res.json({status: 200, msg: result});
 	});
 });
 
