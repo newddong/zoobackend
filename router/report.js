@@ -38,8 +38,8 @@ router.post('/createReport', (req, res) => {
 	});
 });
 
-//신고하기 상태 불러오기
-router.post('/getReportStatus', (req, res) => {
+//신고하기 정보 불러오기
+router.post('/getReportInfo', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let report = await Report.model
 			.findOne({report_user_id: req.session.loginUser, report_target_object_id: req.body.report_target_object_id})

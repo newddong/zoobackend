@@ -40,13 +40,13 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-  /report/getReportStatus:
+  /report/getReportInfo:
     post:
       tags:
         - report
-      summary: 신고하기 상태 불러오기
-      description: 신고하기 상태 불러오기
-      operationId: getReportStatus
+      summary: 신고하기 정보 불러오기
+      description: 신고하기 정보 불러오기
+      operationId: getReportInfo
       requestBody:
         description: 신고하기 상태 불러오기
         content:
@@ -58,7 +58,7 @@ paths:
               properties:
                 report_target_object_id:
                   type: string
-                  description: 게시물 또는 댓글 object ID
+                  description: 신고한 게시물 object_id
       responses:
         '200':
           $ref: '#/components/responses/200'

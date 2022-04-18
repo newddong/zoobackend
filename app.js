@@ -95,6 +95,7 @@ const termsofservice = require('./router/termsofservice');
 const noticeuser = require('./router/noticeuser');
 const likeetc = require('./router/likeetc');
 const favoriteetc = require('./router/favoriteetc');
+const report = require('./router/report');
 const router = express.Router();
 const dbconnection = database();
 
@@ -122,6 +123,7 @@ app.use('/termsofservice', termsofservice);
 app.use('/noticeuser', noticeuser);
 app.use('/likeetc', likeetc);
 app.use('/favoriteetc', favoriteetc);
+app.use('/report', report);
 app.use('/', router);
 
 //Launch Server

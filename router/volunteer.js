@@ -159,8 +159,7 @@ router.post('/setVolunteerActivityStatus', (req, res) => {
 
 		for (let i = 0; i < volunteerActivity.volunteer_accompany.length; i++) {
 			applicant_user_id = volunteerActivity.volunteer_accompany[i].member;
-			//알림 내역에 댓글 관련 insert
-			//게시물의 작성자 알림 내역 중 댓글 알림 'true' 여부 확인
+			//알림 내역에 신청서 관련 insert
 			let checkNotice = await Notice.model.findOne({notice_user_id: applicant_user_id});
 			if (checkNotice.notice_my_applicant != null && checkNotice.notice_my_applicant) {
 				let noticeUser = NoticeUser.makeNewdoc({
