@@ -20,6 +20,9 @@ const NoticeUserObject = {
 	/** @type { String} 타겟 대상 Object type */
 	target_object_type: {type: String},
 
+	/** @type { String} 신청서일 경우 승인된 사용자 UserObjectID */
+	notice_approved_applicant: {type: Schema.Types.ObjectId, ref: 'UserObject'},
+
 	/** @type { Date} 소식 업데이트 날짜 */
 	notice_user_date: {type: Date, default: Date.now()},
 };

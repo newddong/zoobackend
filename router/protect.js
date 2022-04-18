@@ -214,7 +214,8 @@ router.post('/setProtectActivityStatus', (req, res) => {
 		protectActivity.protect_act_status = targetStatus;
 		await protectActivity.save();
 
-		applicant_user_id = protectActivity.protect_act_applicant_id;
+		let applicant_user_id = protectActivity.protect_act_applicant_id;
+		let approved_applicant = applicant_user_id;
 		let message = '';
 		switch (targetStatus) {
 			case 'accept':
@@ -240,6 +241,7 @@ router.post('/setProtectActivityStatus', (req, res) => {
 				notice_user_contents_kor: '보호 활동 신청이 ' + message + '(으)로 변경되었습니다.',
 				target_object: req.body.protect_act_object_id,
 				target_object_type: ProtectActivity.model.modelName,
+				notice_approved_applicant: approved_applicant,
 				notice_user_date: Date.now(),
 			});
 			let resultNoticeUser = await noticeUser.save();
@@ -273,6 +275,7 @@ router.post('/setProtectActivityStatus', (req, res) => {
 					notice_user_contents_kor: '보호 활동 신청이 ' + '완료(으)로 변경되었습니다.',
 					target_object: req.body.protect_act_object_id,
 					target_object_type: ProtectActivity.model.modelName,
+					notice_approved_applicant: approved_applicant,
 					notice_user_date: Date.now(),
 				});
 				let resultNoticeUser = await noticeUser.save();
