@@ -1,0 +1,70 @@
+paths:
+  /report/createReport:
+    post:
+      tags:
+        - report
+      summary: 신고하기 생성
+      description: 신고하기 생성
+      operationId: createReport
+      requestBody:
+        description: 신고하기 생성
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - report_target_object_id
+                - report_target_object_type
+                - report_target_reason
+                - report_is_delete
+              properties:
+                report_target_object_id:
+                  type: string
+                  description: 신고대상 오브젝트 ID
+                report_target_object_type:
+                  type: string
+                  enum: ['feedobjects', 'communityobjects', 'memoboxobjects', 'commentobjects']
+                  description: 신고대상 오브젝트 타입
+                report_target_reason:
+                  type: string
+                  description: 신고이유
+                report_is_delete:
+                  type: boolean
+                  description: 신고 (false), 취소(true)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /report/getReportStatus:
+    post:
+      tags:
+        - report
+      summary: 신고하기 상태 불러오기
+      description: 신고하기 상태 불러오기
+      operationId: getReportStatus
+      requestBody:
+        description: 신고하기 상태 불러오기
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - report_target_object_id
+              properties:
+                report_target_object_id:
+                  type: string
+                  description: 게시물 또는 댓글 object ID
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
