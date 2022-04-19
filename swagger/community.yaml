@@ -338,3 +338,31 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /community/getCommunityByObjectId:
+    post:
+      tags:
+        - community
+      summary: 커뮤니티 오브젝트 ID로 상세 정보 불러오기
+      description: 커뮤니티 오브젝트 ID로 상세 정보 불러오기
+      operationId: getCommunityByObjectId
+      requestBody:
+        description: 커뮤니티 요청 파라메터
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - community_object_id
+              properties:
+                community_object_id:
+                  type: string
+                  description: 커뮤니티 게시물 object _id
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

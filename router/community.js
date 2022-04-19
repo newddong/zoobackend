@@ -274,4 +274,50 @@ router.post('/getSearchCommunityList', (req, res) => {
 	});
 });
 
+//커뮤니티 오브젝트 ID로 상세 정보 불러오기
+router.post('/getCommunityByObjectId', (req, res) => {
+	controller(req, res, async () => {
+		let community = await Community.model
+			.findById(req.body.community_object_id)
+			.populate('community_writer_id')
+			.populate('community_avatar_id')
+			.where('community_is_delete')
+			.ne(true)
+			.sort('-_id')
+			.lean();
+
+		if (!community) {
+			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
+			return;
+		}
+
+		let likedCommunityList = [];
+		if (req.session.loginUser) {
+			likedCommunityList = await LikeEtc.model.find({like_etc_user_id: req.session.loginUser, like_etc_is_delete: false}).lean();
+		}
+
+		if (likedCommunityList.find(likedCommunity => likedCommunity.like_etc_post_id == community._id)) {
+			community.community_is_like = true;
+		} else {
+			community.community_is_like = false;
+		}
+
+		let favoritedCommunityList = [];
+		if (req.session.loginUser) {
+			favoritedCommunityList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
+		}
+
+		if (favoritedCommunityList.find(favoritedCommunity => favoritedCommunity.favorite_etc_target_object_id == community._id)) {
+			community.community_is_favorite = true;
+		} else {
+			community.community_is_favorite = false;
+		}
+
+		res.json({
+			status: 200,
+			msg: community,
+		});
+	});
+});
+
 module.exports = router;
