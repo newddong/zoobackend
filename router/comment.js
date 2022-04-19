@@ -291,7 +291,7 @@ router.post('/likeComment', (req, res) => {
 
 //커뮤니티 게시글 댓글 리스트 불러오기
 router.post('/getCommentListByCommunityId', (req, res) => {
-	controllerLoggedIn(req, res, async () => {
+	controller(req, res, async () => {
 		let community = await Community.model.findById(req.body.community_object_id).exec();
 
 		if (!community) {
