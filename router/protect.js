@@ -21,6 +21,7 @@ const {
 	ALERT_NOT_VALID_TARGER_OBJECT_ID,
 	REQUEST_PARAMETER_NOT_VALID,
 } = require('./constants');
+const mongoose = require('mongoose');
 
 //유저의 보호동물(프로필에서 보여지는) 목록 조회
 router.post('/getUserProtectAnimalList', (req, res) => {
@@ -167,9 +168,26 @@ router.post('/getApplyDetailById', (req, res) => {
 			return;
 		}
 
+		protect_act_request_article_id = applyDetail.protect_act_request_article_id._id;
+
+		protectActivityList = await ProtectActivity.model.find({protect_act_request_article_id: protect_act_request_article_id});
+		let approved_applicant_id;
+		for (let i = 0; i < protectActivityList.length; i++) {
+			if (protectActivityList[i].protect_act_status == 'accept') {
+				approved_applicant_id = protectActivityList[i].protect_act_applicant_id;
+				break;
+			}
+		}
+
+		//_doc외에 불필요한 정보가 출력되어 .doc 내용만 출력
+		const result = {
+			...applyDetail._doc,
+			approved_applicant: approved_applicant_id,
+		};
+
 		res.json({
 			status: 200,
-			msg: applyDetail,
+			msg: result,
 		});
 	});
 });
