@@ -213,6 +213,20 @@ router.post('/getProtectRequestListByShelterId', (req, res) => {
 			return;
 		}
 
+		let favoritedProtectRequestList = [];
+		if (req.session.loginUser) {
+			favoritedProtectRequestList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
+			protectRequestList = protectRequestList.map(protectRequestList => {
+				if (
+					favoritedProtectRequestList.find(favoritedProtectRequest => favoritedProtectRequest.favorite_etc_target_object_id == protectRequestList._id)
+				) {
+					return {...protectRequestList._doc, is_favorite: true};
+				} else {
+					return {...protectRequestList._doc, is_favorite: false};
+				}
+			});
+		}
+
 		res.json({status: 200, msg: protectRequestList});
 	});
 });
