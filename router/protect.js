@@ -8,6 +8,7 @@ const ProtectActivity = require('../schema/protectionActivityApplicant');
 const VolunteerActivity = require('../schema/volunteerActivityApplicant');
 const Notice = require('../schema/notice');
 const NoticeUser = require('../schema/noticeuser');
+const FavoriteEtc = require('../schema/favoriteetc');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {
@@ -97,12 +98,26 @@ router.post('/getAppliesRecord', (req, res) => {
 			.populate({path: 'protect_act_request_article_id', populate: 'protect_request_writer_id'})
 			.sort('-_id')
 			.exec();
+
 		//봉사활동 신청만 있을 경우에도 표출되어야 하므로 return 시키지 않고 진행
 		// if (applies.length < 1) {
 		// 	res.json({status: 404, msg: ALERT_NO_RESULT});
 		// 	return;
 		// }
-		console.log('req.session.loginUser =>', req.session.loginUser);
+
+		let favoritedAppliesList = [];
+		if (req.session.loginUser) {
+			favoritedAppliesList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
+		}
+
+		applies = applies.map(applies => {
+			if (favoritedAppliesList.find(favoritedApplies => favoritedApplies.favorite_etc_target_object_id == applies._id)) {
+				return {...applies._doc, is_favorite: true};
+			} else {
+				return {...applies._doc, is_favorite: false};
+			}
+		});
+
 		let volunteerActivityList = await VolunteerActivity.model
 			.find({
 				// volunteer_accompany: {$elemMatch: {$eq: req.session.loginUser}},
@@ -113,7 +128,7 @@ router.post('/getAppliesRecord', (req, res) => {
 			.sort('-_id')
 			.limit(volunteer_number)
 			.exec();
-		console.log('volunteerActivityList =>', volunteerActivityList);
+
 		res.json({
 			status: 200,
 			msg: {
