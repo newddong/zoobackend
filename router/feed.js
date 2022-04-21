@@ -381,11 +381,21 @@ router.post('/getMissingReportList', (req, res) => {
 //피드,실종,제보 게시글 상세정보 가져오기
 router.post('/getFeedDetailById', (req, res) => {
 	controller(req, res, async () => {
-		let feed = await Feed.model.findById(req.body.feedobject_id).populate('feed_writer_id').exec();
+		let feed = await Feed.model.findById(req.body.feedobject_id).populate('feed_writer_id').lean();
 		if (!feed) {
 			//res.status(404);
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
+		}
+
+		let favoritedList = [];
+		if (req.session.loginUser) {
+			favoritedList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
+			if (favoritedList.find(favoritedList => favoritedList.favorite_etc_target_object_id == feed.feed_writer_id._id)) {
+				feed.is_favorite = true;
+			} else {
+				feed.is_favorite = false;
+			}
 		}
 
 		//res.status(200);
