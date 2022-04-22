@@ -406,7 +406,6 @@ router.post('/getProtectApplicantList', (req, res) => {
 router.post('/getProtectRequestByProtectRequestId', (req, res) => {
 	controller(req, res, async () => {
 		let protectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id).populate('protect_request_writer_id').lean();
-
 		if (!protectRequest) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
@@ -415,7 +414,11 @@ router.post('/getProtectRequestByProtectRequestId', (req, res) => {
 		let favoritedProtectRequest = [];
 		if (req.session.loginUser) {
 			favoritedProtectRequest = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
-			if (favoritedProtectRequest.find(favoritedProtectRequest => favoritedProtectRequest.favorite_etc_target_object_id == protectRequest._id)) {
+			if (
+				favoritedProtectRequest.find(
+					favoritedProtectRequest => favoritedProtectRequest.favorite_etc_target_object_id == protectRequest.protect_request_writer_id._id,
+				)
+			) {
 				protectRequest.protect_request_writer_id.is_favorite = true;
 			} else {
 				protectRequest.protect_request_writer_id.is_favorite = false;
