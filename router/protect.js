@@ -105,19 +105,6 @@ router.post('/getAppliesRecord', (req, res) => {
 		// 	return;
 		// }
 
-		let favoritedAppliesList = [];
-		if (req.session.loginUser) {
-			favoritedAppliesList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
-		}
-
-		applies = applies.map(applies => {
-			if (favoritedAppliesList.find(favoritedApplies => favoritedApplies.favorite_etc_target_object_id == applies._id)) {
-				return {...applies._doc, is_favorite: true};
-			} else {
-				return {...applies._doc, is_favorite: false};
-			}
-		});
-
 		let volunteerActivityList = await VolunteerActivity.model
 			.find({
 				// volunteer_accompany: {$elemMatch: {$eq: req.session.loginUser}},
