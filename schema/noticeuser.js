@@ -22,6 +22,8 @@ const NoticeUserObject = {
 
 	/** @type { String} 신청서일 경우 승인된 사용자 UserObjectID */
 	notice_approved_applicant: {type: Schema.Types.ObjectId, ref: 'UserObject'},
+	/** @type { String} 대댓글일 경우 부모 댓글 ID */
+	notice_comment_parent: {type: Schema.Types.ObjectId, ref: 'CommentObject'},
 
 	/** @type { Date} 소식 업데이트 날짜 */
 	notice_user_date: {type: Date, default: Date.now()},

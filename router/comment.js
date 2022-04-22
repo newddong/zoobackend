@@ -11,6 +11,7 @@ const Notice = require('../schema/notice');
 const NoticeUser = require('../schema/noticeuser');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
+const mongoose = require('mongoose');
 
 //댓글 대댓글 작성
 router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) => {
@@ -93,19 +94,57 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 		//TODO : 댓글이 달린 보호요청 게시물의 작성자 설정(Secure기능을 이용하기 위함)
 		(await parentComment) && parentComment.save();
 		let newResult = await comment.save();
+		let existsParentComment = false;
 
 		//알림 내역에 댓글 관련 insert
 		//게시물의 작성자 알림 내역 중 댓글 알림 'true' 여부 확인
 		let checkNotice = await Notice.model.findOne({notice_user_id: writer_id});
 		if (checkNotice != null && checkNotice.notice_my_post != null && checkNotice.notice_my_post) {
-			//게시글을 작성한 사용자와 댓글을 남기는 사람이 같을 경우 알림 메세지를 담지 않는다.
-			if (writer_id != req.session.loginUser) {
+			//부모 댓글과 대댓글을 남긴 사람이 같을 경우 게시물에 대한 알림 메세지를 담지 않는다.
+			if (
+				parentComment != undefined &&
+				parentComment._id != req.session.loginUser &&
+				req.body.commentobject_id != null &&
+				!mongoose.Types.ObjectId(parentComment.comment_writer_id).equals(mongoose.Types.ObjectId(req.session.loginUser))
+			) {
+				let select_opponent = await User.model.findById(parentComment.comment_writer_id);
+				let select_loginUser = await User.model.findById(req.session.loginUser);
+				let noticeUser = NoticeUser.makeNewdoc({
+					notice_user_receive_id: parentComment.comment_writer_id,
+					notice_user_related_id: req.session.loginUser,
+					notice_user_contents_kor:
+						select_loginUser.user_nickname +
+						'님이 ' +
+						select_opponent.user_nickname +
+						'님의 댓글에 댓글을 남겼습니다. -댓글내용:' +
+						req.body.comment_contents,
+					notice_object: newResult._id,
+					notice_object_type: Comment.model.modelName,
+					target_object: targetObject_ID,
+					target_object_type: targetObject.model.modelName,
+					notice_comment_parent: parentComment._id,
+					notice_user_date: Date.now(),
+				});
+				let resultNoticeUser = await noticeUser.save();
+			}
+			//게시글을 작성한 사용자와 댓글을 남기는 사람이 같을 경우 게시물에 대한 알림 메세지를 담지 않는다.
+			if (
+				(writer_id != req.session.loginUser && parentComment == undefined) ||
+				(parentComment != undefined &&
+					parentComment.comment_writer_id != req.session.loginUser &&
+					!mongoose.Types.ObjectId(writer_id).equals(mongoose.Types.ObjectId(parentComment.comment_writer_id)))
+			) {
 				let select_opponent = await User.model.findById(writer_id);
 				let select_loginUser = await User.model.findById(req.session.loginUser);
 				let noticeUser = NoticeUser.makeNewdoc({
 					notice_user_receive_id: writer_id,
 					notice_user_related_id: req.session.loginUser,
-					notice_user_contents_kor: select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + '님의 게시물에 댓글을 남겼습니다.',
+					notice_user_contents_kor:
+						select_loginUser.user_nickname +
+						'님이 ' +
+						select_opponent.user_nickname +
+						'님의 게시물에 댓글을 남겼습니다. -댓글내용:' +
+						req.body.comment_contents,
 					notice_object: newResult._id,
 					notice_object_type: Comment.model.modelName,
 					target_object: targetObject_ID,
@@ -114,6 +153,8 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 				});
 				let resultNoticeUser = await noticeUser.save();
 			}
+
+			req.body.commentobject_id;
 		}
 
 		res.json({status: 200, msg: newResult});
