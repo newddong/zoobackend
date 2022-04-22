@@ -25,23 +25,29 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 			comment_is_secure: req.body.comment_is_secure,
 			comment_writer_id: req.session.loginUser,
 		});
+
+		//대댓글 작성하기
 		let parentComment;
 		if (req.body.commentobject_id && req.body.commentobject_id.length > 0) {
 			parentComment = await Comment.model.findById(req.body.commentobject_id);
-			if (parentComment) comment.comment_parent_writer_id = parentComment.comment_writer_id;
-			parentComment.children_count++;
-			comment.comment_parent = req.body.commentobject_id;
+			if (parentComment) {
+				children_count = await Comment.model.find({comment_parent: req.body.commentobject_id}).where('comment_is_delete').ne(true).count();
+				comment.comment_parent_writer_id = parentComment.comment_writer_id;
+				parentComment.children_count = children_count + 1;
+				comment.comment_parent = req.body.commentobject_id;
+			}
 		} //부모 코멘트의 작성자를 설정(Secure기능을 이용하기 위함)
 
 		if (req.body.feedobject_id && req.body.feedobject_id.length > 0) {
 			comment.comment_feed_id = req.body.feedobject_id;
 			targetObject_ID = req.body.feedobject_id;
 			let targetFeed = await Feed.model.findById(req.body.feedobject_id);
+			let comment_cnt = await Comment.model.find({comment_feed_id: req.body.feedobject_id}).where('comment_is_delete').ne(true).count();
 			if (targetFeed) {
 				targetFeed.feed_recent_comment.comment_id = comment._id; //게시물에 달린 최신 댓글 설정(1개까지)
 				targetFeed.feed_recent_comment.comment_user_nickname = req.session.user_nickname; //코멘트 작성자의 닉네임
 				targetFeed.feed_recent_comment.comment_contents = comment.comment_contents; //코멘트 내용
-				targetFeed.feed_comment_count++;
+				targetFeed.feed_comment_count = comment_cnt + 1;
 				comment.comment_feed_writer_id = targetFeed.feed_writer_id; //댓글이 달린 피드의 작성자를 설정(Secure기능을 이용하기 위함)
 				writer_id = targetFeed.feed_writer_id;
 			}
@@ -51,11 +57,16 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 			comment.comment_protect_request_id = req.body.protect_request_object_id;
 			targetObject_ID = req.body.protect_request_object_id;
 			let targetProtectRequest = await ProtectRequest.model.findById(req.body.protect_request_object_id);
+			let comment_cnt = await Comment.model
+				.find({comment_protect_request_id: req.body.protect_request_object_id})
+				.where('comment_is_delete')
+				.ne(true)
+				.count();
 			if (targetProtectRequest) {
 				targetProtectRequest.protect_recent_comment.comment_id = comment._id; //게시물에 달린 최신 댓글 설정(1개까지)
 				targetProtectRequest.protect_recent_comment.comment_user_nickname = req.session.user_nickname; //코멘트 작성자의 닉네임
 				targetProtectRequest.protect_recent_comment.comment_contents = comment.comment_contents; //코멘트 내용
-				targetProtectRequest.protect_request_comment_count++;
+				targetProtectRequest.protect_request_comment_count = comment_cnt + 1;
 				comment.comment_protect_request_writer_id = targetProtectRequest.protect_request_writer_id; //댓글이 달린 동물보호 요청 게시물의 작성자를 설정(Secure기능을 이용하기 위함)
 				writer_id = targetProtectRequest.protect_request_writer_id;
 			}
@@ -65,7 +76,7 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 			comment.comment_community_id = req.body.community_object_id;
 			targetObject_ID = req.body.community_object_id;
 			let targetCommunity = await Community.model.findById(req.body.community_object_id);
-			let comment_cnt = await Comment.model.find({comment_community_id: req.body.community_object_id}).count();
+			let comment_cnt = await Comment.model.find({comment_community_id: req.body.community_object_id}).where('comment_is_delete').ne(true).count();
 			if (targetCommunity) {
 				targetCommunity.community_recent_comment.comment_id = comment._id; //게시물에 달린 최신 댓글 설정(1개까지)
 				targetCommunity.community_recent_comment.comment_user_nickname = req.session.user_nickname; //코멘트 작성자의 닉네임
@@ -86,7 +97,7 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 		//알림 내역에 댓글 관련 insert
 		//게시물의 작성자 알림 내역 중 댓글 알림 'true' 여부 확인
 		let checkNotice = await Notice.model.findOne({notice_user_id: writer_id});
-		if (checkNotice.notice_my_post != null && checkNotice.notice_my_post) {
+		if (checkNotice != null && checkNotice.notice_my_post != null && checkNotice.notice_my_post) {
 			//게시글을 작성한 사용자와 댓글을 남기는 사람이 같을 경우 알림 메세지를 담지 않는다.
 			if (writer_id != req.session.loginUser) {
 				let select_opponent = await User.model.findById(writer_id);
@@ -208,7 +219,7 @@ router.post('/getChildCommentList', (req, res) => {
 //댓글 삭제(실제 DB에서 삭제되지는 않음)
 router.post('/deleteComment', (req, res) => {
 	controller(req, res, async () => {
-		let comments = await Comment.model.findById(req.body.commentobject_id).exec();
+		let comments = await Comment.model.findById(req.body.commentobject_id).lean();
 		let comment_writer_id = JSON.stringify(comments.comment_writer_id).replace(/\"/gi, '');
 
 		//로그인 정보와 작성자가 일치한지 확인
@@ -223,6 +234,43 @@ router.post('/deleteComment', (req, res) => {
 			{new: true, upsert: true, setDefaultsOnInsert: true},
 		);
 
+		if (result.comment_protect_request_id != undefined) {
+			let comment_cnt = await Comment.model
+				.find({comment_protect_request_id: result.comment_protect_request_id})
+				.where('comment_is_delete')
+				.ne(true)
+				.count();
+			let resultCount = await ProtectRequest.model.findOneAndUpdate(
+				{_id: comments.comment_protect_request_id},
+				{$set: {protect_request_comment_count: comment_cnt}},
+				{new: true, upsert: true, setDefaultsOnInsert: true},
+			);
+		} else if (result.comment_community_id != undefined) {
+			let comment_cnt = await Comment.model.find({comment_community_id: result.comment_community_id}).where('comment_is_delete').ne(true).count();
+			let resultCount = await Community.model.findOneAndUpdate(
+				{_id: comments.comment_community_id},
+				{$set: {community_comment_count: comment_cnt}},
+				{new: true, upsert: true, setDefaultsOnInsert: true},
+			);
+		} else if (result.comment_feed_id != undefined) {
+			//피드 게시물에 표기되는 댓글 총 개수 재정의
+			let comment_cnt = await Comment.model.find({comment_feed_id: result.comment_feed_id}).where('comment_is_delete').ne(true).count();
+			let resultCount = await Feed.model.findOneAndUpdate(
+				{_id: comments.comment_feed_id},
+				{$set: {feed_comment_count: comment_cnt}},
+				{new: true, upsert: true, setDefaultsOnInsert: true},
+			);
+		}
+
+		//부모 댓글에 표기되는 대댓글 총 개수 재정의 (comment_parent 필드가 있을 경우에는 진행)
+		if (comments.comment_parent != undefined) {
+			let parent_comment_cnt = await Comment.model.find({comment_parent: comments.comment_parent}).where('comment_is_delete').ne(true).count();
+			let parent_comment = await Comment.model.findOneAndUpdate(
+				{_id: comments.comment_parent},
+				{$set: {children_count: parent_comment_cnt}},
+				{new: true, upsert: true, setDefaultsOnInsert: true},
+			);
+		}
 		res.json({status: 200, msg: result});
 	});
 });

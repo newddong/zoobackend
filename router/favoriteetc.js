@@ -110,7 +110,6 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 			//유저 그룹 형태의 is_follow 추가
 			if (Schema.model.modelName == 'UserObject') {
 				followList = await Follow.model.find({follow_id: req.session.loginUser, follow_is_delete: false}).lean();
-				console.log('followList =>', followList);
 				feedEtclist = feedEtclist.map(feedEtclist => {
 					//둘다 타입이 objectId 형일 경우에는 ObjectId 타입으로 변경해 equals로 비교해야 함 (하나만 ObjectId일 경우에는 불필요)
 					if (
