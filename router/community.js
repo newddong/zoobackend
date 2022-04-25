@@ -8,6 +8,7 @@ const User = require('../schema/user');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
+const WANT_DAY = 4;
 
 // 로컬정보를 s3 정보로 변경
 router.post('/changeLocalPathToS3Path', uploadS3.array('s3path_uri'), (req, res) => {
@@ -55,6 +56,52 @@ router.post('/createCommunity', (req, res) => {
 router.post('/getCommunityList', (req, res) => {
 	controller(req, res, async () => {
 		let community;
+
+		//모든 데이터의 추천 게시물을 false로 변경
+		let result = await Community.model
+			.find({community_type: 'review'})
+			.updateMany({$set: {community_is_recomment: false}})
+			.lean();
+
+		let now = new Date();
+		let result_wantday = new Date(now.setDate(now.getDate() - WANT_DAY));
+		result_wantday_format = new Date(+result_wantday + 3240 * 10000).toISOString().split('T')[0];
+		let dateType = new Date(result_wantday_format);
+
+		let result_review = await Community.model
+			.find({community_is_recomment: true}, {community_type: 'review'})
+			.updateMany({$set: {community_is_recomment: false}})
+			.lean();
+
+		let dateList = await Community.model
+			.find({
+				community_date: {
+					$gte: new Date(dateType),
+				},
+				community_type: 'review',
+			})
+			.where('community_is_delete')
+			.ne(true)
+			.lean();
+
+		let max = 0;
+		let max_community_id;
+
+		for (let i = 0; i < dateList.length; i++) {
+			like_count = dateList[i].community_like_count;
+			favorite_count = dateList[i].community_favorite_count;
+			comment_count = dateList[i].community_comment_count;
+			total = like_count + favorite_count + comment_count;
+			if (total > max) {
+				max = total;
+				max_community_id = dateList[i]._id;
+			}
+		}
+		//좋아요, 즐겨찾기, 댓글 총 합이 0 이상인 max 값에 한해서 추천 게시물로 등록한다. (max값이 0이면 활동량이 없기 때문에 추천 게시물이 없는 상태임)
+		if (max > 0) {
+			let result_review = await Community.model.findOneAndUpdate({_id: max_community_id}, {$set: {community_is_recomment: true}}).lean();
+		}
+
 		if (req.body.community_type == 'all') {
 			community = await Community.model
 				.find()

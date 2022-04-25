@@ -94,7 +94,6 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 		//TODO : 댓글이 달린 보호요청 게시물의 작성자 설정(Secure기능을 이용하기 위함)
 		(await parentComment) && parentComment.save();
 		let newResult = await comment.save();
-		let existsParentComment = false;
 
 		//알림 내역에 댓글 관련 insert
 		//게시물의 작성자 알림 내역 중 댓글 알림 'true' 여부 확인
