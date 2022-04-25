@@ -86,20 +86,57 @@ router.post('/getCommunityList', (req, res) => {
 
 		let max = 0;
 		let max_community_id;
+		let max_second = 0;
+		let max_max_second_community_id;
 
 		for (let i = 0; i < dateList.length; i++) {
 			like_count = dateList[i].community_like_count;
 			favorite_count = dateList[i].community_favorite_count;
 			comment_count = dateList[i].community_comment_count;
 			total = like_count + favorite_count + comment_count;
+
 			if (total > max) {
+				max_second = max;
 				max = total;
 				max_community_id = dateList[i]._id;
+				max_max_second_community_id = max_community_id;
+			} else if (total > max_second) {
+				max_second = total;
+				max_max_second_community_id = dateList[i]._id;
 			}
 		}
-		//좋아요, 즐겨찾기, 댓글 총 합이 0 이상인 max 값에 한해서 추천 게시물로 등록한다. (max값이 0이면 활동량이 없기 때문에 추천 게시물이 없는 상태임)
-		if (max > 0) {
-			let result_review = await Community.model.findOneAndUpdate({_id: max_community_id}, {$set: {community_is_recomment: true}}).lean();
+		//최대값과 두번째 최대값이 존재 할 경우 둘다 등록한다.
+		if (max > 0 && max_second > 0) {
+			let result_review = await Community.model
+				.find({_id: {$in: [max_community_id, max_max_second_community_id]}})
+				.updateMany({$set: {community_is_recomment: true}})
+				.lean();
+		}
+		//최대값만 존재 할 경우 - 나머지 한개는 랜덤으로 한개 추가해야 함.
+		else if (max > 0) {
+			await Community.model.findOneAndUpdate({_id: max_community_id}, {$set: {community_is_recomment: true}}).lean();
+			let tempArray = Array();
+			for (let i = 0; i < dateList.length; i++) {
+				if (!dateList[i]._id.equals(max_community_id)) {
+					tempArray.push(dateList[i]._id);
+				}
+			}
+			let selectIndex = Math.floor(Math.random() * (tempArray.length - 0)) + 0;
+			await Community.model.findOneAndUpdate({_id: tempArray[selectIndex]}, {$set: {community_is_recomment: true}}).lean();
+		}
+		//최대값이 존재 하지 않을 경우 (글쓴이 외 다른 사용자들의 활동이 없을 경우)
+		else {
+			let selectIndex1 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
+			for (let i = 0; i < 1000; i++) {
+				selectIndex2 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
+				if (selectIndex1 == selectIndex2) continue;
+				else break;
+			}
+
+			let result_review = await Community.model
+				.find({_id: {$in: [dateList[selectIndex1]._id, dateList[selectIndex2]._id]}})
+				.updateMany({$set: {community_is_recomment: true}})
+				.lean();
 		}
 
 		if (req.body.community_type == 'all') {
