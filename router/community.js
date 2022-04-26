@@ -62,12 +62,6 @@ router.post('/getCommunityList', (req, res) => {
 		result_wantday_format = new Date(+result_wantday + 3240 * 10000).toISOString().split('T')[0];
 		let dateType = new Date(result_wantday_format);
 
-		//모든 데이터의 추천 게시물을 false로 변경
-		let result_review = await Community.model
-			.find({community_is_recomment: true}, {community_type: 'review'})
-			.updateMany({$set: {community_is_recomment: false}})
-			.lean();
-
 		let dateList = await Community.model
 			.find({
 				community_date: {
@@ -100,20 +94,26 @@ router.post('/getCommunityList', (req, res) => {
 				max_second_community_id = dateList[i]._id;
 			}
 		}
-		// console.log('max=>', max);
-		// console.log('max_second=>', max_second);
-		// console.log('max_community_id=>', max_community_id);
-		// console.log('max_second_community_id=>', max_second_community_id);
 
 		//최대값과 두번째 최대값이 존재 할 경우 둘다 등록한다.
 		if (max > 0 && max_second > 0) {
-			let result_review = await Community.model
+			await Community.model
+				.find({community_is_recomment: true}, {community_type: 'review'})
+				.updateMany({$set: {community_is_recomment: false}})
+				.lean();
+
+			await Community.model
 				.find({_id: {$in: [max_community_id, max_second_community_id]}})
 				.updateMany({$set: {community_is_recomment: true}})
 				.lean();
 		}
 		//최대값만 존재 할 경우 - 나머지 한개는 랜덤으로 한개 추가해야 함.
 		else if (max > 0) {
+			await Community.model
+				.find({community_is_recomment: true}, {community_type: 'review'})
+				.updateMany({$set: {community_is_recomment: false}})
+				.lean();
+
 			await Community.model.findOneAndUpdate({_id: max_community_id}, {$set: {community_is_recomment: true}}).lean();
 			let tempArray = Array();
 			for (let i = 0; i < dateList.length; i++) {
@@ -122,18 +122,26 @@ router.post('/getCommunityList', (req, res) => {
 				}
 			}
 			let selectIndex = Math.floor(Math.random() * (tempArray.length - 0)) + 0;
-			await Community.model.findOneAndUpdate({_id: tempArray[selectIndex]}, {$set: {community_is_recomment: true}}).lean();
+			await Community.model
+				.find({_id: {$in: [max_community_id, tempArray[selectIndex]]}})
+				.updateMany({$set: {community_is_recomment: true}})
+				.lean();
 		}
 		//최대값이 존재 하지 않을 경우 (글쓴이 외 다른 사용자들의 활동이 없을 경우)
 		else {
 			let selectIndex1 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
-			for (let i = 0; i < 1000; i++) {
+			for (let i = 0; i < 10000; i++) {
 				selectIndex2 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
 				if (selectIndex1 == selectIndex2) continue;
 				else break;
 			}
 
-			let result_review = await Community.model
+			await Community.model
+				.find({community_is_recomment: true}, {community_type: 'review'})
+				.updateMany({$set: {community_is_recomment: false}})
+				.lean();
+
+			await Community.model
 				.find({_id: {$in: [dateList[selectIndex1]._id, dateList[selectIndex2]._id]}})
 				.updateMany({$set: {community_is_recomment: true}})
 				.lean();
@@ -188,13 +196,6 @@ router.post('/getCommunityList', (req, res) => {
 				return {...community, community_is_favorite: false};
 			}
 		});
-
-		reviewResult = community.filter(v => v.community_type == 'review' && v.community_is_recomment == true && v.community_is_delete == false);
-		if (reviewResult.length == 2) {
-			console.log('reviewResult[0]._id=>', reviewResult[0]._id);
-			console.log('reviewResult[1]._id=>', reviewResult[1]._id);
-		}
-		console.log('reviewResult.length=>', reviewResult.length);
 
 		res.json({
 			status: 200,
