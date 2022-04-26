@@ -57,17 +57,12 @@ router.post('/getCommunityList', (req, res) => {
 	controller(req, res, async () => {
 		let community;
 
-		//모든 데이터의 추천 게시물을 false로 변경
-		let result = await Community.model
-			.find({community_type: 'review'})
-			.updateMany({$set: {community_is_recomment: false}})
-			.lean();
-
 		let now = new Date();
 		let result_wantday = new Date(now.setDate(now.getDate() - WANT_DAY));
 		result_wantday_format = new Date(+result_wantday + 3240 * 10000).toISOString().split('T')[0];
 		let dateType = new Date(result_wantday_format);
 
+		//모든 데이터의 추천 게시물을 false로 변경
 		let result_review = await Community.model
 			.find({community_is_recomment: true}, {community_type: 'review'})
 			.updateMany({$set: {community_is_recomment: false}})
@@ -87,7 +82,7 @@ router.post('/getCommunityList', (req, res) => {
 		let max = 0;
 		let max_community_id;
 		let max_second = 0;
-		let max_max_second_community_id;
+		let max_second_community_id;
 
 		for (let i = 0; i < dateList.length; i++) {
 			like_count = dateList[i].community_like_count;
@@ -98,17 +93,22 @@ router.post('/getCommunityList', (req, res) => {
 			if (total > max) {
 				max_second = max;
 				max = total;
+				max_second_community_id = max_community_id;
 				max_community_id = dateList[i]._id;
-				max_max_second_community_id = max_community_id;
 			} else if (total > max_second) {
 				max_second = total;
-				max_max_second_community_id = dateList[i]._id;
+				max_second_community_id = dateList[i]._id;
 			}
 		}
+		// console.log('max=>', max);
+		// console.log('max_second=>', max_second);
+		// console.log('max_community_id=>', max_community_id);
+		// console.log('max_second_community_id=>', max_second_community_id);
+
 		//최대값과 두번째 최대값이 존재 할 경우 둘다 등록한다.
 		if (max > 0 && max_second > 0) {
 			let result_review = await Community.model
-				.find({_id: {$in: [max_community_id, max_max_second_community_id]}})
+				.find({_id: {$in: [max_community_id, max_second_community_id]}})
 				.updateMany({$set: {community_is_recomment: true}})
 				.lean();
 		}
@@ -188,6 +188,13 @@ router.post('/getCommunityList', (req, res) => {
 				return {...community, community_is_favorite: false};
 			}
 		});
+
+		reviewResult = community.filter(v => v.community_type == 'review' && v.community_is_recomment == true && v.community_is_delete == false);
+		if (reviewResult.length == 2) {
+			console.log('reviewResult[0]._id=>', reviewResult[0]._id);
+			console.log('reviewResult[1]._id=>', reviewResult[1]._id);
+		}
+		console.log('reviewResult.length=>', reviewResult.length);
 
 		res.json({
 			status: 200,
