@@ -30,6 +30,7 @@ const {
 const {nicknameDuplicationCheck} = require('./utilfunction');
 const session = require('express-session');
 const mongoose = require('mongoose');
+const axios = require('axios');
 
 //로그인
 router.post('/userLogin', (req, res) => {
@@ -1161,6 +1162,22 @@ router.post('/getChekingFollow', (req, res) => {
 		let followCheck = false;
 		if (followList.length > 0) followCheck = true;
 		res.json({status: 200, msg: followCheck});
+	});
+});
+
+//로그인 대상으로 상대방을 팔로우 했는지 확인
+router.post('/getSMStoken', (req, res) => {
+	controller(req, res, async () => {
+		const response = await axios({
+			url: 'https://api.iamport.kr/users/getToken',
+			method: 'post', // POST method
+			headers: {'Content-Type': 'application/json'}, // "Content-Type": "application/json"
+			data: {
+				imp_key: '8427182330724644', // REST API키
+				imp_secret: '7a968900ca1ae8e30ec448bf9c5f7b0716424e80f8c5aea716f88b8a01453efe9498764041c35122', // REST API Secret
+			},
+		});
+		res.json({status: 200, msg: response.data.response});
 	});
 });
 

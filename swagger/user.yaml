@@ -1192,6 +1192,28 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /user/getSMStoken:
+    post:
+      tags:
+        - user
+      summary: sms 인증을 위한 토큰 발행
+      description: sms 인증을 위한 토큰 발행
+      operationId: getSMStoken
+      requestBody:
+        description: 요청 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$
