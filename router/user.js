@@ -1165,7 +1165,7 @@ router.post('/getChekingFollow', (req, res) => {
 	});
 });
 
-//로그인 대상으로 상대방을 팔로우 했는지 확인
+//sms 인증을 위한 토큰 발행
 router.post('/getSMStoken', (req, res) => {
 	controller(req, res, async () => {
 		const response = await axios({
@@ -1181,7 +1181,7 @@ router.post('/getSMStoken', (req, res) => {
 	});
 });
 
-//로그인 대상으로 상대방을 팔로우 했는지 확인
+//sms 인증을 위한 가맹점 식별코드
 router.post('/getSMSimpcode', (req, res) => {
 	controller(req, res, async () => {
 		const impcode = 'imp72342634';
