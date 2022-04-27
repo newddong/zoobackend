@@ -1181,4 +1181,12 @@ router.post('/getSMStoken', (req, res) => {
 	});
 });
 
+//로그인 대상으로 상대방을 팔로우 했는지 확인
+router.post('/getSMSimpcode', (req, res) => {
+	controller(req, res, async () => {
+		const impcode = 'imp72342634';
+		res.json({status: 200, msg: impcode});
+	});
+});
+
 module.exports = router;
