@@ -646,8 +646,12 @@ paths:
             schema:
               type: object
               required:
+                - userobject_id
                 - user_introduction
               properties:
+                userobject_id:
+                  type: string
+                  description: 사용자 object_id
                 user_introduction:
                   type: string
                   description: 변경할 유저의 소개글

@@ -418,8 +418,8 @@ router.post('/getUserInfoById', (req, res) => {
 
 //유저 소개글 변경
 router.post('/updateUserIntroduction', (req, res) => {
-	controllerLoggedIn(req, res, async () => {
-		let user = await User.model.findById(req.session.loginUser).exec();
+	controller(req, res, async () => {
+		let user = await User.model.findById(req.body.userobject_id).exec();
 		if (!user) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
