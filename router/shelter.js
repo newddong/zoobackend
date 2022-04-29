@@ -19,6 +19,7 @@ const {
 	ALERT_NO_POST,
 } = require('./constants');
 const mongoose = require('mongoose');
+const Follow = require('../schema/follow');
 
 //보호소의 보호 동물을 등록한다.
 router.post('/assignShelterAnimal', uploadS3.array('protect_animal_photo_uri_list'), (req, res) => {
@@ -271,6 +272,15 @@ router.post('/getAnimalListWithApplicant', (req, res) => {
 			.sort('-_id')
 			.exec(); //요청
 
+		followList = await Follow.model.find({follow_id: req.session.loginUser, follow_is_delete: false}).lean();
+		animalWithApply = animalWithApply.map(animalWithApply => {
+			if (followList.find(follow => follow.follower_id.equals(animalWithApply.protect_act_applicant_id._id))) {
+				return {...animalWithApply, is_follow: true};
+			} else {
+				return {...animalWithApply, is_follow: false};
+			}
+		});
+
 		let adoptList = new Array();
 		let protectList = new Array();
 		let total = new Object();
@@ -278,16 +288,17 @@ router.post('/getAnimalListWithApplicant', (req, res) => {
 		for (let i = 0; i < animalWithApply.length; i++) {
 			let data = new Object();
 			if (animalWithApply[i].protect_act_type == 'adopt') {
-				data = animalWithApply[i];
+				data = animalWithApply[i]._doc;
+				data.is_follow = animalWithApply[i].is_follow;
 				adoptList.push(data);
 			} else {
-				data = animalWithApply[i];
+				data = animalWithApply[i]._doc;
+				data.is_follow = animalWithApply[i].is_follow;
 				protectList.push(data);
 			}
 		}
 		total.adopt = adoptList;
 		total.protect = protectList;
-		console.log('total', total);
 		res.json({status: 200, msg: total});
 	});
 });
