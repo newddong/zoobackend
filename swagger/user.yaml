@@ -180,7 +180,7 @@ paths:
               type: object
               required:
                 - shelter_delegate_contact_number
-                - shelter_name
+                - user_nickname
                 - shleter_type
                 - user_password
               properties:
@@ -203,7 +203,7 @@ paths:
                 shelter_homepage:
                   type: string
                   description: 보호소 홈페이지 uri
-                shelter_name:
+                user_nickname:
                   type: string
                   description: 보호소 이름
                 shelter_type:
@@ -679,7 +679,7 @@ paths:
                 userobject_id:
                   type: string
                   description: 수정할 보호소 오브젝트 아이디
-                shelter_name:
+                user_nickname:
                   type: string
                   description: 보호소 이름
                 shelter_address:

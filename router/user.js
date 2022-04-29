@@ -150,9 +150,9 @@ router.post('/assignShelter', uploadS3.single('user_profile_uri'), (req, res) =>
 			user_phone_number: req.body.shelter_delegate_contact_number, //대표번호를 자동으로 로그인용 휴대폰 번호로 등록
 			shelter_foundation_date: req.body.shelter_foundation_date,
 			shelter_homepage: req.body.shelter_homepage,
-			shelter_name: req.body.shelter_name,
-			user_nickname: req.body.shelter_name, //보호소 이름을 닉네임으로 설정
-			user_name: req.body.shelter_name, //유저실명란도 보호소 이름으로 설정
+			shelter_name: req.body.user_nickname,
+			user_nickname: req.body.user_nickname, //보호소 이름을 닉네임으로 설정
+			user_name: req.body.user_nickname, //유저실명란도 보호소 이름으로 설정
 			shelter_type: req.body.shelter_type,
 			user_email: req.body.user_email,
 			user_password: req.body.user_password,
@@ -440,7 +440,8 @@ router.post('/updateShelterDetailInformation', (req, res) => {
 			return;
 		}
 
-		shelter.shelter_name = req.body.shelter_name;
+		// shelter.shelter_name = req.body.shelter_name;
+		shelter.user_nickname = req.body.user_nickname;
 		shelter.shelter_address = typeof req.body.shelter_address == 'string' ? JSON.parse(req.body.shelter_address) : req.body.shelter_address;
 		shelter.shelter_delegate_contact_number = req.body.shelter_delegate_contact_number;
 		shelter.user_email = req.body.user_email;
