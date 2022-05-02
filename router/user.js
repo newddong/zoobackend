@@ -1190,4 +1190,19 @@ router.post('/getSMSimpcode', (req, res) => {
 	});
 });
 
+//비밀번호 변경
+router.post('/updateUserPassword', (req, res) => {
+	controller(req, res, async () => {
+		let user = await User.model.findById(req.body.userobject_id).exec();
+		if (!user) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		user.user_password = req.body.new_password;
+		await user.save();
+		res.json({status: 200, msg: user});
+	});
+});
+
 module.exports = router;
