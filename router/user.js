@@ -297,28 +297,34 @@ router.post('/updateUserDetailInformation', (req, res) => {
 //반려동물 상세 정보를 수정
 router.post('/updatePetDetailInformation', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		let pet = await User.model.findById(req.body.userobject_id).exec();
-		if (!pet) {
-			//res.status(404);
-			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
+		const fields = Object.keys(req.body);
+		const query = {};
+
+		//업데이트 진행되는 필드만 가져옴
+		for (let i = 0; i < fields.length; i++) {
+			query[fields[i]] = Object.values(req.body)[i];
+		}
+
+		//업데이트 날짜에 해당되는 필드는 항상 별도로 추가 입력 필요
+		query.user_update_date = Date.now();
+
+		//데이터가 들어온 필드만 업데이트를 진행
+		const result = await User.model
+			.findByIdAndUpdate(
+				{_id: req.body.userobject_id},
+				{
+					$set: query,
+				},
+				{new: true},
+			)
+			.lean();
+
+		if (!result) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
 
-		let isFamily = pet.pet_family.includes(req.session.loginUser);
-		if (!isFamily) {
-			//res.status(400);
-			res.json({status: 400, msg: USER_NOT_VALID});
-			return;
-		}
-
-		pet.pet_sex = req.body.pet_sex;
-		pet.pet_neutralization = req.body.pet_neutralization;
-		pet.pet_birthday = req.body.pet_birthday;
-		pet.pet_weight = req.body.pet_weight;
-		pet.user_interests = new Object();
-		pet = await pet.save();
-
-		res.json({status: 200, msg: pet});
+		res.json({status: 200, msg: result});
 	});
 });
 

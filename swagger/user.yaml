@@ -519,11 +519,19 @@ paths:
                 userobject_id:
                   type: string
                   description: 정보를 수정할 반려동물의 몽고디비 도큐먼트 ID
+                pet_species:
+                  type: string
+                  description: 반려동물 종 (개, 고양이 등등)
+                pet_species_detail:
+                  type: string
+                  description: 반려동물 품종 (말티즈, 불독 등등)
                 pet_sex:
                   type: string
+                  enum: ['maile', 'female', 'unknown']
                   description: 반려동물의 성별
                 pet_neutralization:
                   type: string
+                  enum: ['yes', 'no', 'unknown']
                   description: 반려동물 중성화 여부
                 pet_birthday:
                   type: string
