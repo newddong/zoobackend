@@ -1254,12 +1254,12 @@ paths:
             schema:
               type: object
               required:
-                - userobject_id
+                - user_phone_number
                 - new_password
               properties:
-                userobject_id:
+                user_phone_number:
                   type: string
-                  description: 사용자 object_id
+                  description: 사용자 핸드폰 번호
                 new_password:
                   type: string
                   description: 변경할 유저의 비밀번호
