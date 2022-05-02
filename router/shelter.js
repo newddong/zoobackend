@@ -287,7 +287,7 @@ router.post('/getAnimalListWithApplicant', (req, res) => {
 
 		for (let i = 0; i < animalWithApply.length; i++) {
 			let data = new Object();
-			if (animalWithApply[i].protect_act_type == 'adopt') {
+			if (animalWithApply[i]._doc.protect_act_type == 'adopt') {
 				data = animalWithApply[i]._doc;
 				data.is_follow = animalWithApply[i].is_follow;
 				adoptList.push(data);
@@ -297,6 +297,7 @@ router.post('/getAnimalListWithApplicant', (req, res) => {
 				protectList.push(data);
 			}
 		}
+
 		total.adopt = adoptList;
 		total.protect = protectList;
 		res.json({status: 200, msg: total});
