@@ -1193,14 +1193,19 @@ router.post('/getSMSimpcode', (req, res) => {
 //비밀번호 변경
 router.post('/updateUserPassword', (req, res) => {
 	controller(req, res, async () => {
-		let user = await User.model.findOne({user_phone_number: req.body.user_phone_number}).exec();
+		let user = await User.model
+			.findOneAndUpdate(
+				{user_phone_number: req.body.user_phone_number},
+				{$set: {user_password: req.body.new_password}},
+				{new: true, setDefaultsOnInsert: true},
+			)
+			.exec();
+
 		if (!user) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
 
-		user.user_password = req.body.new_password;
-		await user.save();
 		res.json({status: 200, msg: user});
 	});
 });
