@@ -647,7 +647,7 @@ router.post('/followUser', (req, res) => {
 		//알림 내역에 댓글 관련 insert
 		//알림 내역 중 팔로우 알림 'true' 여부 확인
 		let checkNotice = await Notice.model.findOne({notice_user_id: req.body.follow_userobject_id});
-		if (checkNotice.notice_tag_follower) {
+		if (checkNotice != null && checkNotice.notice_tag_follower) {
 			let select_opponent = await User.model.findById(req.body.follow_userobject_id);
 			let select_loginUser = await User.model.findById(req.session.loginUser);
 			let noticeUser = NoticeUser.makeNewdoc({
@@ -727,7 +727,7 @@ router.post('/unFollowUser', (req, res) => {
 		//알림 내역에 댓글 관련 insert
 		//알림 내역 중 팔로우 알림 'true' 여부 확인
 		let checkNotice = await Notice.model.findOne({notice_user_id: req.body.follow_userobject_id});
-		if (checkNotice.notice_tag_follower) {
+		if (checkNotice != null && checkNotice.notice_tag_follower) {
 			let select_opponent = await User.model.findById(req.body.follow_userobject_id);
 			let select_loginUser = await User.model.findById(req.session.loginUser);
 			let noticeUser = NoticeUser.makeNewdoc({
