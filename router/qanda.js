@@ -7,18 +7,37 @@ const mongoose = require('mongoose');
 
 //문의하기 생성
 router.post('/createQandA', (req, res) => {
-	controllerLoggedIn(req, res, async () => {
-		let qandA = await QandA.makeNewdoc({
-			qanda_common_code_id: req.body.qanda_common_code_id,
-			qanda_user_id: req.session.loginUser,
-			qanda_status: 'waiting',
-			qanda_question_title: req.body.qanda_question_title,
-			qanda_question_contents: req.body.qanda_question_contents,
-			qanda_question_date: Date.now(),
-		});
+	// controller(req, res, async () => {
+	// 	let qandA = await QandA.makeNewdoc({
+	// 		qanda_common_code_id: req.body.qanda_common_code_id,
+	// 		// qanda_user_id: req.session.loginUser,
+	// 		// qanda_status: 'waiting',
+	// 		qanda_question_title: req.body.qanda_question_title,
+	// 		qanda_question_contents: req.body.qanda_question_contents,
+	// 		qanda_question_date: Date.now(),
+	// 	});
 
-		let resultQandA = await qandA.save();
-		res.json({status: 200, msg: resultQandA});
+	// 	let resultQandA = await qandA.save();
+	// 	res.json({status: 200, msg: resultQandA});
+	// });
+
+	controller(req, res, async () => {
+		let query = {};
+
+		//받은 파라미터 확인
+		for (let filed in req.body) {
+			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
+		}
+
+		if (req.session.loginUser) {
+			query.qanda_user_id = req.session.loginUser;
+		}
+		query.qanda_question_date = Date.now();
+		query.qanda_status = 'waiting';
+
+		let qandAmake = await QandA.makeNewdoc(query);
+		let resultQandAmake = await qandAmake.save();
+		res.json({status: 200, msg: resultQandAmake});
 	});
 });
 
