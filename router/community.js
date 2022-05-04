@@ -9,6 +9,7 @@ const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
 const WANT_DAY = 4;
+const Follow = require('../schema/follow');
 
 // 로컬정보를 s3 정보로 변경
 router.post('/changeLocalPathToS3Path', uploadS3.array('s3path_uri'), (req, res) => {
@@ -352,6 +353,15 @@ router.post('/getSearchCommunityList', (req, res) => {
 					return {...communityList, is_favorite: true};
 				} else {
 					return {...communityList, is_favorite: false};
+				}
+			});
+
+			followList = await Follow.model.find({follow_id: req.session.loginUser, follow_is_delete: false}).lean();
+			communityList = communityList.map(communityList => {
+				if (followList.find(follow => follow.follower_id.equals(communityList.community_writer_id._id))) {
+					return {...communityList, is_follow: true};
+				} else {
+					return {...communityList, is_follow: false};
 				}
 			});
 		}
