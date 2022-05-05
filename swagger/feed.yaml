@@ -20,8 +20,45 @@ paths:
                   type: string
                   description: 피드 텍스트 내용
                 feed_location:
-                  type: string
+                  type: object
                   description: 피드 작성 지역
+                  properties:
+                    road_address:
+                      type: object
+                      description: 도로명 주소
+                      properties:
+                        address_name:
+                          type: string
+                          description: 도로명 주소 풀네임
+                        city:
+                          type: string
+                          description: 시,도 1depth (city)
+                        district:
+                          type: string
+                          description: 구,군 2depth (district)
+                    normal_address:
+                      type: object
+                      description: 지번 주소
+                      properties:
+                        address_name:
+                          type: string
+                          description: 도로명 주소 풀네임
+                        city:
+                          type: string
+                          description: 시,도 1depth (city)
+                        district:
+                          type: string
+                          description: 구,군 2depth (district)
+                    region:
+                      type: object
+                      description: 위도, 경도
+                      properties:
+                        latitude:
+                          type: string
+                          description: 위도
+                        longitude:
+                          type: string
+                          description: 경도
                 feed_avatar_id:
                   type: string
                   description: 피드의 작성자로 지정하고 싶은 반려동물 ID
@@ -139,7 +176,7 @@ paths:
                               description: 태그의 사진 프레임에서 x좌표
                             position_y:
                               type: integer
-                              description: 태그의 사진 프레임에서 y좌표 
+                              description: 태그의 사진 프레임에서 y좌표
                 hashtag_keyword:
                   type: array
                   description: 피드에 들어갈 해시태그 키워드의 목록
@@ -170,7 +207,7 @@ paths:
                 missing_animal_date:
                   type: string
                   description: 실종 추정일
-                
+
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -413,7 +450,7 @@ paths:
       description: 특정 유저가 태그된 피드 목록을 불러온다.
       operationId: getUserTaggedFeedList
       requestBody:
-        description: 
+        description:
         content:
           application/x-www-form-urlencoded:
             schema:
@@ -610,6 +647,6 @@ paths:
         '500':
           $ref: '#/components/responses/500'
 
- #jsdoc을 yaml으로 변환
+  #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 #$2:\n  type: $1\n  description: $3

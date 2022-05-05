@@ -8,11 +8,45 @@ const Tag = {
 	position_x: {type: Number},
 	/** @type {Number} 태그가 보여야할 사진 프레임에서 y좌표 */
 	position_y: {type: Number},
-	pos:{
-		x:{type:Number},
-		y:{type:Number}
+	pos: {
+		x: {type: Number},
+		y: {type: Number},
 	},
-	user:{type:Object}
+	user: {type: Object},
+};
+
+const Road_address = {
+	/** @type { String} 도로명 주소 */
+	address_name: {type: String},
+	/** @type { String} 시,도 */
+	city: {type: String},
+	/** @type { String} 구,군 */
+	district: {type: String},
+};
+
+const Normal_Address = {
+	/** @type { String} 지번 주소 */
+	address_name: {type: String},
+	/** @type { String} 시,도 */
+	city: {type: String},
+	/** @type { String} 구,군 */
+	district: {type: String},
+};
+
+const Region = {
+	/** @type { String} 위도 */
+	latitude: {type: String},
+	/** @type { String} 경도 */
+	longitude: {type: String},
+};
+
+const Feed_address = {
+	/** @type { Road_address} 도로명 주소 */
+	road_address: {type: Road_address},
+	/** @type { Normal_Address} 지번 주소 */
+	normal_address: {type: Normal_Address},
+	/** @type { Region} 위도, 경도 */
+	region: {type: Region},
 };
 
 const FeedMedia = {
@@ -45,9 +79,8 @@ const FeedObject = {
 	/** @type { Array.<FeedMedia>} 피드 미디어 */
 	feed_medias: [FeedMedia],
 
-
 	/** @type { String} 게시글의 작성 지역정보 */
-	feed_location: {type: String},
+	feed_location: {type: Feed_address},
 
 	/** @type { Date} 피드 최초 작성일자 */
 	feed_date: {type: Date, default: Date.now},
@@ -59,7 +92,6 @@ const FeedObject = {
 	/** @type { Boolean} 임보일기일 경우 true */
 	feed_is_protect_diary: {type: Boolean, default: false},
 
-	
 	/** @type { RecentComment} 게시글에 달린 최신 댓글 */
 	feed_recent_comment: RecentComment,
 	/** @type { String} 실종 동물의 종류(ex 강아지, 고양이, 토끼 등) */
@@ -96,14 +128,12 @@ const FeedObject = {
 	/** @type { String} 제보 동물의 특징 */
 	report_animal_features: {type: String},
 
-
 	/** @type { Number} 게시글에 좋아요를 누른 수 */
 	feed_like_count: {type: Number, default: 0},
 	/** @type { Number} 게시글을 즐겨찾기로 등록한 수 */
 	feed_favorite_count: {type: Number, default: 0},
 	/** @type { Number} 게시글에 달린 댓글의 수(대댓글 포함) */
 	feed_comment_count: {type: Number, default: 0},
-
 
 	/** @type { String} 게시글 작성자의 db고유 아이디 */
 	feed_writer_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},

@@ -20,11 +20,13 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let feed = await Feed.makeNewdoc({
 			feed_content: req.body.feed_content,
-			feed_location: req.body.feed_location,
+			// feed_location: req.body.feed_location,
 			feed_type: 'feed',
 			feed_writer_id: req.session.loginUser,
 			feed_is_protect_diary: req.body.feed_is_protect_diary,
 		});
+
+		feed.feed_location = typeof req.body.feed_location == 'string' ? JSON.parse(req.body.feed_location) : req.body.feed_location;
 
 		if (req.body.feed_avatar_id) {
 			feed.feed_avatar_id = req.body.feed_avatar_id;
