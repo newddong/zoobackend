@@ -47,6 +47,8 @@ const Feed_address = {
 	normal_address: {type: Normal_Address},
 	/** @type { Region} 위도, 경도 */
 	region: {type: Region},
+	/** @type { String} 상세주소 내용 */
+	detail: {type: String},
 };
 
 const FeedMedia = {
@@ -79,7 +81,7 @@ const FeedObject = {
 	/** @type { Array.<FeedMedia>} 피드 미디어 */
 	feed_medias: [FeedMedia],
 
-	/** @type { String} 게시글의 작성 지역정보 */
+	/** @type { Feed_address} 게시글의 작성 지역정보 */
 	feed_location: {type: Feed_address},
 
 	/** @type { Date} 피드 최초 작성일자 */

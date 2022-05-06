@@ -59,6 +59,9 @@ paths:
                         longitude:
                           type: string
                           description: 경도
+                    detail:
+                      type: string
+                      description: 상세주소
                 feed_avatar_id:
                   type: string
                   description: 피드의 작성자로 지정하고 싶은 반려동물 ID
