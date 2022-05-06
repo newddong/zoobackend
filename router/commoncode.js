@@ -26,7 +26,7 @@ router.post('/createCommonCode', (req, res) => {
 
 //공통 코드 정보 불러오기
 router.post('/getCommonCodeDynamicQuery', (req, res) => {
-	controllerLoggedIn(req, res, async () => {
+	controller(req, res, async () => {
 		let query = {};
 		for (let filed in req.body) {
 			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
