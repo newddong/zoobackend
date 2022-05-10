@@ -9,7 +9,8 @@ s3 = new AWS.S3(s3config);
 
 const storage = multerS3({
     s3:s3,
-    bucket:'pinetreegy',
+    // bucket:'pinetreegy', //테스트용 버킷
+    bucket:'pinefriend',
     contentType:multerS3.AUTO_CONTENT_TYPE,
     acl:'public-read',
     metadata:(req,file,callback)=>{

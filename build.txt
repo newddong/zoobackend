@@ -4,3 +4,7 @@ docker save -o
 docker build -t zoobackend:v0.01 .
 docker save -o zb.tar zoobackend:v0.01
 docker load -i zb.tar 
+
+docker build -t anilog:v0.01 .
+docker save -o anilog.tar anilog:v0.01
+docker load -i anilog.tar 
