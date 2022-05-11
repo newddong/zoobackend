@@ -159,6 +159,9 @@ const UserObject = {
 
 	/** @type {Array.<String>} 유저 즐겨찾기 갯수 */
 	user_favorite_count: {type: Number, default: 0},
+
+	/** @type { Boolean} 파인프렌즈와 컨텍여부 확인 */
+	user_contacted: {type: Boolean, default: false},
 };
 
 /** @type {mongoose.Schema} */
