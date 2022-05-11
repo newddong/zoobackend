@@ -3,3 +3,4 @@ node_modules
 package-lock.json
 common/awscredentials.js
 credentials.txt
+dburl.js

@@ -10,6 +10,7 @@ const expressSession = require('express-session');
 const MongoStore = require('connect-mongo');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const dburl = require('./database/dburl');
 
 const options = {
 	definition: {
@@ -58,11 +59,11 @@ app.use(cookieParser());
 app.use(cors());
 app.use(
 	expressSession({
-		secret: 'zoodoongi.pinetree.gylee',
+		secret: 'anilog',
 		resave: false,
 		saveUninitialized: false,
 		store: MongoStore.create({
-			mongoUrl: 'mongodb://app:appkeeper!@zoodoongi.net:27017',
+			mongoUrl: dburl.url,
 			dbName: 'app',
 		}),
 		proxy: true,
