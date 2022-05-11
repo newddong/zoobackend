@@ -54,6 +54,15 @@ const ProtectRequestObject = {
 
 	/** @type { Boolean} 삭제여부 */
 	protect_request_is_delete: {type: Boolean, default: false},
+
+	/** @type { Date} 공고기간 시작일 */
+	protect_request_notice_sdt: {type: Date},
+
+	/** @type { Date} 공고기간 끝일 */
+	protect_request_notice_edt: {type: Date},
+
+	/** @type { String} 유기번호 */
+	protect_desertion_no: {type: String},
 };
 
 /** @type {mongoose.Schema} */
