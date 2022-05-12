@@ -29,7 +29,7 @@ const options = {
 				description: 'local environment',
 			},
 			{
-				url: 'https://api.zoodoongi.net',
+				url: 'https://api.pinefriend.net',
 				description: 'dev server',
 			},
 		],
@@ -97,7 +97,17 @@ const noticeuser = require('./router/noticeuser');
 const likeetc = require('./router/likeetc');
 const favoriteetc = require('./router/favoriteetc');
 const report = require('./router/report');
+const server = require('./router/server');
+
 const router = express.Router();
+//server health
+router.get('/',(req,res)=>{
+	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | excute API", req.connection.remoteAddress, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
+	
+	res.status(200);
+	res.send('server alive');
+});
+
 const dbconnection = database();
 
 //Api routes
@@ -125,6 +135,7 @@ app.use('/noticeuser', noticeuser);
 app.use('/likeetc', likeetc);
 app.use('/favoriteetc', favoriteetc);
 app.use('/report', report);
+app.use('/server',server);
 app.use('/', router);
 
 //Launch Server
