@@ -1280,6 +1280,66 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /user/getAlarmStatus:
+    post:
+      tags:
+        - user
+      summary: 알람내역 상태 확인
+      description: 알람내역 상태 확인
+      operationId: getAlarmStatus
+      requestBody:
+        description: 알람 상태
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - user_object_id
+              properties:
+                user_object_id:
+                  type: string
+                  description: 사용자 object_id
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /user/setAlarmStatus:
+    post:
+      tags:
+        - user
+      summary: 알람내역 상태 변경
+      description: 알람내역 상태 변경
+      operationId: setAlarmStatus
+      requestBody:
+        description: 알람 상태
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - user_object_id
+                - user_alarm
+              properties:
+                user_object_id:
+                  type: string
+                  description: 사용자 object_id
+                user_alarm:
+                  type: boolean
+                  description: 알람 존재 여부
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$

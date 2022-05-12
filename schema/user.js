@@ -162,6 +162,9 @@ const UserObject = {
 
 	/** @type { Boolean} 파인프렌즈와 컨텍여부 확인 */
 	user_contacted: {type: Boolean, default: false},
+
+	/** @type { Boolean} 알람 존재 여부 */
+	user_alarm: {type: Boolean, default: false},
 };
 
 /** @type {mongoose.Schema} */

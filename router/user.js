@@ -1216,4 +1216,37 @@ router.post('/updateUserPassword', (req, res) => {
 	});
 });
 
+//알람 상태 변경
+router.post('/setAlarmStatus', (req, res) => {
+	controller(req, res, async () => {
+		let user = await User.model
+			.findOneAndUpdate(
+				{_id: req.body.user_object_id},
+				{$set: {user_alarm: req.body.user_alarm}},
+				{new: true, upsert: true, setDefaultsOnInsert: true},
+			)
+			.lean();
+
+		if (!user) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		res.json({status: 200, msg: user});
+	});
+});
+
+//알람 상태 확인
+router.post('/getAlarmStatus', (req, res) => {
+	controller(req, res, async () => {
+		let user = await User.model.findById(req.body.user_object_id).select('user_alarm').lean();
+		if (!user) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		res.json({status: 200, msg: user});
+	});
+});
+
 module.exports = router;
