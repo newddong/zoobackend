@@ -102,8 +102,7 @@ const server = require('./router/server');
 const router = express.Router();
 //server health
 router.get('/',(req,res)=>{
-	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | excute API", req.connection.remoteAddress, new Date(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
-	
+	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s health | user - %s | excute API", req.headers['x-forwarded-for'], new Date(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
 	res.status(200);
 	res.send('server alive');
 });
