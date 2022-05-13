@@ -6,18 +6,18 @@ const moment = require('moment');
  * @param {*} fn - 수행할 작업
  */
 async function controllerLoggedIn(req, res, fn) {
-	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | excute API", req.headers['x-forwarded-for'], moment().format(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
+	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | excute API", req.headers['x-forwarded-for'], moment().tz("Asia/Seoul").format(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
 	if (req.session?.loginUser) {
 		try {
 			await fn();
 		} catch (err) {
-			console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Server Error", req.headers['x-forwarded-for'], moment().format(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
+			console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Server Error", req.headers['x-forwarded-for'], moment().tz("Asia/Seoul").format(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
 			console.log(err);
 			res.status(500);
 			res.json({status: 500, msg: err + ''});
 		}
 	} else {
-		console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Unauthorized Access", req.headers['x-forwarded-for'], moment().format(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
+		console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Unauthorized Access", req.headers['x-forwarded-for'], moment().tz("Asia/Seoul").format(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
 		res.status(200);
 		res.json({status: 401, msg: '로그인이 필요합니다.'});
 	}
@@ -30,14 +30,14 @@ async function controllerLoggedIn(req, res, fn) {
  * @param {*} fn - 수행할 작업
  */
 async function controller(req, res, fn) {
-	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | excute API", req.headers['x-forwarded-for'], moment().format(), req.method, req.protocol, req.hostname, req.originalUrl, 'user not login'); // prettier-ignore
+	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | excute API", req.headers['x-forwarded-for'], moment().tz("Asia/Seoul").format(), req.method, req.protocol, req.hostname, req.originalUrl, 'user not login'); // prettier-ignore
 	try {
 		await fn();
 		// if(req.session&&!req.session.loginUser){
 		// 	req.session.destroy();
 		// }
 	} catch (err) {
-		console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Server Error", req.headers['x-forwarded-for'], moment().format(), req.method, req.protocol, req.hostname, req.originalUrl, 'user not login'); // prettier-ignore
+		console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s | user - %s | Server Error", req.headers['x-forwarded-for'], moment().tz("Asia/Seoul").format(), req.method, req.protocol, req.hostname, req.originalUrl, 'user not login'); // prettier-ignore
 		console.log(err);
 		res.status(500);
 		res.json({status: 500, msg: err + ''});

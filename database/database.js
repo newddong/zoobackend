@@ -1,12 +1,11 @@
 const mongoose = require("mongoose");
-const dburl = require("./dburl");
 
 let database;
 
 module.exports = async () => {
 	function connectDB() {
 		
-		let databaseUrl = dburl.url; 
+		let databaseUrl = process.env.ANILOG_DBURI;
 
 		console.log("try to connect database.");
 
