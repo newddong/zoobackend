@@ -13,23 +13,19 @@ const swaggerUi = require('swagger-ui-express');
 
 const options = {
 	definition: {
-		openapi: '3.0.3',
+		openapi:process.env.ANILOG_OPENAPIVER||'1.0',
 		info: {
 			title: '애니로그 API 테스트 페이지',
-			version: '0.1.0',
+			version:process.env.ANILOG_TESTPAGE_VER||'0.0.1',
 			description: '애니로그 API 테스트 페이지입니다.',
 			contact: {
-				name: 'PineFriends',
+				name: process.env.ANILOG_CONTACT||'Default Contact'
 			},
 		},
 		servers: [
 			{
-				url: 'http://localhost:3000',
-				description: 'local environment',
-			},
-			{
-				url: 'https://api.zoodoongi.net',
-				description: 'dev server',
+				url: process.env.ANILOG_SERVERURL||'http://localhost:3000',
+				description: process.env.ANILOG_SERVERDESCRIPTION||'no description',
 			},
 		],
 	},
@@ -58,11 +54,11 @@ app.use(cookieParser());
 app.use(cors());
 app.use(
 	expressSession({
-		secret: 'zoodoongi.pinetree.gylee',
+		secret: 'anilog',
 		resave: false,
 		saveUninitialized: false,
 		store: MongoStore.create({
-			mongoUrl: 'mongodb://app:appkeeper!@zoodoongi.net:27017',
+			mongoUrl: process.env.ANILOG_DBURI,
 			dbName: 'app',
 		}),
 		proxy: true,
@@ -98,6 +94,24 @@ const favoriteetc = require('./router/favoriteetc');
 const report = require('./router/report');
 const scheduler = require('./router/scheduler');
 const router = express.Router();
+const moment = require('moment-timezone');
+//server health
+router.get('/', (req, res) => {
+	console.log(
+		'ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s health | user - %s | excute API',
+		req.headers['x-forwarded-for'],
+		moment().tz("Asia/Seoul").format(),
+		req.method,
+		req.protocol,
+		req.hostname,
+		req.originalUrl,
+		req.session?.loginUser,
+	);
+	console.log('process env', process.env.ANILOG_ENV);
+	res.status(200);
+	res.send('server alive');
+});
+
 const dbconnection = database();
 
 //Api routes
