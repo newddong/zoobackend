@@ -100,9 +100,19 @@ const report = require('./router/report');
 const server = require('./router/server');
 
 const router = express.Router();
+const moment = require('moment');
 //server health
-router.get('/',(req,res)=>{
-	console.log("ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s health | user - %s | excute API", req.headers['x-forwarded-for'], new Date(), req.method, req.protocol, req.hostname, req.originalUrl, req.session?.loginUser); // prettier-ignore
+router.get('/', (req, res) => {
+	console.log(
+		'ip - %s | date - [%s] | method - %s | protocol - %s | host - %s | path - %s health | user - %s | excute API',
+		req.headers['x-forwarded-for'],
+		moment().format(),
+		req.method,
+		req.protocol,
+		req.hostname,
+		req.originalUrl,
+		req.session?.loginUser,
+	);
 	res.status(200);
 	res.send('server alive');
 });
@@ -134,7 +144,7 @@ app.use('/noticeuser', noticeuser);
 app.use('/likeetc', likeetc);
 app.use('/favoriteetc', favoriteetc);
 app.use('/report', report);
-app.use('/server',server);
+app.use('/server', server);
 app.use('/', router);
 
 //Launch Server
