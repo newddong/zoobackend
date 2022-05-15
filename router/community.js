@@ -340,10 +340,12 @@ router.post('/getSearchCommunityList', (req, res) => {
 			return;
 		}
 
-		let favoritedCommunityList = [];
-
 		//로그인 상태에서만 is_favorite 표출
 		if (req.session.loginUser) {
+			let favoritedCommunityList = [];
+			let followList = [];
+			let likedCommunityList = [];
+
 			//내가 즐겨찾기를 누른 데이터 불러오기
 			favoritedCommunityList = await FavoriteEtc.model
 				.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false, favorite_etc_collection_name: 'communityobjects'})
@@ -364,6 +366,16 @@ router.post('/getSearchCommunityList', (req, res) => {
 					return {...communityList, is_follow: true};
 				} else {
 					return {...communityList, is_follow: false};
+				}
+			});
+
+			likedCommunityList = await LikeEtc.model.find({like_etc_user_id: req.session.loginUser, like_etc_is_delete: false}).lean();
+
+			communityList = communityList.map(communityList => {
+				if (likedCommunityList.find(likedCommunity => likedCommunity.like_etc_post_id == communityList._id)) {
+					return {...communityList, is_like: true};
+				} else {
+					return {...communityList, is_like: false};
 				}
 			});
 		}
