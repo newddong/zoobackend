@@ -173,8 +173,7 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 		});
 
 		if (req.files && req.files.length > 0) {
-			let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse('[' + req.body.feed_medias + ']') : req.body.feed_medias;
-
+			let feedMedia = Array();
 			missing.feed_medias = req.files.map((v, i) => {
 				return {
 					...feedMedia[i],
@@ -214,8 +213,7 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 		});
 
 		if (req.files && req.files.length > 0) {
-			let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse('[' + req.body.feed_medias + ']') : req.body.feed_medias;
-
+			let feedMedia = Array();
 			report.feed_medias = req.files.map((v, i) => {
 				return {
 					...feedMedia[i],
@@ -631,6 +629,95 @@ router.post('/getFavoriteFeedListByUserId', (req, res) => {
 		feedlist = feedlist.map(v => v.favorite_feed_id);
 
 		res.json({status: 200, msg: feedlist});
+	});
+});
+
+//실종/제보 수정
+router.post('/editMissingReport', uploadS3.array('media_uri'), (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		const fields = Object.keys(req.body);
+		const query = {};
+		let targetFeed = {};
+
+		//업데이트 진행되는 필드만 가져옴
+		for (let i = 0; i < fields.length; i++) {
+			query[fields[i]] = Object.values(req.body)[i];
+		}
+
+		//업데이트 날짜에 해당되는 필드는 항상 별도로 추가 입력 필요
+		query.feed_update_date = Date.now();
+
+		targetFeed = await Feed.model.findById(req.body.feedobject_id);
+
+		//삭제할 사진이 있을 경우
+		if (query.photos_to_delete) {
+			if (targetFeed.feed_medias.length > 0) {
+				let photos_to_delete = new Array();
+				photos_to_delete = req.body.photos_to_delete;
+
+				//삭제할 사진이 있는지 확인 후 삭제 진행
+				let temp_list = new Array();
+				for (let i = 0; i < targetFeed.feed_medias.length; i++) {
+					if (!photos_to_delete.includes(i)) {
+						temp_list.push(targetFeed.feed_medias[i]);
+					}
+				}
+				targetFeed.feed_medias = [...temp_list];
+				await targetFeed.save();
+			}
+		}
+
+		feed_medias_temp = Array();
+		if (req.files && req.files.length > 0) {
+			let feedMedia = Array();
+			feed_medias_temp = req.files.map((v, i) => {
+				return {
+					...feedMedia[i],
+					media_uri: v.location,
+				};
+			});
+		}
+
+		//현재 가지고 있는 사진과 새로 추가된 사진 merge
+		query.feed_medias = targetFeed.feed_medias.concat(feed_medias_temp);
+
+		//썸네일 규정
+		query.feed_thumbnail = query.feed_medias[0].media_uri;
+
+		/*FeedContent에 담긴 해시 태그의 정보를 바탕으로 피드의 해시태그 정보를 업데이트
+		 * 업데이트 요청의 hashtag와 db상의 hashtag리스트를 가공하여
+		 * 업데이트 요청에는 존재하나 db상의 hashtag리스트에 없을때 - hashtag를 db에 새로 생성
+		 * 업데이트 요청에는 없으나 db상의 hashtag리스트에 있을때 - hashtag를 db에서 삭제
+		 * 요청과 db에 모두 존재할때 - db에서 hashtag정보를 변경하지 않음
+		 */
+		if (query.hashtag_keyword) {
+			let hashTags = typeof query.hashtag_keyword == 'string' ? query.hashtag_keyword.replace(/[\[\]\"]/g, '').split(',') : req.body.hashtag_keyword;
+			let previousHashes = await HashFeed.model.find({hashtag_feed_id: targetFeed._id}).populate('hashtag_id').exec();
+
+			hashTags.forEach(hash => {
+				if (!previousHashes.find(prev => prev.hashtag_id.hashtag_keyword == hash)) {
+					createHash(hash, targetFeed._id);
+				}
+			});
+
+			previousHashes.forEach(prev => {
+				if (!hashTags.find(hash => prev.hashtag_id.hashtag_keyword == hash)) {
+					deleteHash(prev.hashtag_id.hashtag_keyword, targetFeed._id);
+				}
+			});
+		}
+
+		//데이터가 들어온 필드만 업데이트를 진행
+		const result = await Feed.model
+			.findByIdAndUpdate(
+				{_id: query.feedobject_id},
+				{
+					$set: query,
+				},
+				{new: true, upsert: true},
+			)
+			.lean();
+		res.json({status: 200, msg: result});
 	});
 });
 

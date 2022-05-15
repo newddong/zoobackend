@@ -141,45 +141,12 @@ paths:
                 feed_content:
                   type: string
                   description: 실종 게시물 텍스트 내용
-                feed_location:
-                  type: string
-                  description: 실종 게시물 작성 지역
                 media_uri:
                   type: array
                   description: 실종 게시물 첨부파일 uri리스트
                   items:
                     type: string
                     format: binary
-                feed_medias:
-                  type: array
-                  description: 첨부 객체정보 리스트
-                  items:
-                    type: object
-                    properties:
-                      is_video:
-                        type: boolean
-                        description: 동영상 여부
-                      duration:
-                        type: integer
-                        description: 동영상 재생 시간
-                      # media_uri:
-                      #   type: string
-                      #   description: 미디어의 uri(서버에서 처리)
-                      tags:
-                        type: array
-                        description: 미디어의 태그 목록
-                        items:
-                          type: object
-                          properties:
-                            tag_user_id:
-                              type: string
-                              description: 태그된 유저의 아이디
-                            position_x:
-                              type: integer
-                              description: 태그의 사진 프레임에서 x좌표
-                            position_y:
-                              type: integer
-                              description: 태그의 사진 프레임에서 y좌표
                 hashtag_keyword:
                   type: array
                   description: 피드에 들어갈 해시태그 키워드의 목록
@@ -239,45 +206,12 @@ paths:
                 feed_content:
                   type: string
                   description: 제보 텍스트 내용
-                feed_location:
-                  type: string
-                  description: 제보 작성 지역
                 media_uri:
                   type: array
                   description: 제보 첨부파일 uri리스트
                   items:
                     type: string
                     format: binary
-                feed_medias:
-                  type: array
-                  description: 첨부 객체정보 리스트
-                  items:
-                    type: object
-                    properties:
-                      is_video:
-                        type: boolean
-                        description: 동영상 여부
-                      duration:
-                        type: integer
-                        description: 동영상 재생 시간
-                      # media_uri:
-                      #   type: string
-                      #   description: 미디어의 uri(서버에서 처리)
-                      tags:
-                        type: array
-                        description: 미디어의 태그 목록
-                        items:
-                          type: object
-                          properties:
-                            tag_user_id:
-                              type: string
-                              description: 태그된 유저의 아이디
-                            position_x:
-                              type: integer
-                              description: 태그의 사진 프레임에서 x좌표
-                            position_y:
-                              type: integer
-                              description: 태그의 사진 프레임에서 y좌표
                 hashtag_keyword:
                   type: array
                   description: 피드에 들어갈 해시태그 키워드의 목록
@@ -642,6 +576,100 @@ paths:
                 userobject_id:
                   type: string
                   description: 즐겨찾기를 목록을 조회할 유저의 아이디(Mongodb ID)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  /feed/editMissingReport:
+    post:
+      tags:
+        - feed
+      summary: 실종/제보 정보 수정
+      description: 실종/제보 정보 수정
+      operationId: editMissingReport
+      requestBody:
+        description: 수정할 실종/제보 정보
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - feedobject_id
+              properties:
+                feedobject_id:
+                  type: string
+                  description: 수정할 피드 게시물 object_id
+                feed_content:
+                  type: string
+                  description: 내용
+                hashtag_keyword:
+                  type: array
+                  description: 피드에 들어갈 해시태그 키워드의 목록
+                  items:
+                    type: string
+                    description: 해시태그 키워드
+                photos_to_delete:
+                  type: array
+                  description: 삭제할 게시물 사진 인덱스 (인덱스 숫자만 기입)
+                  items:
+                    type: integer
+                media_uri:
+                  type: array
+                  description: 실종 게시물 첨부파일 uri리스트
+                  items:
+                    type: string
+                    format: binary
+                missing_animal_species:
+                  type: string
+                  description: 실종 동물 종류
+                missing_animal_species_detail:
+                  type: string
+                  description: 실종 동물 종류 상세
+                missing_animal_sex:
+                  type: string
+                  description: 실종 동물 성별
+                missing_animal_age:
+                  type: integer
+                  description: 실종 동물 나이
+                missing_animal_lost_location:
+                  type: string
+                  description: 실종 동물의 실종 지역 혹은 장소
+                missing_animal_contact:
+                  type: string
+                  description: 실종 동물의 제보를 받을 사람의 연락처
+                missing_animal_features:
+                  type: string
+                  description: 실종 동물의 특징
+                missing_animal_date:
+                  type: date
+                  description: 동물이 실종된 추정일자
+                report_witness_date:
+                  type: date
+                  description: 제보일자(해당 동물의 목격일)
+                report_witness_location:
+                  type: string
+                  description: 제보장소(목격장소)
+                report_animal_species:
+                  type: string
+                  description: 제보 동물의 종류(ex 강아지, 고양이, 토끼 등)
+                report_animal_species_detail:
+                  type: string
+                  description: 제보 동물의 세부 종류(ex 리트리버, 불독, 진돗개 등)
+                report_animal_sex:
+                  type: string
+                  description: 제보 동물의 성별
+                report_animal_age:
+                  type: integer
+                  description: 제보 동물의 나이
+                report_animal_contact:
+                  type: string
+                  description: 제보자  연락처
+                report_animal_features:
+                  type: string
+                  description: 제보 동물의 특징
       responses:
         '200':
           $ref: '#/components/responses/200'
