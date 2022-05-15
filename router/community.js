@@ -331,6 +331,8 @@ router.post('/getSearchCommunityList', (req, res) => {
 				$or: [{community_title: {$regex: keyword}}, {community_content_without_html: {$regex: keyword}}],
 			})
 			.populate('community_writer_id')
+			.where('community_is_delete')
+			.ne(true)
 			.lean();
 
 		if (communityList.length < 1) {
