@@ -618,7 +618,7 @@ paths:
                     type: integer
                 media_uri:
                   type: array
-                  description: 실종 게시물 첨부파일 uri리스트
+                  description: 게시물 첨부파일 uri리스트
                   items:
                     type: string
                     format: binary
@@ -630,7 +630,7 @@ paths:
                   description: 실종 동물 종류 상세
                 missing_animal_sex:
                   type: string
-                  description: 실종 동물 성별
+                  description: 실종 동물 성별 ('male'|'female'|'unknown')
                 missing_animal_age:
                   type: integer
                   description: 실종 동물 나이
@@ -644,10 +644,10 @@ paths:
                   type: string
                   description: 실종 동물의 특징
                 missing_animal_date:
-                  type: date
+                  type: string
                   description: 동물이 실종된 추정일자
                 report_witness_date:
-                  type: date
+                  type: string
                   description: 제보일자(해당 동물의 목격일)
                 report_witness_location:
                   type: string
