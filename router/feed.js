@@ -776,20 +776,20 @@ router.post('/deleteFeed', (req, res) => {
 		// let communityCount = await Community.model.find({community_writer_id: req.session.loginUser}).where('community_is_delete').ne(true).count();
 
 		// console.log('count=>', feedCount + communityCount);
-		let feedResult = await User.model
-			.findOneAndUpdate(
-				{
-					_id: req.session.loginUser,
-				},
-				{
-					$set: {
-						user_upload_count: true,
-					},
-					$currentDate: {feed_update_date: true},
-				},
-				{new: true, upsert: true},
-			)
-			.lean();
+		// let feedResult = await User.model
+		// 	.findOneAndUpdate(
+		// 		{
+		// 			_id: req.session.loginUser,
+		// 		},
+		// 		{
+		// 			$set: {
+		// 				user_upload_count: true,
+		// 			},
+		// 			$currentDate: {feed_update_date: true},
+		// 		},
+		// 		{new: true, upsert: true},
+		// 	)
+		// 	.lean();
 
 		res.json({status: 200, msg: feedResult});
 	});
