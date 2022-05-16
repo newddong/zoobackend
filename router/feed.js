@@ -292,6 +292,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 				.find({feed_writer_id: req.body.userobject_id})
 				.where('feed_is_delete')
 				.ne(true)
+				.where('feed_avatar_id', req.body.userobject_id)
 				.populate('feed_writer_id')
 				.limit(req.body.request_number)
 				.sort('-_id')
