@@ -459,10 +459,12 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 			return;
 		} //대상 피드 오브젝트가 유효한 오브젝트인지 확인
 		targetFeed.feed_content = req.body.feed_content;
-		targetFeed.feed_location = req.body.feed_location;
+		// targetFeed.feed_location = req.body.feed_location;
 		targetFeed.feed_type = 'feed';
 		targetFeed.feed_is_protect_diary = req.body.feed_is_protect_diary;
 		targetFeed.feed_update_date = Date.now();
+
+		targetFeed.feed_location = typeof req.body.feed_location == 'string' ? JSON.parse(req.body.feed_location) : req.body.feed_location;
 
 		let feedMedias = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
 		let receivedTags = feedMedias.map(media => media.tags).flat();
