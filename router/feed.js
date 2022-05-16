@@ -289,10 +289,15 @@ router.post('/getFeedListByUserId', (req, res) => {
 			return;
 		} else {
 			let userFeeds = await Feed.model
-				.find({feed_writer_id: req.body.userobject_id})
+				.find({
+					$or: [
+						{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
+						{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+					],
+				})
+				.where('feed_writer_id', req.body.userobject_id)
 				.where('feed_is_delete')
 				.ne(true)
-				.where('feed_avatar_id', req.body.userobject_id)
 				.populate('feed_writer_id')
 				.limit(req.body.request_number)
 				.sort('-_id')
@@ -752,6 +757,33 @@ router.post('/deleteFeed', (req, res) => {
 				{
 					$set: {
 						feed_is_delete: true,
+					},
+					$currentDate: {feed_update_date: true},
+				},
+				{new: true, upsert: true},
+			)
+			.lean();
+
+		// let feedCount = await Feed.model
+		// 	.find({feed_writer_id: req.session.loginUser})
+		// 	.where('feed_is_delete')
+		// 	.ne(true)
+		// 	.where('feed_avatar_id', req.session.loginUser)
+		// 	.count();
+
+		// console.log('feedCount=>', feedCount);
+
+		// let communityCount = await Community.model.find({community_writer_id: req.session.loginUser}).where('community_is_delete').ne(true).count();
+
+		// console.log('count=>', feedCount + communityCount);
+		let feedResult = await User.model
+			.findOneAndUpdate(
+				{
+					_id: req.session.loginUser,
+				},
+				{
+					$set: {
+						user_upload_count: true,
 					},
 					$currentDate: {feed_update_date: true},
 				},
