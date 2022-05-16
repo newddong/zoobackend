@@ -16,4 +16,6 @@ module.exports = Object.freeze({
 	ALERT_NO_MEDIA_INFO: '첨부파일의 정보를 입력하지 않았습니다.',
 	ALERT_NO_MATCHING: '로그인 정보와 댓글 작성자 정보가 일치하지 않습니다.',
 	ALERT_NO_POST: '게시물이 없습니다.',
+
+	ALERT_ALREADY_REPORT: '이미 신고되었습니다.',
 });

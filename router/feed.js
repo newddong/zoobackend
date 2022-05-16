@@ -263,6 +263,8 @@ router.post('/getFeedListByUserId', (req, res) => {
 		if (user.user_type == 'pet') {
 			let petFeeds = await Feed.model
 				.find({feed_avatar_id: req.body.userobject_id})
+				.where('feed_is_delete')
+				.ne(true)
 				.populate('feed_avatar_id')
 				.limit(req.body.request_number)
 				.sort('-_id')
@@ -288,6 +290,8 @@ router.post('/getFeedListByUserId', (req, res) => {
 		} else {
 			let userFeeds = await Feed.model
 				.find({feed_writer_id: req.body.userobject_id})
+				.where('feed_is_delete')
+				.ne(true)
 				.populate('feed_writer_id')
 				.limit(req.body.request_number)
 				.sort('-_id')
@@ -343,7 +347,11 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 //실종/제보 요청을 가져온다.
 router.post('/getMissingReportList', (req, res) => {
 	controller(req, res, async () => {
-		let reportMissingList = Feed.model.find({feed_type: {$ne: 'feed'}}).populate('feed_writer_id');
+		let reportMissingList = Feed.model
+			.find({feed_type: {$ne: 'feed'}})
+			.where('feed_is_delete')
+			.ne(true)
+			.populate('feed_writer_id');
 		if (req.body.city) {
 			reportMissingList.find({
 				$or: [{missing_animal_lost_location: {$regex: req.body.city}}, {report_witness_location: {$regex: req.body.city}}],
@@ -387,7 +395,7 @@ router.post('/getMissingReportList', (req, res) => {
 //피드,실종,제보 게시글 상세정보 가져오기
 router.post('/getFeedDetailById', (req, res) => {
 	controller(req, res, async () => {
-		let feed = await Feed.model.findById(req.body.feedobject_id).populate('feed_writer_id').lean();
+		let feed = await Feed.model.findById(req.body.feedobject_id).where('feed_is_delete').ne(true).populate('feed_writer_id').lean();
 		if (!feed) {
 			//res.status(404);
 			res.json({status: 404, msg: ALERT_NO_RESULT});
@@ -412,7 +420,7 @@ router.post('/getFeedDetailById', (req, res) => {
 //추천 피드 리스트를 불러옴(홈화면)
 router.post('/getSuggestFeedList', (req, res) => {
 	controller(req, res, async () => {
-		let feed = await Feed.model.find().populate('feed_writer_id').populate('feed_avatar_id').sort('-_id').lean();
+		let feed = await Feed.model.find().where('feed_is_delete').ne(true).populate('feed_writer_id').populate('feed_avatar_id').sort('-_id').lean();
 		if (!feed) {
 			//res.status(404);
 			res.json({status: 404, msg: ALERT_NO_RESULT});
@@ -598,7 +606,7 @@ router.post('/getLikedFeedList', (req, res) => {
 //피드 즐겨찾기 설정/취소
 router.post('/favoriteFeed', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		let targetFeed = await Feed.model.findById(req.body.feedobject_id);
+		let targetFeed = await Feed.model.findById(req.body.feedobject_id).where('feed_is_delete').ne(true);
 		if (!targetFeed) {
 			res.json({status: 404, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
@@ -728,6 +736,29 @@ router.post('/editMissingReport', uploadS3.array('media_uri'), (req, res) => {
 			)
 			.lean();
 		res.json({status: 200, msg: result});
+	});
+});
+
+//피드/실종/제보 삭제
+router.post('/deleteFeed', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let feedResult = await Feed.model
+			.findOneAndUpdate(
+				{
+					feed_writer_id: req.session.loginUser,
+					_id: req.body.feed_object_id,
+				},
+				{
+					$set: {
+						feed_is_delete: true,
+					},
+					$currentDate: {feed_update_date: true},
+				},
+				{new: true, upsert: true},
+			)
+			.lean();
+
+		res.json({status: 200, msg: feedResult});
 	});
 });
 

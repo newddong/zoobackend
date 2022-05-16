@@ -677,6 +677,32 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
+  /feed/deleteFeed:
+    post:
+      tags:
+        - feed
+      summary: 피드/실종/제보 삭제
+      description: 피드/실종/제보 삭제
+      operationId: deleteFeed
+      requestBody:
+        description: 피드/실종/제보 삭제에 필요한 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - feed_object_id
+              properties:
+                feed_object_id:
+                  type: string
+                  description: 삭제할 피드/실종/제보 게시물 object _id
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
 
   #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$

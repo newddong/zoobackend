@@ -141,6 +141,9 @@ const FeedObject = {
 	feed_writer_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
 	/** @type { String} 주인공 동물로 지정한 반려동물 계정의 id, 작성자가 avatar_id로 클라이언트에 표시됨 */
 	feed_avatar_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},
+
+	/** @type { Boolean} 게시글 삭제여부 */
+	feed_is_delete: {type: Schema.Types.Boolean, default: false},
 };
 
 /** @type {mongoose.Schema} */
