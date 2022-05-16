@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Report = require('../schema/report');
 const {controller, controllerLoggedIn} = require('./controller');
-const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
+const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING, ALERT_ALREADY_REPORT} = require('./constants');
 const mongoose = require('mongoose');
 
 function makeSchema(str) {
@@ -13,6 +13,20 @@ function makeSchema(str) {
 //신고하기 설정/취소
 router.post('/createReport', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
+		//신고여부 확인 전에 이미 해당 사용자가 신고한 내역이 있는지 확인한다.
+		let reportCount = await Report.model
+			.find({
+				report_user_id: req.session.loginUser,
+				report_target_object_id: req.body.report_target_object_id,
+				report_target_object_type: req.body.report_target_object_type,
+				report_is_delete: false,
+			})
+			.count();
+
+		if (reportCount > 0) {
+			res.json({status: 400, msg: ALERT_ALREADY_REPORT});
+			return;
+		}
 		let report = await Report.model
 			.findOneAndUpdate(
 				{
