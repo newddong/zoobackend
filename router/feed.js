@@ -665,7 +665,7 @@ router.post('/editMissingReport', uploadS3.array('media_uri'), (req, res) => {
 		//업데이트 날짜에 해당되는 필드는 항상 별도로 추가 입력 필요
 		query.feed_update_date = Date.now();
 
-		targetFeed = await Feed.model.findById(req.body.feedobject_id);
+		targetFeed = await Feed.model.findById(req.body.feedobject_id).where('feed_is_delete').ne(true).lean();
 
 		//삭제할 사진이 있을 경우
 		if (query.photos_to_delete) {

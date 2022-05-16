@@ -191,9 +191,9 @@ router.post('/getUserProfile', (req, res) => {
 
 		let feedList = [];
 		if (userInfo.user_type == 'pet') {
-			feedList = await Feed.model.find({feed_avatar_id: userInfo._id}).limit(9999).sort('-_id').lean();
+			feedList = await Feed.model.find({feed_avatar_id: userInfo._id}).where('feed_is_delete').ne(true).limit(9999).sort('-_id').lean();
 		} else {
-			feedList = await Feed.model.find({feed_writer_id: userInfo._id}).limit(9999).sort('-_id').lean();
+			feedList = await Feed.model.find({feed_writer_id: userInfo._id}).where('feed_is_delete').ne(true).limit(9999).sort('-_id').lean();
 		}
 
 		let follow = false;
@@ -671,7 +671,7 @@ router.post('/followUser', (req, res) => {
 //유저를 팔로우 취소한다.
 router.post('/unFollowUser', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		let targetUser = await User.model.findById(req.body.follow_userobject_id).exec();
+		let targetUser = await User.model.findById(req.body.follow_userobject_id).lean();
 		if (!targetUser) {
 			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
 			return;

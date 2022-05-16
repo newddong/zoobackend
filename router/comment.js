@@ -170,7 +170,7 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 //피드(피드,실종,제보)댓글 리스트 불러오기
 router.post('/getCommentListByFeedId', (req, res) => {
 	controller(req, res, async () => {
-		let feed = await Feed.model.findById(req.body.feedobject_id).exec();
+		let feed = await Feed.model.findById(req.body.feedobject_id).where('feed_is_delete').ne(true).lean();
 		if (!feed) {
 			res.json({status: 400, msg: ALERT_NOT_VALID_OBJECT_ID});
 			return;
