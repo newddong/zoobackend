@@ -175,6 +175,9 @@ router.post('/setVolunteerActivityStatus', (req, res) => {
 					notice_user_date: Date.now(),
 				});
 				let resultNoticeUser = await noticeUser.save();
+				let user = await User.model
+					.findOneAndUpdate({_id: applicant_user_id}, {$set: {user_alarm: true}}, {new: true, upsert: true, setDefaultsOnInsert: true})
+					.lean();
 			}
 		}
 

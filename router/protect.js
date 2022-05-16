@@ -265,6 +265,9 @@ router.post('/setProtectActivityStatus', (req, res) => {
 				notice_user_date: Date.now(),
 			});
 			let resultNoticeUser = await noticeUser.save();
+			let user = await User.model
+				.findOneAndUpdate({_id: applicant_user_id}, {$set: {user_alarm: true}}, {new: true, upsert: true, setDefaultsOnInsert: true})
+				.lean();
 		}
 
 		let protect_act_request_article_id = JSON.stringify(protectActivity.protect_act_request_article_id).replace(/\"/g, '');
@@ -299,6 +302,9 @@ router.post('/setProtectActivityStatus', (req, res) => {
 					notice_user_date: Date.now(),
 				});
 				let resultNoticeUser = await noticeUser.save();
+				let user = await User.model
+					.findOneAndUpdate({_id: applicant_user_id}, {$set: {user_alarm: true}}, {new: true, upsert: true, setDefaultsOnInsert: true})
+					.lean();
 			}
 		}
 

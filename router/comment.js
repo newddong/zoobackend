@@ -125,6 +125,10 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 					notice_user_date: Date.now(),
 				});
 				let resultNoticeUser = await noticeUser.save();
+
+				let user = await User.model
+					.findOneAndUpdate({_id: parentComment.comment_writer_id}, {$set: {user_alarm: true}}, {new: true, upsert: true, setDefaultsOnInsert: true})
+					.lean();
 			}
 			//게시글을 작성한 사용자와 댓글을 남기는 사람이 같을 경우 게시물에 대한 알림 메세지를 담지 않는다.
 			if (
@@ -151,6 +155,9 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 					notice_user_date: Date.now(),
 				});
 				let resultNoticeUser = await noticeUser.save();
+				let user = await User.model
+					.findOneAndUpdate({_id: writer_id}, {$set: {user_alarm: true}}, {new: true, upsert: true, setDefaultsOnInsert: true})
+					.lean();
 			}
 
 			req.body.commentobject_id;

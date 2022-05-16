@@ -659,7 +659,9 @@ router.post('/followUser', (req, res) => {
 				notice_user_date: Date.now(),
 			});
 			let resultNoticeUser = await noticeUser.save();
-			console.log(resultNoticeUser);
+			let user = await User.model
+				.findOneAndUpdate({_id: req.body.follow_userobject_id}, {$set: {user_alarm: true}}, {new: true, upsert: true, setDefaultsOnInsert: true})
+				.lean();
 		}
 
 		res.json({status: 200, msg: follow});
@@ -739,7 +741,9 @@ router.post('/unFollowUser', (req, res) => {
 				notice_user_date: Date.now(),
 			});
 			let resultNoticeUser = await noticeUser.save();
-			console.log(resultNoticeUser);
+			let user = await User.model
+				.findOneAndUpdate({_id: req.body.follow_userobject_id}, {$set: {user_alarm: true}}, {new: true, upsert: true, setDefaultsOnInsert: true})
+				.lean();
 		}
 
 		res.json({status: 200, msg: follow});
@@ -947,6 +951,9 @@ router.post('/createMemoBox', (req, res) => {
 				notice_user_date: Date.now(),
 			});
 			let resultNoticeUser = await noticeUser.save();
+			let user = await User.model
+				.findOneAndUpdate({_id: req.body.memobox_receive_id}, {$set: {user_alarm: true}}, {new: true, upsert: true, setDefaultsOnInsert: true})
+				.lean();
 		}
 
 		res.json({status: 200, msg: resultMemoBox});
