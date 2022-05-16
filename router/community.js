@@ -4,6 +4,7 @@ const Community = require('../schema/community');
 const uploadS3 = require('../common/uploadS3');
 const LikeEtc = require('../schema/likeetc');
 const FavoriteEtc = require('../schema/favoriteetc');
+const Feed = require('../schema/feed');
 const User = require('../schema/user');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
@@ -49,6 +50,38 @@ router.post('/createCommunity', (req, res) => {
 
 		var community = await Community.makeNewdoc(query);
 		let resultCommunity = await community.save();
+
+		//업로드 게시물 개수 업데이트
+		let feedCount = await Feed.model
+			.find({
+				$or: [
+					{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.session.loginUser}]},
+					{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+				],
+			})
+			.where('feed_writer_id', req.session.loginUser)
+			.where('feed_is_delete')
+			.ne(true)
+			.count();
+
+		let communityCount = await Community.model.find({community_writer_id: req.session.loginUser}).where('community_is_delete').ne(true).count();
+		let totalCount = feedCount + communityCount;
+
+		let countUpdate = await User.model
+			.findOneAndUpdate(
+				{
+					_id: req.session.loginUser,
+				},
+				{
+					$set: {
+						user_upload_count: totalCount,
+					},
+					$currentDate: {feed_update_date: true},
+				},
+				{new: true, upsert: true},
+			)
+			.lean();
+
 		res.json({status: 200, msg: resultCommunity});
 	});
 });

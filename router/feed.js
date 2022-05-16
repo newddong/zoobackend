@@ -10,6 +10,7 @@ const LikeFeed = require('../schema/likefeed');
 const Notice = require('../schema/notice');
 const NoticeUser = require('../schema/noticeuser');
 const FavoriteEtc = require('../schema/favoriteetc');
+const Community = require('../schema/community');
 const uploadS3 = require('../common/uploadS3');
 const {controller, controllerLoggedIn} = require('./controller');
 const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MEDIA_INFO, ALERT_NOT_VALID_OBJECT_ID} = require('./constants');
@@ -57,7 +58,39 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 				createHash(hashKeyword, feed._id);
 			});
 		}
-		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_upload_count: 1}});
+		// await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_upload_count: 1}});
+
+		//업로드 게시물 개수 업데이트
+		let feedCount = await Feed.model
+			.find({
+				$or: [
+					{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.session.loginUser}]},
+					{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+				],
+			})
+			.where('feed_writer_id', req.session.loginUser)
+			.where('feed_is_delete')
+			.ne(true)
+			.count();
+
+		let communityCount = await Community.model.find({community_writer_id: req.session.loginUser}).where('community_is_delete').ne(true).count();
+		let totalCount = feedCount + communityCount;
+
+		let countUpdate = await User.model
+			.findOneAndUpdate(
+				{
+					_id: req.session.loginUser,
+				},
+				{
+					$set: {
+						user_upload_count: totalCount,
+					},
+					$currentDate: {feed_update_date: true},
+				},
+				{new: true, upsert: true},
+			)
+			.lean();
+
 		res.json({status: 200, msg: newFeed});
 	});
 });
@@ -200,7 +233,39 @@ router.post('/createMissing', uploadS3.array('media_uri'), (req, res) => {
 			});
 		}
 
-		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_upload_count: 1}});
+		// await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_upload_count: 1}});
+
+		//업로드 게시물 개수 업데이트
+		let feedCount = await Feed.model
+			.find({
+				$or: [
+					{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.session.loginUser}]},
+					{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+				],
+			})
+			.where('feed_writer_id', req.session.loginUser)
+			.where('feed_is_delete')
+			.ne(true)
+			.count();
+
+		let communityCount = await Community.model.find({community_writer_id: req.session.loginUser}).where('community_is_delete').ne(true).count();
+		let totalCount = feedCount + communityCount;
+
+		let countUpdate = await User.model
+			.findOneAndUpdate(
+				{
+					_id: req.session.loginUser,
+				},
+				{
+					$set: {
+						user_upload_count: totalCount,
+					},
+					$currentDate: {feed_update_date: true},
+				},
+				{new: true, upsert: true},
+			)
+			.lean();
+
 		res.json({status: 200, msg: newMissing});
 	});
 });
@@ -240,7 +305,39 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 			});
 		}
 
-		await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_upload_count: 1}});
+		// await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_upload_count: 1}});
+
+		//업로드 게시물 개수 업데이트
+		let feedCount = await Feed.model
+			.find({
+				$or: [
+					{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.session.loginUser}]},
+					{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+				],
+			})
+			.where('feed_writer_id', req.session.loginUser)
+			.where('feed_is_delete')
+			.ne(true)
+			.count();
+
+		let communityCount = await Community.model.find({community_writer_id: req.session.loginUser}).where('community_is_delete').ne(true).count();
+		let totalCount = feedCount + communityCount;
+
+		let countUpdate = await User.model
+			.findOneAndUpdate(
+				{
+					_id: req.session.loginUser,
+				},
+				{
+					$set: {
+						user_upload_count: totalCount,
+					},
+					$currentDate: {feed_update_date: true},
+				},
+				{new: true, upsert: true},
+			)
+			.lean();
+
 		res.json({status: 200, msg: newReport});
 	});
 });
@@ -733,7 +830,7 @@ router.post('/editMissingReport', uploadS3.array('media_uri'), (req, res) => {
 			});
 		}
 
-		//데이터가 들어온 필드만 업데이트를 진행
+		// 데이터가 들어온 필드만 업데이트를 진행
 		const result = await Feed.model
 			.findByIdAndUpdate(
 				{_id: query.feedobject_id},
@@ -766,32 +863,36 @@ router.post('/deleteFeed', (req, res) => {
 			)
 			.lean();
 
-		// let feedCount = await Feed.model
-		// 	.find({feed_writer_id: req.session.loginUser})
-		// 	.where('feed_is_delete')
-		// 	.ne(true)
-		// 	.where('feed_avatar_id', req.session.loginUser)
-		// 	.count();
+		//업로드 게시물 개수 업데이트
+		let feedCount = await Feed.model
+			.find({
+				$or: [
+					{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.session.loginUser}]},
+					{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+				],
+			})
+			.where('feed_writer_id', req.session.loginUser)
+			.where('feed_is_delete')
+			.ne(true)
+			.count();
 
-		// console.log('feedCount=>', feedCount);
+		let communityCount = await Community.model.find({community_writer_id: req.session.loginUser}).where('community_is_delete').ne(true).count();
+		let totalCount = feedCount + communityCount;
 
-		// let communityCount = await Community.model.find({community_writer_id: req.session.loginUser}).where('community_is_delete').ne(true).count();
-
-		// console.log('count=>', feedCount + communityCount);
-		// let feedResult = await User.model
-		// 	.findOneAndUpdate(
-		// 		{
-		// 			_id: req.session.loginUser,
-		// 		},
-		// 		{
-		// 			$set: {
-		// 				user_upload_count: true,
-		// 			},
-		// 			$currentDate: {feed_update_date: true},
-		// 		},
-		// 		{new: true, upsert: true},
-		// 	)
-		// 	.lean();
+		let countUpdate = await User.model
+			.findOneAndUpdate(
+				{
+					_id: req.session.loginUser,
+				},
+				{
+					$set: {
+						user_upload_count: totalCount,
+					},
+					$currentDate: {feed_update_date: true},
+				},
+				{new: true, upsert: true},
+			)
+			.lean();
 
 		res.json({status: 200, msg: feedResult});
 	});
