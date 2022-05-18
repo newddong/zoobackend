@@ -671,7 +671,7 @@ router.post('/followUser', (req, res) => {
 //유저를 팔로우 취소한다.
 router.post('/unFollowUser', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		let targetUser = await User.model.findById(req.body.follow_userobject_id).lean();
+		let targetUser = await User.model.findById(req.body.follow_userobject_id).exec();
 		if (!targetUser) {
 			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
 			return;
