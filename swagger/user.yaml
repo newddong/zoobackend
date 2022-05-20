@@ -1340,6 +1340,34 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /user/getUserAccount:
+    post:
+      tags:
+        - user
+      summary: 사용자 가입 정보 확인
+      description: 사용자 가입 정보 확인
+      operationId: getUserAccount
+      requestBody:
+        description: 사용자 가입 요청 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - user_phone_number
+              properties:
+                user_phone_number:
+                  type: string
+                  description: 사용자 user_phone_number
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 # .*?\{(.*?)\} (.*?) - (.*?)$
