@@ -141,6 +141,15 @@ router.post('/getProtectRequestList', (req, res) => {
 			});
 		}
 
+		let now = new Date(); // 오늘
+		requestList = requestList.map(requestList => {
+			if (requestList.protect_request_notice_edt) {
+				let lastDay = requestList.protect_request_notice_edt.getDate();
+				var difference = now.getDate() - lastDay;
+				return {...requestList, notice_day: difference};
+			}
+		});
+
 		res.json({status: 200, msg: requestList});
 	});
 });
