@@ -324,3 +324,29 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /protect/getShelterInfo:
+    post:
+      tags:
+        - protect
+      summary: 지역에 따른 보호소 정보
+      description: 지역에 따른 보호소 정보
+      operationId: getShelterInfo
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                city:
+                  type: string
+                  description: 보호소 지역(시,도) (all | '모든지역', 그외 지역은 해당 시,도 - 카카오 주소체계 )
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

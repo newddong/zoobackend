@@ -421,4 +421,22 @@ router.post('/getProtectRequestByProtectRequestId', (req, res) => {
 	});
 });
 
+/**
+ * 지역에 따른 보호소 정보
+ */
+router.post('/getShelterInfo', (req, res) => {
+	controller(req, res, async () => {
+		let shelterInfoList;
+		if (req.body.city == 'all') {
+			shelterInfoList = await User.model.find({user_type: 'shelter'}).lean();
+		} else {
+			shelterInfoList = await User.model.find({'shelter_address.brief': {$regex: req.body.city}, user_type: 'shelter'}).lean();
+		}
+		res.json({
+			status: 200,
+			msg: shelterInfoList,
+		});
+	});
+});
+
 module.exports = router;
