@@ -107,79 +107,79 @@ router.post('/getCommunityList', (req, res) => {
 			.ne(true)
 			.lean();
 
-		let max = 0;
-		let max_community_id;
-		let max_second = 0;
-		let max_second_community_id;
+		// let max = 0;
+		// let max_community_id;
+		// let max_second = 0;
+		// let max_second_community_id;
 
-		for (let i = 0; i < dateList.length; i++) {
-			like_count = dateList[i].community_like_count;
-			favorite_count = dateList[i].community_favorite_count;
-			comment_count = dateList[i].community_comment_count;
-			total = like_count + favorite_count + comment_count;
+		// for (let i = 0; i < dateList.length; i++) {
+		// 	like_count = dateList[i].community_like_count;
+		// 	favorite_count = dateList[i].community_favorite_count;
+		// 	comment_count = dateList[i].community_comment_count;
+		// 	total = like_count + favorite_count + comment_count;
 
-			if (total > max) {
-				max_second = max;
-				max = total;
-				max_second_community_id = max_community_id;
-				max_community_id = dateList[i]._id;
-			} else if (total > max_second) {
-				max_second = total;
-				max_second_community_id = dateList[i]._id;
-			}
-		}
+		// 	if (total > max) {
+		// 		max_second = max;
+		// 		max = total;
+		// 		max_second_community_id = max_community_id;
+		// 		max_community_id = dateList[i]._id;
+		// 	} else if (total > max_second) {
+		// 		max_second = total;
+		// 		max_second_community_id = dateList[i]._id;
+		// 	}
+		// }
 
-		//최대값과 두번째 최대값이 존재 할 경우 둘다 등록한다.
-		if (max > 0 && max_second > 0) {
-			await Community.model
-				.find({community_is_recomment: true}, {community_type: 'review'})
-				.updateMany({$set: {community_is_recomment: false}})
-				.lean();
+		// //최대값과 두번째 최대값이 존재 할 경우 둘다 등록한다.
+		// if (max > 0 && max_second > 0) {
+		// 	await Community.model
+		// 		.find({community_is_recomment: true}, {community_type: 'review'})
+		// 		.updateMany({$set: {community_is_recomment: false}})
+		// 		.lean();
 
-			await Community.model
-				.find({_id: {$in: [max_community_id, max_second_community_id]}})
-				.updateMany({$set: {community_is_recomment: true}})
-				.lean();
-		}
-		//최대값만 존재 할 경우 - 나머지 한개는 랜덤으로 한개 추가해야 함.
-		else if (max > 0) {
-			await Community.model
-				.find({community_is_recomment: true}, {community_type: 'review'})
-				.updateMany({$set: {community_is_recomment: false}})
-				.lean();
+		// 	await Community.model
+		// 		.find({_id: {$in: [max_community_id, max_second_community_id]}})
+		// 		.updateMany({$set: {community_is_recomment: true}})
+		// 		.lean();
+		// }
+		// //최대값만 존재 할 경우 - 나머지 한개는 랜덤으로 한개 추가해야 함.
+		// else if (max > 0) {
+		// 	await Community.model
+		// 		.find({community_is_recomment: true}, {community_type: 'review'})
+		// 		.updateMany({$set: {community_is_recomment: false}})
+		// 		.lean();
 
-			await Community.model.findOneAndUpdate({_id: max_community_id}, {$set: {community_is_recomment: true}}).lean();
-			let tempArray = Array();
-			for (let i = 0; i < dateList.length; i++) {
-				if (!dateList[i]._id.equals(max_community_id)) {
-					tempArray.push(dateList[i]._id);
-				}
-			}
-			let selectIndex = Math.floor(Math.random() * (tempArray.length - 0)) + 0;
-			await Community.model
-				.find({_id: {$in: [max_community_id, tempArray[selectIndex]]}})
-				.updateMany({$set: {community_is_recomment: true}})
-				.lean();
-		}
-		//최대값이 존재 하지 않을 경우 (글쓴이 외 다른 사용자들의 활동이 없을 경우)
-		else {
-			let selectIndex1 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
-			for (let i = 0; i < 10000; i++) {
-				selectIndex2 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
-				if (selectIndex1 == selectIndex2) continue;
-				else break;
-			}
+		// 	await Community.model.findOneAndUpdate({_id: max_community_id}, {$set: {community_is_recomment: true}}).lean();
+		// 	let tempArray = Array();
+		// 	for (let i = 0; i < dateList.length; i++) {
+		// 		if (!dateList[i]._id.equals(max_community_id)) {
+		// 			tempArray.push(dateList[i]._id);
+		// 		}
+		// 	}
+		// 	let selectIndex = Math.floor(Math.random() * (tempArray.length - 0)) + 0;
+		// 	await Community.model
+		// 		.find({_id: {$in: [max_community_id, tempArray[selectIndex]]}})
+		// 		.updateMany({$set: {community_is_recomment: true}})
+		// 		.lean();
+		// }
+		// //최대값이 존재 하지 않을 경우 (글쓴이 외 다른 사용자들의 활동이 없을 경우)
+		// else {
+		// 	let selectIndex1 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
+		// 	for (let i = 0; i < 10000; i++) {
+		// 		selectIndex2 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
+		// 		if (selectIndex1 == selectIndex2) continue;
+		// 		else break;
+		// 	}
 
-			await Community.model
-				.find({community_is_recomment: true}, {community_type: 'review'})
-				.updateMany({$set: {community_is_recomment: false}})
-				.lean();
+		// 	await Community.model
+		// 		.find({community_is_recomment: true}, {community_type: 'review'})
+		// 		.updateMany({$set: {community_is_recomment: false}})
+		// 		.lean();
 
-			await Community.model
-				.find({_id: {$in: [dateList[selectIndex1]._id, dateList[selectIndex2]._id]}})
-				.updateMany({$set: {community_is_recomment: true}})
-				.lean();
-		}
+		// 	await Community.model
+		// 		.find({_id: {$in: [dateList[selectIndex1]._id, dateList[selectIndex2]._id]}})
+		// 		.updateMany({$set: {community_is_recomment: true}})
+		// 		.lean();
+		// }
 
 		if (req.body.community_type == 'all') {
 			community = await Community.model
