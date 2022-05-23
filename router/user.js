@@ -1256,8 +1256,8 @@ router.post('/getAlarmStatus', (req, res) => {
 	});
 });
 
-//사용자 가입 정보 확인
-router.post('/getUserAccount', (req, res) => {
+//사용자 가입 계정 개수
+router.post('/getUserAccountCount', (req, res) => {
 	controller(req, res, async () => {
 		let userCount = await User.model.find({user_phone_number: req.body.user_phone_number}).count();
 		res.json({status: 200, msg: userCount + ''});

@@ -1340,15 +1340,15 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-  /user/getUserAccount:
+  /user/getUserAccountCount:
     post:
       tags:
         - user
-      summary: 사용자 가입 정보 확인
-      description: 사용자 가입 정보 확인
-      operationId: getUserAccount
+      summary: 사용자 가입 계정 개수
+      description: 사용자 가입 계정 개수
+      operationId: getUserAccountCount
       requestBody:
-        description: 사용자 가입 요청 정보
+        description: 사용자 가입 계정 개수
         content:
           application/x-www-form-urlencoded:
             schema:

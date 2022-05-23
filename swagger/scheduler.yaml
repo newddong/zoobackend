@@ -34,6 +34,59 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
+              required:
+                - bgnde
+              properties:
+                bgnde:
+                  type: string
+                  description: 유기날짜 (검색 시작일)
+                endde:
+                  type: string
+                  description: 유기날짜 (검색 종료일)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /scheduler/deletePublicData:
+    post:
+      tags:
+        - scheduler
+      summary: 공공데이터 포털 데이터 삭제
+      description: 공공데이터 포털 데이터 삭제
+      operationId: deletePublicData
+      requestBody:
+        description: 공공데이터 포털 데이터 삭제
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /scheduler/getPublicShelterData:
+    post:
+      tags:
+        - scheduler
+      summary: 시.도 데이터 가져오기
+      description: 시.도 데이터 가져오기
+      operationId: getSidoData
+      requestBody:
+        description: 시.도 데이터 가져오기
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
       responses:
         '200':
           $ref: '#/components/responses/200'
