@@ -155,7 +155,7 @@ async function dateFormatForDB(str) {
 }
 
 //보호소가 존재하지 않으면 계정 생성
-async function checkShelterExist(data) {
+async function checkShelterExist(data, sidoData) {
 	let result = {};
 	let phone_number = data.careTel.replace(/[-"]/gi, '');
 
@@ -166,6 +166,7 @@ async function checkShelterExist(data) {
 		let shelter_address = {};
 		shelter_address.brief = await checkAddress(data.careAddr);
 		shelter_address.detail = data.careNm;
+		shelter_address.city = sidoData;
 		const shelter = await User.makeNewdoc({
 			shelter_delegate_contact_number: data.phone_number,
 			user_phone_number: phone_number, //대표번호를 자동으로 로그인용 휴대폰 번호로 등록
@@ -184,9 +185,12 @@ async function checkShelterExist(data) {
 			shelter_address: shelter_address,
 			user_profile_uri: 'https://pinetreegy.s3.ap-northeast-2.amazonaws.com/upload/1652351934385_6346cd21-25e7-4fa3-be06-ec7ddd85c880.jpg',
 			shelter_delegate_contact_number: phone_number,
+			user_is_public_data: true,
 		});
+		console.log('shelter===>', shelter);
 		result = await shelter.save();
 	} else {
+		console.log('보호소 존재 ---------');
 	}
 	return result._id;
 }
@@ -266,7 +270,10 @@ async function insertPetDataIntoDB(petDataItems) {
 		userobject_id = await checkShelterExist(data[i]);
 
 		//유기번호가 ProtectRequestObject에 존재하지 않을 경우 makeDocAndInsertDB 함수 진행, 존재할 경우 보호 상태 업데이트 진행
-		protectRequestInfo = await ProtectRequest.model.findOne({protect_desertion_no: data[i].desertionNo}).exec();
+		// protectRequestInfo = await ProtectRequest.model.findOne({protect_desertion_no: data[i].desertionNo}).exec();
+
+		//공고번호가 ProtectRequestObject에 존재하지 않을 경우 makeDocAndInsertDB 함수 진행, 존재할 경우 보호 상태 업데이트 진행
+		protectRequestInfo = await ProtectRequest.model.findOne({protect_animal_noticeNo: data[i].noticeNo}).exec();
 
 		if (!protectRequestInfo) {
 			//ShelterAnimal 컬렉션과 ProtectRequest 컬렉션에 데이터 insert 진행
@@ -390,13 +397,19 @@ router.post('/getCityTypeFromPublicData', (req, res) => {
 
 router.post('/deletePublicData', (req, res) => {
 	controller(req, res, async () => {
-		// let ProtectRequestListForDelete = await ProtectRequest.model.find({protect_desertion_no: {$exists: true}}).exec();
-		// for (let i = 0; i < ProtectRequestListForDelete.length; i++) {
-		// 	// console.log('ProtectRequestListForDelete.protect_animal_id._id=>', ProtectRequestListForDelete[i].protect_animal_id._id);
-		// 	await ShelterAnimal.model.deleteOne({_id: ProtectRequestListForDelete[i].protect_animal_id._id});
-		// }
 		await ShelterAnimal.model.deleteMany({protect_desertion_no: {$exists: true}}).lean();
 		await ProtectRequest.model.deleteMany({protect_desertion_no: {$exists: true}}).lean();
+		res.json({status: 200, msg: '--'});
+	});
+});
+
+router.post('/deleteShelterInfo', (req, res) => {
+	controller(req, res, async () => {
+		await User.model
+			.deleteMany({
+				user_profile_uri: 'https://pinetreegy.s3.ap-northeast-2.amazonaws.com/upload/1652351934385_6346cd21-25e7-4fa3-be06-ec7ddd85c880.jpg',
+			})
+			.lean();
 		res.json({status: 200, msg: '--'});
 	});
 });
@@ -421,6 +434,7 @@ async function accessForShelterOpenApi(options) {
 	return new Promise(function (resolve, reject) {
 		request(options, function (error, response, body) {
 			if (body != undefined) {
+				console.log('body==>', body);
 				info = JSON.parse(body);
 				petDataArray = info.response.body.items;
 				resolve(petDataArray);
@@ -429,43 +443,101 @@ async function accessForShelterOpenApi(options) {
 	});
 }
 
+async function accessOpenApi(options) {
+	let petDataArray;
+	let info;
+	return new Promise(function (resolve, reject) {
+		request(options, function (error, response, body) {
+			if (body != undefined) {
+				info = JSON.parse(body);
+				petDataArray = info.response.body.items;
+				let oriData = insertPetDataIntoDB(petDataArray);
+				resolve(info.response.body.totalCount);
+			}
+		});
+	});
+}
+
 router.post('/getPublicShelterData', (req, res) => {
 	controller(req, res, async () => {
-		let sidoUrl = 'http://apis.data.go.kr/1543061/abandonmentPublicSrvc/sido?';
-		let options = await settingSidoForApi(sidoUrl, '');
-		let sidoDataList = await accessForShelterOpenApi(options);
-
-		let sigunguUrl = 'http://apis.data.go.kr/1543061/abandonmentPublicSrvc/sigungu?';
 		let paramsList;
-		if (sidoDataList.item) {
-			for (let i = 0; i < sidoDataList.item.length; i++) {
-				paramsList = '';
-				paramsList = '&upr_cd=' + sidoDataList.item[i].orgCd;
-				options = await settingSidoForApi(sigunguUrl, paramsList);
-				let sigunguDataList = await accessForShelterOpenApi(options);
-				await sleep(500);
-				if (sigunguDataList.item) {
-					for (let j = 0; j < sigunguDataList.item.length; j++) {
-						paramsList = '';
-						let shelterUrl = 'http://apis.data.go.kr/1543061/abandonmentPublicSrvc/shelter?';
-						paramsList = '&upr_cd=' + sigunguDataList.item[j].uprCd;
-						paramsList += '&org_cd=' + sigunguDataList.item[j].orgCd;
-						options = await settingSidoForApi(shelterUrl, paramsList);
-						let shelterDataList = await accessForShelterOpenApi(options);
-						await sleep(500);
+		let sidoUrl = 'http://apis.data.go.kr/1543061/abandonmentPublicSrvc/sido?';
 
-						if (shelterDataList.item) {
-							for (let k = 0; k < shelterDataList.item.length; k++) {
-								paramsList = '';
-								let abandonmentPublicUrl = 'http://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?';
-								paramsList = '&care_reg_no=' + shelterDataList.item[k].careRegNo;
-								options = await settingSidoForApi(abandonmentPublicUrl, paramsList);
-								let abandonmentPublicDataList = await accessForShelterOpenApi(options);
-								if (abandonmentPublicDataList.item) {
-									let shlterDetaildata = abandonmentPublicDataList.item[0];
-									checkShelterExist(shlterDetaildata);
+		for (let z = 1; z <= 2; z++) {
+			let sidoDataList;
+			paramsList = '';
+			paramsList = '&pageNo=' + [z];
+			let options = await settingSidoForApi(sidoUrl, paramsList);
+			console.log('options=>', options);
+			try {
+				sidoDataList = await accessForShelterOpenApi(options);
+			} catch (error) {
+				console.log('error=>', error);
+				z--;
+				await sleep(2000);
+				continue;
+			}
+			let sigunguUrl = 'http://apis.data.go.kr/1543061/abandonmentPublicSrvc/sigungu?';
+
+			await sleep(200);
+			if (sidoDataList.item) {
+				let sigunguDataList;
+				for (let i = 0; i < sidoDataList.item.length; i++) {
+					paramsList = '';
+					paramsList = '&upr_cd=' + sidoDataList.item[i].orgCd;
+					options = await settingSidoForApi(sigunguUrl, paramsList);
+					console.log('options=>', options);
+					try {
+						sigunguDataList = await accessForShelterOpenApi(options);
+					} catch (error) {
+						console.log('error=>', error);
+						i--;
+						await sleep(2000);
+						continue;
+					}
+					await sleep(200);
+					if (sigunguDataList.item) {
+						let shelterDataList;
+						for (let j = 0; j < sigunguDataList.item.length; j++) {
+							paramsList = '';
+							let shelterUrl = 'http://apis.data.go.kr/1543061/abandonmentPublicSrvc/shelter?';
+							paramsList = '&upr_cd=' + sigunguDataList.item[j].uprCd;
+							paramsList += '&org_cd=' + sigunguDataList.item[j].orgCd;
+							options = await settingSidoForApi(shelterUrl, paramsList);
+							console.log('options=>', options);
+							try {
+								shelterDataList = await accessForShelterOpenApi(options);
+							} catch (error) {
+								console.log('error=>', error);
+								j--;
+								await sleep(2000);
+								continue;
+							}
+							await sleep(200);
+
+							if (shelterDataList.item) {
+								let abandonmentPublicDataList;
+								for (let k = 0; k < shelterDataList.item.length; k++) {
+									paramsList = '';
+									let abandonmentPublicUrl = 'http://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?';
+									paramsList = '&care_reg_no=' + shelterDataList.item[k].careRegNo;
+									options = await settingSidoForApi(abandonmentPublicUrl, paramsList);
+									console.log('options=>', options);
+									try {
+										abandonmentPublicDataList = await accessForShelterOpenApi(options);
+									} catch (error) {
+										console.log('error=>', error);
+										k--;
+										await sleep(2000);
+										continue;
+									}
+
+									if (abandonmentPublicDataList.item) {
+										let shlterDetaildata = abandonmentPublicDataList.item[0];
+										checkShelterExist(shlterDetaildata, sidoDataList.item[i].orgdownNm);
+									}
+									await sleep(200);
 								}
-								await sleep(500);
 							}
 						}
 					}

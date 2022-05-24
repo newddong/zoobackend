@@ -439,4 +439,109 @@ router.post('/getShelterInfo', (req, res) => {
 	});
 });
 
+async function dateFormatForBetween(str) {
+	let year = str.substr(0, 4);
+	let month = str.substr(4, 2);
+	let day = str.substr(6);
+	return year + '-' + month + '-' + day;
+}
+
+async function addressMaching(adressData) {
+	switch (adressData) {
+		case '충청북도':
+		case '충청남도':
+		case '전라북도':
+		case '전라남도':
+		case '경상남도':
+		case '경상북도':
+			return adressData.substring(0, 1) + adressData.substring(2, 3);
+		case '세종특별자치시':
+		case '제주특별자치도':
+			return adressData.substring(0, 2);
+		default:
+			return adressData;
+	}
+}
+
+async function compareAnimalList(dataList) {
+	let animalList1 = ['개', '그 외'];
+	let animalList2 = ['고양이', '그 외'];
+	let animalList3 = ['그 외'];
+
+	if ((dataList.filter(x => !animalList1.includes(x)).concat(animalList1.filter(x => !dataList.includes(x))).length = 0)) {
+		return {$ne: '고양이'};
+	} else if ((dataList.filter(x => !animalList2.includes(x)).concat(animalList2.filter(x => !dataList.includes(x))).length = 0)) {
+		return {$ne: '개'};
+	} else if ((dataList.filter(x => !animalList3.includes(x)).concat(animalList3.filter(x => !dataList.includes(x))).length = 0)) {
+		return {$and: [{$ne: '개'}, {$ne: '고양이'}]};
+	}
+}
+
+/**
+ * 보호요청 필터 검색
+ */
+router.post('/getSearchResultProtectRequest', (req, res) => {
+	controller(req, res, async () => {
+		let query = {};
+		let send_query = {};
+		let result;
+
+		for (let filed in req.body) {
+			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
+		}
+
+		let notice_sdt = query.protect_request_notice_sdt;
+		let notice_edt = query.protect_request_notice_edt;
+		let date_notice_sdt = new Date(await dateFormatForBetween(notice_sdt));
+		let date_notice_edt = new Date(await dateFormatForBetween(notice_edt));
+
+		send_query['protect_request_date'] = {$gte: date_notice_sdt, $lte: date_notice_edt};
+
+		//공고번호를 지역 필터로 사용
+		if (query.city != undefined) {
+			cityName = await addressMaching(query.city);
+			send_query['protect_animal_noticeNo'] = {$regex: cityName};
+		}
+
+		//보호소 필터
+		if (query.shelter_object_id_list != undefined) {
+			let changedType_object_id = Array();
+			let shelter_object_id_list =
+				typeof req.body.shelter_object_id_list == 'string'
+					? req.body.shelter_object_id_list.replace(/[\[\]\"]/g, '').split(',')
+					: req.body.shelter_object_id_list;
+			for (let p = 0; p < shelter_object_id_list.length; p++) {
+				changedType_object_id.push(mongoose.Types.ObjectId(shelter_object_id_list[p]));
+			}
+			send_query['protect_animal_id.protect_animal_belonged_shelter_id'] = {$in: changedType_object_id};
+		}
+
+		//동물 종류 필터
+		if (query.protect_animal_species != undefined) {
+			let protect_animal_species =
+				typeof req.body.protect_animal_species == 'string'
+					? req.body.protect_animal_species.replace(/[\[\]\"]/g, '').split(',')
+					: req.body.protect_animal_species;
+
+			if (protect_animal_species.length == 1 && protect_animal_species[0] != '그 외') {
+				send_query['protect_animal_species'] = protect_animal_species[0];
+			} else if (protect_animal_species.length == 2 && protect_animal_species.filter(x => !['개', '그 외'].includes(x)).length == 0) {
+				send_query['protect_animal_species'] = {$ne: '고양이'};
+			} else if (protect_animal_species.length == 2 && protect_animal_species.filter(x => !['고양이', '그 외'].includes(x)).length == 0) {
+				send_query['protect_animal_species'] = {$ne: '개'};
+			} else if (protect_animal_species.length == 1 && protect_animal_species[0] == '그 외') {
+				send_query['protect_animal_species'] = {$nin: ['개', '고양이']};
+			} else if (protect_animal_species.length == 2 && protect_animal_species.filter(x => !['개', '고양이'].includes(x)).length == 0) {
+				send_query['protect_animal_species'] = {$in: protect_animal_species};
+			} else if (protect_animal_species.filter(x => !['개', '고양이', '그 외'].includes(x)).length == 0) {
+			}
+		}
+		result = await ProtectRequest.model.find(send_query).lean();
+		res.json({
+			status: 200,
+			msg: result,
+		});
+	});
+});
+
 module.exports = router;
