@@ -10,7 +10,6 @@ const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require(
 const mongoose = require('mongoose');
 const cron = require('node-cron');
 const request = require('request');
-const axios = require('axios');
 global.change_totalCount = 0;
 global.change_endNumber = 0;
 
@@ -224,7 +223,7 @@ async function makeDocAndInsertDB(data, userobject_id) {
 	let animal_writer_id = getUserObjectID(careNm);
 	const protectAnimal = await ShelterAnimal.makeNewdoc({
 		protect_animal_photo_uri_list: popfile,
-		protect_animal_rescue_date: new Date(await dateFormatForDB(data.happenDt)),
+		protect_animal_rescue_date: new Date(await dateFormatForDB(happenDt)),
 		protect_animal_rescue_location: happenPlace,
 		protect_animal_species: kindCd.species,
 		protect_animal_species_detail: kindCd.species_detail,
@@ -247,6 +246,7 @@ async function makeDocAndInsertDB(data, userobject_id) {
 		protect_animal_species_detail: kindCd.species_detail,
 		protect_request_photos_uri: popfile,
 		protect_request_photo_thumbnail: data.popfile,
+		protect_request_date: new Date(await dateFormatForDB(happenDt)),
 		protect_request_notice_sdt: new Date(await dateFormatForDB(data.noticeSdt)),
 		protect_request_notice_edt: new Date(await dateFormatForDB(data.noticeEdt)),
 		protect_desertion_no: desertionNo,

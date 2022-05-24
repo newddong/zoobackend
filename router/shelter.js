@@ -125,7 +125,7 @@ router.post('/getProtectRequestList', (req, res) => {
 			return;
 		}
 
-		requestList = await requestList.sort('-_id').lean();
+		requestList = await requestList.sort('-protect_request_date').lean();
 		requestList = requestList.filter(v => v.protect_request_writer_id != null);
 
 		let favoritedList = [];
