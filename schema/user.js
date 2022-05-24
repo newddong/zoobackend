@@ -163,8 +163,11 @@ const UserObject = {
 	/** @type { Boolean} 파인프렌즈와 컨텍여부 확인 */
 	user_contacted: {type: Boolean, default: false},
 
-	/** @type { Boolean} 알람 존재 여부 */
+	/** @type { Boolean} 알람 존재 여부  (알람이 존재 할 경우 종모양에 빨간색 점 찍힘)*/
 	user_alarm: {type: Boolean, default: false},
+
+	/** @type { Boolean} 공공데이터 자료 여부 */
+	user_is_public_data: {type: Boolean, default: false},
 };
 
 /** @type {mongoose.Schema} */

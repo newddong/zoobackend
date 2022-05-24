@@ -430,7 +430,7 @@ router.post('/getShelterInfo', (req, res) => {
 		if (req.body.city == 'all') {
 			shelterInfoList = await User.model.find({user_type: 'shelter'}).lean();
 		} else {
-			shelterInfoList = await User.model.find({'shelter_address.brief': {$regex: req.body.city}, user_type: 'shelter'}).lean();
+			shelterInfoList = await User.model.find({'shelter_address.city': {$regex: req.body.city}, user_type: 'shelter'}).lean();
 		}
 		res.json({
 			status: 200,
