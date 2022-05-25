@@ -283,7 +283,10 @@ router.post('/getAnimalListWithApplicant', (req, res) => {
 
 		followList = await Follow.model.find({follow_id: req.session.loginUser, follow_is_delete: false}).lean();
 		animalWithApply = animalWithApply.map(animalWithApply => {
-			if (followList.find(follow => follow.follower_id.equals(animalWithApply.protect_act_applicant_id._id))) {
+			if (
+				animalWithApply.protect_act_applicant_id != null &&
+				followList.find(follow => follow.follower_id.equals(animalWithApply.protect_act_applicant_id._id))
+			) {
 				return {...animalWithApply, is_follow: true};
 			} else {
 				return {...animalWithApply, is_follow: false};
