@@ -506,6 +506,7 @@ router.post('/getFeedDetailById', (req, res) => {
 		}
 
 		let favoritedList = [];
+		let favoritedFeedList = [];
 		if (req.session.loginUser) {
 			favoritedList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
 			if (favoritedList.find(favoritedList => favoritedList.favorite_etc_target_object_id == feed.feed_writer_id._id)) {
@@ -513,9 +514,14 @@ router.post('/getFeedDetailById', (req, res) => {
 			} else {
 				feed.is_favorite = false;
 			}
-		}
 
-		//res.status(200);
+			favoritedFeedList = await FavoriteFeed.model.find({favorite_feed_user_id: req.session.loginUser, favorite_feed_is_delete: false}).lean();
+			if (favoritedFeedList.find(favoritedFeedList => favoritedFeedList.favorite_feed_id == feed._id)) {
+				feed.feed_is_favorite = true;
+			} else {
+				feed.feed_is_favorite = false;
+			}
+		}
 		res.json({status: 200, msg: feed});
 	});
 });
