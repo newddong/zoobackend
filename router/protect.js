@@ -555,6 +555,29 @@ router.post('/getSearchResultProtectRequest', (req, res) => {
 			.limit(limit)
 			.sort('-_id')
 			.lean();
+
+		let favoritedList = [];
+		if (req.session.loginUser) {
+			favoritedList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
+
+			result = result.map(result => {
+				if (favoritedList.find(favorited => favorited.favorite_etc_target_object_id == result._id)) {
+					return {...result, is_favorite: true};
+				} else {
+					return {...result, is_favorite: false};
+				}
+			});
+		}
+
+		let now = new Date(); // 오늘
+		result = result.map(result => {
+			if (result.protect_request_notice_edt != undefined) {
+				let lastDay = result.protect_request_notice_edt.getDate();
+				var difference = now.getDate() - lastDay;
+				return {...result, notice_day: difference};
+			} else return {...result};
+		});
+
 		res.json({
 			status: 200,
 			msg: result,
