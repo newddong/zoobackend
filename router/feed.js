@@ -491,6 +491,17 @@ router.post('/getMissingReportList', (req, res) => {
 			});
 		}
 
+		reportMissingList = reportMissingList.map(reportMissingList => {
+			if (reportMissingList.feed_type == 'report' && !reportMissingList.feed_content.indexOf('&#&##')) {
+				return {
+					...reportMissingList,
+					feed_content: reportMissingList.feed_content.replace('&#&##', '#').replace('%&%61d2e0c3ce5bd4c9dba45ae0&#&#', ''),
+				};
+			} else {
+				return {...reportMissingList, feed_content: reportMissingList.feed_content};
+			}
+		});
+
 		res.json({status: 200, msg: reportMissingList});
 	});
 });
@@ -546,6 +557,17 @@ router.post('/getSuggestFeedList', (req, res) => {
 				return {...feed, feed_is_like: true};
 			} else {
 				return {...feed, feed_is_like: false};
+			}
+		});
+
+		feed = feed.map(feed => {
+			if (feed.feed_type == 'report' && !feed.feed_content.indexOf('&#&##')) {
+				return {
+					...feed,
+					feed_content: feed.feed_content.replace('&#&##', '#').replace('%&%61d2e0c3ce5bd4c9dba45ae0&#&#', ''),
+				};
+			} else {
+				return {...feed, feed_content: feed.feed_content};
 			}
 		});
 
