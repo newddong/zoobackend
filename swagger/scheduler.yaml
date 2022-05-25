@@ -100,8 +100,8 @@ paths:
     post:
       tags:
         - scheduler
-      summary: 시.도 데이터 가져오기
-      description: 시.도 데이터 가져오기
+      summary: 시.도 데이터로 보호소 정보 가져오기
+      description: 시.도 데이터로 보호소 정보 가져오기
       operationId: getSidoData
       requestBody:
         description: 시.도 데이터 가져오기

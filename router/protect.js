@@ -416,6 +416,11 @@ router.post('/getProtectRequestByProtectRequestId', (req, res) => {
 			} else {
 				protectRequest.protect_request_writer_id.is_favorite = false;
 			}
+			if (favoritedProtectRequest.find(favoritedProtectRequest => favoritedProtectRequest.favorite_etc_target_object_id == protectRequest._id)) {
+				protectRequest.protect_request_is_favorite = true;
+			} else {
+				protectRequest.protect_request_is_favorite = false;
+			}
 		}
 		res.json({status: 200, msg: protectRequest});
 	});
