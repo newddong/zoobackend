@@ -487,6 +487,10 @@ async function compareAnimalList(dataList) {
  */
 router.post('/getSearchResultProtectRequest', (req, res) => {
 	controller(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
 		let query = {};
 		let send_query = {};
 		let result;
@@ -541,7 +545,16 @@ router.post('/getSearchResultProtectRequest', (req, res) => {
 			} else if (protect_animal_species.filter(x => !['개', '고양이', '그 외'].includes(x)).length == 0) {
 			}
 		}
-		result = await ProtectRequest.model.find(send_query).lean();
+
+		result = await ProtectRequest.model
+			.find(send_query)
+			.populate('protect_request_writer_id')
+			.where('protect_request_is_delete')
+			.ne(true)
+			.skip(skip)
+			.limit(limit)
+			.sort('-_id')
+			.lean();
 		res.json({
 			status: 200,
 			msg: result,
