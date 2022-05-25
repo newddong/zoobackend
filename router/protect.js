@@ -553,7 +553,7 @@ router.post('/getSearchResultProtectRequest', (req, res) => {
 			.ne(true)
 			.skip(skip)
 			.limit(limit)
-			.sort('-_id')
+			.sort('-protect_request_date')
 			.lean();
 
 		let favoritedList = [];
@@ -570,11 +570,20 @@ router.post('/getSearchResultProtectRequest', (req, res) => {
 		}
 
 		let now = new Date(); // 오늘
+		let nowValue = JSON.stringify(now).substr(1, 10);
+		let nowTypeValue = new Date(nowValue);
+
 		result = result.map(result => {
 			if (result.protect_request_notice_edt != undefined) {
-				let lastDay = result.protect_request_notice_edt.getDate();
-				var difference = now.getDate() - lastDay;
-				return {...result, notice_day: difference};
+				let edtValue = JSON.stringify(result.protect_request_notice_edt).substr(1, 10);
+				let edtTypeValue = new Date(edtValue);
+
+				//날짜 차이 계산
+				const diffDate = nowTypeValue.getTime() - edtTypeValue.getTime();
+				//계산한 시차의 일 수를 계산하려면 시차에서 하루의 밀리초를 나눠 얻는 수식
+				let dateDays = diffDate / (1000 * 3600 * 24);
+
+				return {...result, notice_day: dateDays};
 			} else return {...result};
 		});
 
