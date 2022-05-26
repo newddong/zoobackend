@@ -398,6 +398,7 @@ router.post('/getCityTypeFromPublicData', (req, res) => {
 router.post('/deletePublicData', (req, res) => {
 	controller(req, res, async () => {
 		await ShelterAnimal.model.deleteMany({protect_desertion_no: {$exists: true}}).lean();
+		await ShelterAnimal.model.deleteMany({protect_animal_photo_uri_list: {$regex: 'animal.go.kr'}}).lean();
 		await ProtectRequest.model.deleteMany({protect_desertion_no: {$exists: true}}).lean();
 		res.json({status: 200, msg: '--'});
 	});
