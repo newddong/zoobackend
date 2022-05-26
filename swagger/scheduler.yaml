@@ -102,13 +102,41 @@ paths:
         - scheduler
       summary: 시.도 데이터로 보호소 정보 가져오기
       description: 시.도 데이터로 보호소 정보 가져오기
-      operationId: getSidoData
+      operationId: getPublicShelterData
       requestBody:
         description: 시.도 데이터 가져오기
         content:
           application/x-www-form-urlencoded:
             schema:
               type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /scheduler/startCommunityRecommand:
+    post:
+      tags:
+        - scheduler
+      summary: 커뮤니티 리뷰 추천 게시물 스케줄러 시작, 종료
+      description: 커뮤니티 리뷰 추천 게시물 스케줄러 시작, 종료
+      operationId: startCommunityRecommand
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - recommandTask
+              properties:
+                recommandTask:
+                  type: boolean
+                  description: 시작 true, 종료 false
       responses:
         '200':
           $ref: '#/components/responses/200'
