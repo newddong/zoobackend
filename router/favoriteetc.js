@@ -144,11 +144,13 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 				.lean();
 			//지정한 유저의 즐겨찾기 정보 가져오기
 			feedEtclist = feedEtclist.map(feedEtclist => {
-				//feedEtclist 생성시 populate에 favorite_etc_target_object_id 가 연결되어 있어 아래 비교문에서 ._id로 접근
-				if (favoritedList.find(favorited => favorited.favorite_etc_target_object_id == feedEtclist.favorite_etc_target_object_id._id)) {
-					return {...feedEtclist, is_favorite: true};
-				} else {
-					return {...feedEtclist, is_favorite: false};
+				if (feedEtclist.favorite_etc_target_object_id != null) {
+					//feedEtclist 생성시 populate에 favorite_etc_target_object_id 가 연결되어 있어 아래 비교문에서 ._id로 접근
+					if (favoritedList.find(favorited => favorited.favorite_etc_target_object_id == feedEtclist.favorite_etc_target_object_id._id)) {
+						return {...feedEtclist, is_favorite: true};
+					} else {
+						return {...feedEtclist, is_favorite: false};
+					}
 				}
 			});
 		}
