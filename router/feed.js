@@ -472,7 +472,6 @@ router.post('/getMissingReportList', (req, res) => {
 			.ne(true)
 			.skip(skip)
 			.limit(limit)
-			.sort('-_id')
 			.populate('feed_writer_id');
 		if (req.body.city) {
 			reportMissingList.find({
@@ -492,7 +491,7 @@ router.post('/getMissingReportList', (req, res) => {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
-		// reportMissingList = await reportMissingList.sort('-_id').lean();
+		reportMissingList = await reportMissingList.sort('-_id').lean();
 
 		let favoritedFeedList = [];
 
