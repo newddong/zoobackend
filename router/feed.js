@@ -345,6 +345,10 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 //특정 유저가 작성한 피드 리스트를 불러온다.
 router.post('/getFeedListByUserId', (req, res) => {
 	controller(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
 		let user = await User.model.findById(req.body.userobject_id);
 		if (!user) {
 			//res.status(400);
@@ -363,8 +367,9 @@ router.post('/getFeedListByUserId', (req, res) => {
 				.where('feed_is_delete')
 				.ne(true)
 				.populate('feed_avatar_id')
-				.limit(req.body.request_number)
 				.sort('-_id')
+				.skip(skip)
+				.limit(limit)
 				.lean();
 			if (petFeeds.length < 1) {
 				//res.status(404);
@@ -396,8 +401,9 @@ router.post('/getFeedListByUserId', (req, res) => {
 				.where('feed_is_delete')
 				.ne(true)
 				.populate('feed_writer_id')
-				.limit(req.body.request_number)
 				.sort('-_id')
+				.skip(skip)
+				.limit(limit)
 				.lean();
 			if (userFeeds < 1) {
 				//res.status(404);
@@ -424,6 +430,10 @@ router.post('/getFeedListByUserId', (req, res) => {
 //특정 유저가 태그된 피드 목록을 불러온다.
 router.post('/getUserTaggedFeedList', (req, res) => {
 	controller(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
 		let user = await User.model.findById(req.body.userobject_id);
 		if (!user) {
 			//res.status(400);
@@ -437,6 +447,8 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 			})
 			.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
 			.sort('-id')
+			.skip(skip)
+			.limit(limit)
 			.lean();
 		if (taggedFeeds.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
@@ -450,10 +462,17 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 //실종/제보 요청을 가져온다.
 router.post('/getMissingReportList', (req, res) => {
 	controller(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
 		let reportMissingList = Feed.model
 			.find({feed_type: {$ne: 'feed'}})
 			.where('feed_is_delete')
 			.ne(true)
+			.skip(skip)
+			.limit(limit)
+			.sort('-_id')
 			.populate('feed_writer_id');
 		if (req.body.city) {
 			reportMissingList.find({
@@ -473,7 +492,7 @@ router.post('/getMissingReportList', (req, res) => {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
-		reportMissingList = await reportMissingList.sort('-_id').lean();
+		// reportMissingList = await reportMissingList.sort('-_id').lean();
 
 		let favoritedFeedList = [];
 
@@ -540,7 +559,20 @@ router.post('/getFeedDetailById', (req, res) => {
 //추천 피드 리스트를 불러옴(홈화면)
 router.post('/getSuggestFeedList', (req, res) => {
 	controller(req, res, async () => {
-		let feed = await Feed.model.find().where('feed_is_delete').ne(true).populate('feed_writer_id').populate('feed_avatar_id').sort('-_id').lean();
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
+		let feed = await Feed.model
+			.find()
+			.where('feed_is_delete')
+			.ne(true)
+			.populate('feed_writer_id')
+			.populate('feed_avatar_id')
+			.sort('-_id')
+			.skip(skip)
+			.limit(limit)
+			.lean();
 		if (!feed) {
 			//res.status(404);
 			res.json({status: 404, msg: ALERT_NO_RESULT});
@@ -763,6 +795,10 @@ router.post('/favoriteFeed', (req, res) => {
 //유저의 피드 즐겨찾기 목록 조회
 router.post('/getFavoriteFeedListByUserId', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
 		let user = await User.model.findById(req.body.userobject_id);
 		if (!user) {
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
@@ -776,6 +812,8 @@ router.post('/getFavoriteFeedListByUserId', (req, res) => {
 			})
 			.populate({path: 'favorite_feed_id', populate: 'feed_writer_id'})
 			.sort('-_id')
+			.skip(skip)
+			.limit(limit)
 			.lean();
 		feedlist = feedlist.map(v => v.favorite_feed_id);
 
