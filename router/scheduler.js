@@ -16,11 +16,10 @@ global.change_endNumber = 0;
 const WANT_DAY = 14;
 
 let task = cron.schedule(
-	// '0,10,20,30,40,50 * * * *',
-	'* * * * *',
+	'0 * * * *',
 	function () {
 		scheduler_communityRecommand();
-		console.log('스케줄러 - 커뮤니티 추천 게시물 : 매 10분 마다 실행');
+		console.log('스케줄러 - 커뮤니티 추천 게시물 : 매시간 정시에 실행');
 	},
 	{
 		scheduled: false,
@@ -583,99 +582,102 @@ async function scheduler_communityRecommand() {
 		.exec();
 
 	let listCheckedNull = Array();
-	dateList = dateList.map(dateList => {
-		if (dateList.community_writer_id != null) {
-			listCheckedNull.push(dateList._doc);
-		}
-	});
 
-	dateList = Array();
-	dateList = [...listCheckedNull];
+	if (dateList.length > 0) {
+		dateList = dateList.map(dateList => {
+			if (dateList.community_writer_id != null) {
+				listCheckedNull.push(dateList._doc);
+			}
+		});
 
-	let max = 0;
-	let max_community_id;
-	let max_second = 0;
-	let max_second_community_id;
+		dateList = Array();
+		dateList = [...listCheckedNull];
 
-	for (let i = 0; i < dateList.length; i++) {
-		//설정한 기간내의 데이터들 중에 좋아요, 즐겨찾기, 댓글수를 합한 종합 점수 설정
-		like_count = dateList[i].community_like_count;
-		favorite_count = dateList[i].community_favorite_count;
-		comment_count = dateList[i].community_comment_count;
-		total = like_count + favorite_count + comment_count;
+		let max = 0;
+		let max_community_id;
+		let max_second = 0;
+		let max_second_community_id;
 
-		//최대값과 두번째 최대값 구하기
-		if (total > max) {
-			max_second = max;
-			max = total;
-			max_second_community_id = max_community_id;
-			max_community_id = dateList[i]._id;
-		} else if (total > max_second) {
-			max_second = total;
-			max_second_community_id = dateList[i]._id;
-		}
-	}
-
-	//최대값과 두번째 최대값이 존재 할 경우 둘다 등록한다.
-	if (max > 0 && max_second > 0) {
-		//기존의 추천 설정 값 삭제
-		await Community.model
-			.find({community_is_recomment: true}, {community_type: 'review'})
-			.updateMany({$set: {community_is_recomment: false}})
-			.lean();
-
-		//최대값과 두번째 최대값 추천 게시물로 등록
-		await Community.model
-			.find({_id: {$in: [max_community_id, max_second_community_id]}})
-			.updateMany({$set: {community_is_recomment: true}})
-			.lean();
-	}
-	//최대값만 존재 할 경우 - 나머지 한개는 랜덤으로 한개 추가해야 함.
-	else if (max > 0) {
-		//기존의 추천 설정 값 삭제
-		await Community.model
-			.find({community_is_recomment: true}, {community_type: 'review'})
-			.updateMany({$set: {community_is_recomment: false}})
-			.lean();
-
-		//최대값 추천 게시물로 등록
-		await Community.model.findOneAndUpdate({_id: max_community_id}, {$set: {community_is_recomment: true}}).lean();
-
-		//랜덤으로 추가하기 위한 절차 (추천게시물로 등록된 최대값을 가진 게시물을 제외하는 과정)
-		let tempArray = Array();
 		for (let i = 0; i < dateList.length; i++) {
-			if (!dateList[i]._id.equals(max_community_id)) {
-				tempArray.push(dateList[i]._id);
+			//설정한 기간내의 데이터들 중에 좋아요, 즐겨찾기, 댓글수를 합한 종합 점수 설정
+			like_count = dateList[i].community_like_count;
+			favorite_count = dateList[i].community_favorite_count;
+			comment_count = dateList[i].community_comment_count;
+			total = like_count + favorite_count + comment_count;
+
+			//최대값과 두번째 최대값 구하기
+			if (total > max) {
+				max_second = max;
+				max = total;
+				max_second_community_id = max_community_id;
+				max_community_id = dateList[i]._id;
+			} else if (total > max_second) {
+				max_second = total;
+				max_second_community_id = dateList[i]._id;
 			}
 		}
-		//랜덤으로 데이터 설정 및 DB 업데이트
-		let selectIndex = Math.floor(Math.random() * (tempArray.length - 0)) + 0;
-		await Community.model
-			.find({_id: {$in: [max_community_id, tempArray[selectIndex]]}})
-			.updateMany({$set: {community_is_recomment: true}})
-			.lean();
-	}
-	//최대값이 존재 하지 않을 경우 (글쓴이 외 다른 사용자들의 활동이 없을 경우)
-	else {
-		let selectIndex1 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
-		for (let i = 0; i < 10000; i++) {
-			selectIndex2 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
-			if (selectIndex1 == selectIndex2) continue;
-			else break;
-		}
-		//기존의 추천 설정 값 삭제
-		await Community.model
-			.find({community_is_recomment: true}, {community_type: 'review'})
-			.updateMany({$set: {community_is_recomment: false}})
-			.lean();
-		//랜덤으로 설정한 두 게시물을 추천 게시물로 등록
-		await Community.model
-			.find({_id: {$in: [dateList[selectIndex1]._id, dateList[selectIndex2]._id]}})
-			.updateMany({$set: {community_is_recomment: true}})
-			.lean();
-	}
 
-	let resultRecommand = await Community.model.find({community_is_recomment: true}, {community_type: 'review'}).lean();
+		//최대값과 두번째 최대값이 존재 할 경우 둘다 등록한다.
+		if (max > 0 && max_second > 0) {
+			//기존의 추천 설정 값 삭제
+			await Community.model
+				.find({community_is_recomment: true}, {community_type: 'review'})
+				.updateMany({$set: {community_is_recomment: false}})
+				.lean();
+
+			//최대값과 두번째 최대값 추천 게시물로 등록
+			await Community.model
+				.find({_id: {$in: [max_community_id, max_second_community_id]}})
+				.updateMany({$set: {community_is_recomment: true}})
+				.lean();
+		}
+		//최대값만 존재 할 경우 - 나머지 한개는 랜덤으로 한개 추가해야 함.
+		else if (max > 0) {
+			//기존의 추천 설정 값 삭제
+			await Community.model
+				.find({community_is_recomment: true}, {community_type: 'review'})
+				.updateMany({$set: {community_is_recomment: false}})
+				.lean();
+
+			//최대값 추천 게시물로 등록
+			await Community.model.findOneAndUpdate({_id: max_community_id}, {$set: {community_is_recomment: true}}).lean();
+
+			//랜덤으로 추가하기 위한 절차 (추천게시물로 등록된 최대값을 가진 게시물을 제외하는 과정)
+			let tempArray = Array();
+			for (let i = 0; i < dateList.length; i++) {
+				if (!dateList[i]._id.equals(max_community_id)) {
+					tempArray.push(dateList[i]._id);
+				}
+			}
+			//랜덤으로 데이터 설정 및 DB 업데이트
+			let selectIndex = Math.floor(Math.random() * (tempArray.length - 0)) + 0;
+			await Community.model
+				.find({_id: {$in: [max_community_id, tempArray[selectIndex]]}})
+				.updateMany({$set: {community_is_recomment: true}})
+				.lean();
+		}
+		//최대값이 존재 하지 않을 경우 (글쓴이 외 다른 사용자들의 활동이 없을 경우)
+		else {
+			let selectIndex1 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
+			for (let i = 0; i < 10000; i++) {
+				selectIndex2 = Math.floor(Math.random() * (dateList.length - 0)) + 0;
+				if (selectIndex1 == selectIndex2) continue;
+				else break;
+			}
+			//기존의 추천 설정 값 삭제
+			await Community.model
+				.find({community_is_recomment: true}, {community_type: 'review'})
+				.updateMany({$set: {community_is_recomment: false}})
+				.lean();
+			//랜덤으로 설정한 두 게시물을 추천 게시물로 등록
+			await Community.model
+				.find({_id: {$in: [dateList[selectIndex1]._id, dateList[selectIndex2]._id]}})
+				.updateMany({$set: {community_is_recomment: true}})
+				.lean();
+		}
+
+		let resultRecommand = await Community.model.find({community_is_recomment: true}, {community_type: 'review'}).lean();
+	}
 }
 
 router.post('/startCommunityRecommand', (req, res) => {
