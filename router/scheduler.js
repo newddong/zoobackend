@@ -13,13 +13,13 @@ const cron = require('node-cron');
 const request = require('request');
 global.change_totalCount = 0;
 global.change_endNumber = 0;
-const WANT_DAY = 14;
+const WANT_DAY = 3;
 
 let task = cron.schedule(
 	'0 * * * *',
 	function () {
 		scheduler_communityRecommand();
-		console.log('스케줄러 - 커뮤니티 추천 게시물 : 매시간 정시에 실행');
+		console.log('스케줄러 - 커뮤니티 추천 게시물 : 매시간 정시에 실행 (3일 동안의 활동 기간 중 발췌');
 	},
 	{
 		scheduled: false,
@@ -583,6 +583,12 @@ async function scheduler_communityRecommand() {
 
 	let listCheckedNull = Array();
 
+	//기존 추천 게시물 상태값 삭제
+	await Community.model
+		.find({community_is_recomment: true}, {community_type: 'review'})
+		.updateMany({$set: {community_is_recomment: false}})
+		.lean();
+
 	if (dateList.length > 0) {
 		dateList = dateList.map(dateList => {
 			if (dateList.community_writer_id != null) {
@@ -619,12 +625,6 @@ async function scheduler_communityRecommand() {
 
 		//최대값과 두번째 최대값이 존재 할 경우 둘다 등록한다.
 		if (max > 0 && max_second > 0) {
-			//기존의 추천 설정 값 삭제
-			await Community.model
-				.find({community_is_recomment: true}, {community_type: 'review'})
-				.updateMany({$set: {community_is_recomment: false}})
-				.lean();
-
 			//최대값과 두번째 최대값 추천 게시물로 등록
 			await Community.model
 				.find({_id: {$in: [max_community_id, max_second_community_id]}})
@@ -633,12 +633,6 @@ async function scheduler_communityRecommand() {
 		}
 		//최대값만 존재 할 경우 - 나머지 한개는 랜덤으로 한개 추가해야 함.
 		else if (max > 0) {
-			//기존의 추천 설정 값 삭제
-			await Community.model
-				.find({community_is_recomment: true}, {community_type: 'review'})
-				.updateMany({$set: {community_is_recomment: false}})
-				.lean();
-
 			//최대값 추천 게시물로 등록
 			await Community.model.findOneAndUpdate({_id: max_community_id}, {$set: {community_is_recomment: true}}).lean();
 
@@ -664,11 +658,6 @@ async function scheduler_communityRecommand() {
 				if (selectIndex1 == selectIndex2) continue;
 				else break;
 			}
-			//기존의 추천 설정 값 삭제
-			await Community.model
-				.find({community_is_recomment: true}, {community_type: 'review'})
-				.updateMany({$set: {community_is_recomment: false}})
-				.lean();
 			//랜덤으로 설정한 두 게시물을 추천 게시물로 등록
 			await Community.model
 				.find({_id: {$in: [dateList[selectIndex1]._id, dateList[selectIndex2]._id]}})
