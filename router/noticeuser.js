@@ -5,7 +5,7 @@ const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
 const YESTER_DAY = 1;
-const THIS_WEEK = 7;
+const THIS_MONTH = 31;
 
 //소식 정보 생성
 router.post('/createNoticeUser', (req, res) => {
@@ -24,6 +24,9 @@ router.post('/createNoticeUser', (req, res) => {
 //소식 정보 불러오기
 router.post('/getNoticeUserList', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 300;
+		const skip = (page - 1) * limit;
 		let now = new Date(); // 오늘
 		nowformat = new Date(+now + 3240 * 10000).toISOString().split('T')[0];
 
@@ -31,7 +34,7 @@ router.post('/getNoticeUserList', (req, res) => {
 		yesterdayformat = new Date(+yesterday + 3240 * 10000).toISOString().split('T')[0];
 		let dateTypeYesterday = new Date(yesterdayformat);
 
-		let lastweek = new Date(now.setDate(now.getDate() - THIS_WEEK)); // 일주일 전
+		let lastweek = new Date(now.setDate(now.getDate() - THIS_MONTH)); // 한달 전
 		thisweekformat = new Date(+lastweek + 3240 * 10000).toISOString().split('T')[0];
 		let dateTypeThisweek = new Date(thisweekformat);
 
@@ -39,6 +42,8 @@ router.post('/getNoticeUserList', (req, res) => {
 			.find({notice_user_receive_id: req.session.loginUser, notice_user_date: {$gte: lastweek}})
 			.populate('notice_user_related_id', 'user_profile_uri user_nickname')
 			.sort('-_id')
+			.skip(skip)
+			.limit(limit)
 			.exec();
 		if (!noticeUser) {
 			res.json({status: 400, msg: ALERT_NOT_VALID_OBJECT_ID});

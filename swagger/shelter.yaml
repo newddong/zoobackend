@@ -109,9 +109,16 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               required:
-                - request_number
+                - page
+                - limit
               type: object
               properties:
+                page:
+                  type: integer
+                  description: 페이지 번호
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 개수
                 city:
                   type: string
                   description: 보존지역 (서울,부산,인천 등등)
@@ -121,12 +128,6 @@ paths:
                 adoptable_posts:
                   type: boolean
                   description: //입양 가능한 게시글만 보기
-                protect_request_object_id:
-                  type: string
-                  description: 커서 역할을 할 보호요청 오브잭트(페이징 처리)
-                request_number:
-                  type: integer
-                  description: 보호요청게시글 요청 숫자
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -149,15 +150,16 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               required:
-                - request_number
+                - page
+                - limit
               type: object
               properties:
-                shelter_protect_animal_object_id:
-                  type: string
-                  description: 커서 역할을 할 오브잭트(페이징 처리)
-                request_number:
+                page:
                   type: integer
-                  description: 보호요청게시글 요청 숫자
+                  description: 페이지 번호
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 개수
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -180,20 +182,21 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               required:
+                - page
+                - limit
                 - shelter_userobject_id
-                - request_number
                 - protect_request_status
               type: object
               properties:
+                page:
+                  type: integer
+                  description: 페이지 번호
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 개수
                 shelter_userobject_id:
                   type: string
                   description: 동물보호 요청 리스트를 불러올 대상
-                request_number:
-                  type: integer
-                  description: 보호요청게시글 요청 숫자
-                protect_request_object_id:
-                  type: string
-                  description: 커서 역할을 할 보호요청 오브잭트(페이징 처리)
                 protect_request_status:
                   type: string
                   description: 리스트의 보호요청 게시물의 상태('all'|'rescue'|'discuss'|'nearrainbow'|'complete')필터
@@ -219,10 +222,16 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               required:
-                - shelter_userobject_id
-                - request_number
+                - page
+                - limit
               type: object
               properties:
+                page:
+                  type: integer
+                  description: 페이지 번호
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 개수
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -311,12 +320,21 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               required:
+                - page
+                - limit
                 - protect_animal_id
               type: object
               properties:
+                page:
+                  type: integer
+                  description: 페이지 번호
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 개수
                 protect_animal_id:
                   type: string
                   description: 해당 보호소가 보호중인 동물 ID
+
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -412,9 +430,17 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               required:
+                - page
+                - limit
                 - protect_animal_object_id
               type: object
               properties:
+                page:
+                  type: integer
+                  description: 페이지 번호
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 개수
                 protect_animal_object_id:
                   type: string
                   description: 보호동물 ID

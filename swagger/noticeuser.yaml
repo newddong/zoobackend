@@ -54,7 +54,18 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
+              required:
+                - page
+                - limit
               type: object
+              properties:
+                page:
+                  type: integer
+                  description: 페이지 번호
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 개수
+
       responses:
         '200':
           $ref: '#/components/responses/200'

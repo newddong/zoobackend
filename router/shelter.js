@@ -94,7 +94,11 @@ router.post('/createProtectRequest', uploadS3.array('protect_request_photos_uri'
 //동물보호요청을 가져온다.(추천 알고리즘이 필요, 지금은 모든 요청 게시물이 다 뜸)
 router.post('/getProtectRequestList', (req, res) => {
 	controller(req, res, async () => {
-		let requestList = ProtectRequest.model.find().where('protect_request_is_delete').ne(true).lean();
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
+		let requestList = ProtectRequest.model.find().skip(skip).limit(limit).where('protect_request_is_delete').ne(true).lean();
 
 		if (req.body.protect_animal_species) {
 			requestList.find({protect_animal_species: {$regex: req.body.protect_animal_species}});
@@ -157,13 +161,23 @@ router.post('/getProtectRequestList', (req, res) => {
 //보호소가 보호중인 동물 리스트를 조회한다.
 router.post('/getShelterProtectAnimalList', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
 		if (req.session.user_type != 'shelter') {
 			res.json({status: 401, msg: USER_NOT_VALID_TYPE});
 			return;
 		}
 
-		let animalList = ShelterAnimal.model.find({protect_animal_belonged_shelter_id: req.session.loginUser}).where('protect_animal_status').ne('adopt');
-		animalList.limit(req.body.request_number);
+		let animalList = ShelterAnimal.model
+			.find({protect_animal_belonged_shelter_id: req.session.loginUser})
+			.skip(skip)
+			.limit(limit)
+			.sort('-_id')
+			.where('protect_animal_status')
+			.ne('adopt');
+		// animalList.limit(req.body.request_number);
 		animalList = await animalList.sort('-_id').exec();
 		if (animalList.length < 1) {
 			//res.status(404);
@@ -186,6 +200,10 @@ router.post('/getShelterProtectAnimalList', (req, res) => {
 //해당 보호소의 동물보호 요청 게시물을 불러온다.
 router.post('/getProtectRequestListByShelterId', (req, res) => {
 	controller(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
 		let shelter = await User.model.findById(req.body.shelter_userobject_id).exec();
 		if (!shelter) {
 			res.json({status: 404, msg: USER_NOT_FOUND});
@@ -215,7 +233,8 @@ router.post('/getProtectRequestListByShelterId', (req, res) => {
 			.where('protect_request_is_delete')
 			.ne(true)
 			.populate('protect_request_writer_id')
-			.limit(req.body.request_number)
+			.skip(skip)
+			.limit(limit)
 			.sort('-_id')
 			.exec();
 		if (protectRequestList.length < 1) {
@@ -268,6 +287,10 @@ router.post('/getAnimalListWithApplicant', (req, res) => {
 	// });
 
 	controllerLoggedIn(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
 		if (req.session.user_type != 'shelter') {
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
 			return;
@@ -279,6 +302,8 @@ router.post('/getAnimalListWithApplicant', (req, res) => {
 			})
 			.populate('protect_act_applicant_id')
 			.sort('-_id')
+			.skip(skip)
+			.limit(limit)
 			.exec(); //요청
 
 		followList = await Follow.model.find({follow_id: req.session.loginUser, follow_is_delete: false}).lean();
@@ -381,8 +406,14 @@ router.post('/setShelterProtectAnimalStatus', (req, res) => {
  */
 router.post('/getProtectRequestListByProtectAnimalId', (req, res) => {
 	controller(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
 		let protectRequestList = await ProtectRequest.model
 			.find({'protect_animal_id._id': mongoose.Types.ObjectId(req.body.protect_animal_id)})
+			.skip(skip)
+			.limit(limit)
 			.where('protect_request_is_delete')
 			.ne(true);
 
@@ -495,10 +526,11 @@ router.post('/getAdoptInfo', (req, res) => {
 			return;
 		}
 
-		let shelterAnimal = await ShelterAnimal.model.findById(req.body.protect_animal_object_id).exec();
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
 
-		console.log('shelterAnimal=>', shelterAnimal);
-
+		let shelterAnimal = await ShelterAnimal.model.findById(req.body.protect_animal_object_id).skip(skip).limit(limit).exec();
 		if (!shelterAnimal) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;

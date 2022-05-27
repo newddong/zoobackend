@@ -340,9 +340,9 @@ paths:
             schema:
               type: object
               required:
-                - searchKeyword
                 - page
                 - limit
+                - searchKeyword
               properties:
                 page:
                   type: integer

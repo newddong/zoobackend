@@ -142,6 +142,7 @@ router.post('/getUserAdoptProtectionList', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		const page = parseInt(req.body.page) * 1 || 1;
 		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
 
 		let applies = await ProtectActivity.model
 			.find({protect_act_applicant_id: req.session.loginUser, protect_act_type: req.body.protect_act_type})

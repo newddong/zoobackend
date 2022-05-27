@@ -265,7 +265,6 @@ paths:
                 - page
                 - limit
                 - userobject_id
-                - request_number
                 # - user_type
               type: object
               properties:
@@ -281,12 +280,6 @@ paths:
                 userobject_id:
                   type: string
                   description: 피드 리스트를 불로오고자 하는 유저의 몽고디비 아이디
-                request_number:
-                  type: interger
-                  description: 요청할 리스트의 갯수
-                feedobject_id:
-                  type: string
-                  description: 페이징에 사용할 피드 오브젝트 아이디
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -325,9 +318,6 @@ paths:
                 missing_animal_species:
                   type: string
                   description: 보호중인 동물의 종류 (개, 고양이, 새 등등)
-                feedobject_id:
-                  type: string
-                  description: 커서 역할을 할 실종/제보 피드오브잭트(페이징 처리)
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -600,8 +590,16 @@ paths:
             schema:
               type: object
               required:
+                - page
+                - limit
                 - userobject_id
               properties:
+                page:
+                  type: integer
+                  description: 페이지 번호
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 개수
                 userobject_id:
                   type: string
                   description: 즐겨찾기를 목록을 조회할 유저의 아이디(Mongodb ID)
