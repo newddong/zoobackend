@@ -12,9 +12,17 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               required:
+                - page
+                - limit
                 - userobject_id
               type: object
               properties:
+                page:
+                  type: integer
+                  description: 페이지
+                limit:
+                  type: integer
+                  description: 한번에 불러올 보호요청 게시글 갯수
                 userobject_id:
                   type: string
                   description: 보호동물 목록을 조회할 유저의 오브젝트 ID
@@ -150,10 +158,18 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               required:
+                - page
+                - limit
                 - protect_act_type
                 - request_number
               type: object
               properties:
+                page:
+                  type: integer
+                  description: 페이지
+                limit:
+                  type: integer
+                  description: 한번에 불러올 보호요청 게시글 갯수
                 protect_act_type:
                   type: string
                   description: 가져올 보호 활동의 종류, 임시보호(protect), 입양(adopt) {'protect'|'adopt'}
@@ -277,10 +293,18 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               required:
+                - page
+                - limit
                 - protect_request_object_id
                 - protect_request_status
               type: object
               properties:
+                page:
+                  type: integer
+                  description: 페이지
+                limit:
+                  type: integer
+                  description: 한번에 불러올 보호요청 게시글 갯수
                 protect_request_object_id:
                   type: string
                   description: 신청자 리스트를 불러올 보호요청 게시물의 오브젝트 아이디

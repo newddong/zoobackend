@@ -27,6 +27,10 @@ const mongoose = require('mongoose');
 //유저의 보호동물(프로필에서 보여지는) 목록 조회
 router.post('/getUserProtectAnimalList', (req, res) => {
 	controller(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
 		let user = await User.model.findById(req.body.userobject_id).exec();
 		if (user.user_type != 'user') {
 			res.json({status: 400, msg: USER_NOT_VALID_TYPE});
@@ -36,6 +40,8 @@ router.post('/getUserProtectAnimalList', (req, res) => {
 		user = await User.model
 			.findById(req.body.userobject_id)
 			.populate({path: 'user_my_pets' /*,select:'user_type user_nickname user_profile_uri pet_status'*/, match: {pet_status: 'protect'}})
+			.skip(skip)
+			.limit(limit)
 			.exec();
 
 		if (user.user_my_pets.length < 1) {
@@ -134,11 +140,15 @@ router.post('/getAppliesRecord', (req, res) => {
  */
 router.post('/getUserAdoptProtectionList', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+
 		let applies = await ProtectActivity.model
 			.find({protect_act_applicant_id: req.session.loginUser, protect_act_type: req.body.protect_act_type})
 			.sort('-_id')
 			.populate({path: 'protect_act_request_article_id', populate: 'protect_request_writer_id'})
-			.limit(req.body.request_number)
+			.skip(skip)
+			.limit(limit)
 			.exec();
 		if (applies.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
@@ -365,6 +375,9 @@ router.post('/setProtectRequestStatus', (req, res) => {
  */
 router.post('/getProtectApplicantList', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
 		const userType = req.session.user_type;
 
 		if (userType == 'user') {
@@ -383,7 +396,7 @@ router.post('/getProtectApplicantList', (req, res) => {
 			return;
 		}
 
-		let protectApplicants = await ProtectActivity.model.find(filterObj).populate('protect_act_applicant_id').exec();
+		let protectApplicants = await ProtectActivity.model.find(filterObj).skip(skip).limit(limit).populate('protect_act_applicant_id').exec();
 		if (protectApplicants.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
