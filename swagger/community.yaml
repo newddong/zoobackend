@@ -164,8 +164,16 @@ paths:
             schema:
               type: object
               required:
+                - page
+                - limit
                 - community_type
               properties:
+                page:
+                  type: integer
+                  description: 페이지 번호
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 개수
                 community_type:
                   type: string
                   enum: ['all', 'free', 'review']
@@ -193,9 +201,17 @@ paths:
             schema:
               type: object
               required:
+                - page
+                - limit
                 - userobject_id
                 - community_type
               properties:
+                page:
+                  type: integer
+                  description: 페이지 번호
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 개수
                 userobject_id:
                   type: string
                   description: 작성자 userobject_id
@@ -325,7 +341,15 @@ paths:
               type: object
               required:
                 - searchKeyword
+                - page
+                - limit
               properties:
+                page:
+                  type: integer
+                  description: 페이지 번호
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 개수
                 searchKeyword:
                   type: string
                   description: 검색 키워드
