@@ -376,6 +376,9 @@ router.post('/getFeedListByUserId', (req, res) => {
 				res.json({status: 404, user_type: 'pet', msg: ALERT_NO_RESULT});
 				return;
 			}
+
+			let totalCount = await Feed.model.find({feed_avatar_id: req.body.userobject_id}).where('feed_is_delete').ne(true).count().lean();
+
 			//res.status(200);
 			res.json({
 				status: 200,
@@ -410,10 +413,25 @@ router.post('/getFeedListByUserId', (req, res) => {
 				res.json({status: 404, user_type: user.user_type, msg: ALERT_NO_RESULT});
 				return;
 			}
+
+			let totalCount = await Feed.model
+				.find({
+					$or: [
+						{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
+						{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+					],
+				})
+				.where('feed_writer_id', req.body.userobject_id)
+				.where('feed_is_delete')
+				.ne(true)
+				.count()
+				.lean();
+
 			//res.status(200);
 			res.json({
 				status: 200,
 				user_type: user.user_type,
+				total_count: totalCount,
 				msg: userFeeds.map(feed => {
 					if (likedFeedList.find(likedFeed => likedFeed.like_feed_id == feed._id)) {
 						return {...feed, feed_is_like: true};
@@ -454,7 +472,13 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
-		res.json({status: 200, msg: taggedFeeds.map(v => v.usertag_feed_id)});
+		let taggedFeedsTotalCount = await FeedUserTag.model
+			.find({
+				usertag_user_id: user._id,
+			})
+			.count()
+			.lean();
+		res.json({status: 200, total_count: taggedFeedsTotalCount, msg: taggedFeeds.map(v => v.usertag_feed_id)});
 		return;
 	});
 });
