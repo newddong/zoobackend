@@ -602,6 +602,8 @@ router.post('/getSuggestFeedList', (req, res) => {
 			return;
 		}
 
+		let feedCount = await Feed.model.find().where('feed_is_delete').ne(true).count().lean();
+
 		let likedFeedList = [];
 		if (req.body.login_userobject_id) {
 			likedFeedList = await LikeFeed.model.find({like_feed_user_id: req.body.login_userobject_id, like_feed_is_delete: false}).lean();
@@ -626,7 +628,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 			}
 		});
 
-		res.json({status: 200, msg: feed, liked: likedFeedList});
+		res.json({status: 200, total_count: feedCount, msg: feed, liked: likedFeedList});
 	});
 });
 
