@@ -461,10 +461,8 @@ router.post('/getFeedListByUserId', (req, res) => {
 //특정 유저가 태그된 피드 목록을 불러온다.
 router.post('/getUserTaggedFeedList', (req, res) => {
 	controller(req, res, async () => {
-		const page = parseInt(req.body.page) * 1 || 1;
 		const limit = parseInt(req.body.limit) * 1 || 30;
-		const skip = (page - 1) * limit;
-
+		let taggedFeeds;
 		let user = await User.model.findById(req.body.userobject_id);
 		if (!user) {
 			//res.status(400);
@@ -472,16 +470,66 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 			return;
 		}
 
-		let taggedFeeds = await FeedUserTag.model
-			.find({
-				usertag_user_id: user._id,
-			})
-			.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
-			.sort('-id')
-			.skip(skip)
-			.limit(limit)
-			.lean();
-		if (taggedFeeds.length < 1) {
+		if (req.body.order_value != undefined) {
+			switch (req.body.order_value) {
+				//앞의 데이터 가져오기
+				case 'pre':
+					taggedFeeds = await FeedUserTag.model
+						.find({usertag_user_id: user._id, usertag_feed_id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('usertag_is_delete')
+						.ne(true)
+						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
+						.sort('_id')
+						.limit(limit)
+						.lean();
+					taggedFeeds = taggedFeeds.reverse();
+					break;
+
+				//바로 게시물을 찾을 경우
+				case 'interrupt':
+					taggedFeeds1 = await FeedUserTag.model
+						.find({usertag_user_id: user._id, usertag_feed_id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('usertag_is_delete')
+						.ne(true)
+						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
+						.sort('_id')
+						.limit(limit)
+						.lean();
+
+					taggedFeeds2 = await FeedUserTag.model
+						.find({usertag_user_id: user._id, usertag_feed_id: {$lte: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('usertag_is_delete')
+						.ne(true)
+						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
+						.sort('-_id')
+						.limit(limit + 1)
+						.lean();
+					taggedFeeds = taggedFeeds1.reverse().concat(taggedFeeds2);
+					break;
+				//뒤의 데이터 가져오기
+				case 'next':
+					taggedFeeds = await FeedUserTag.model
+						.find({usertag_user_id: user._id, usertag_feed_id: {$lt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('usertag_is_delete')
+						.ne(true)
+						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
+						.sort('-_id')
+						.limit(limit)
+						.lean();
+					break;
+			}
+		} else {
+			taggedFeeds = await FeedUserTag.model
+				.find({usertag_user_id: user._id})
+				.where('usertag_is_delete')
+				.ne(true)
+				.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
+				.sort('-_id')
+				.limit(limit)
+				.lean();
+		}
+
+		if (!taggedFeeds) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
@@ -489,6 +537,8 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 			.find({
 				usertag_user_id: user._id,
 			})
+			.where('usertag_is_delete')
+			.ne(true)
 			.count()
 			.lean();
 		res.json({status: 200, total_count: taggedFeedsTotalCount, msg: taggedFeeds.map(v => v.usertag_feed_id)});
@@ -608,7 +658,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 						.ne(true)
 						.populate('feed_writer_id')
 						.populate('feed_avatar_id')
-						.sort('-id')
+						.sort('_id')
 						.limit(limit)
 						.lean();
 					feed = feed.reverse();
