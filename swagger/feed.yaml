@@ -13,9 +13,14 @@ paths:
             schema:
               type: object
               required:
+                - feed_public_type
                 - feed_content
                 - feed_is_protect_diary
               properties:
+                feed_public_type:
+                  type: string
+                  enum: ['public', 'follow', 'private']
+                  description: 글 공개 여부
                 feed_content:
                   type: string
                   description: 피드 텍스트 내용
@@ -367,20 +372,21 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              required:
-                - page
-                - limit
               type: object
               properties:
-                page:
-                  type: integer
-                  description: 페이지 번호
+                order_value:
+                  type: string
+                  enum: ['pre', 'interrupt', 'next']
+                  description: 앞 데이터(pre), 바로 해당 게시물 찾을 경우(interrupt), 뒤 데이터 (next)
                 limit:
                   type: integer
                   description: 한번에 불러올 게시글 개수
                 login_userobject_id:
                   type: string
                   description: 로그인한 유저의 오브젝트 ID
+                target_object_id:
+                  type: string
+                  description: 타겟 게시물 object_id
       responses:
         '200':
           $ref: '#/components/responses/200'

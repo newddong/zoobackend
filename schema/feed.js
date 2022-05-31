@@ -144,6 +144,9 @@ const FeedObject = {
 
 	/** @type { Boolean} 게시글 삭제여부 */
 	feed_is_delete: {type: Schema.Types.Boolean, default: false},
+
+	/** @type { String} 게시글 공개여부 */
+	feed_public_type: {type: String, default: 'public'},
 };
 
 /** @type {mongoose.Schema} */

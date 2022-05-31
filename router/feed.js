@@ -25,6 +25,7 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 			feed_type: 'feed',
 			feed_writer_id: req.session.loginUser,
 			feed_is_protect_diary: req.body.feed_is_protect_diary,
+			feed_public_type: req.body.feed_public_type,
 		});
 
 		feed.feed_location = typeof req.body.feed_location == 'string' ? JSON.parse(req.body.feed_location) : req.body.feed_location;
@@ -362,6 +363,12 @@ router.post('/getFeedListByUserId', (req, res) => {
 		}
 
 		if (user.user_type == 'pet') {
+			//타겟이 반려동물 계정이고 로그인 한 아이디가 주인 계정일 경우 모두 표출 [전체공개, 팔로우, 비공개]
+
+			//타겟이 반려동물 계정이고 로그인 한 아이디가 타인 일 경우 [전체공개, 팔로우(팔로우 여부 확인)]
+
+			//타겟이 반려동물 계정이고 로그인 하지 않았을 경우 [전체공개] 만 해당
+
 			let petFeeds = await Feed.model
 				.find({feed_avatar_id: req.body.userobject_id})
 				.where('feed_is_delete')
@@ -393,6 +400,12 @@ router.post('/getFeedListByUserId', (req, res) => {
 			});
 			return;
 		} else {
+			//타겟이 주인 계정이고 로그인 한 아이디가 나 자신일 경우 모두 표출 [전체공개, 팔로우, 비공개]
+
+			//타겟이 주인 계정이고 로그인 한 아이디가 타인 일 경우 [전체공개, 팔로우(팔로우 여부 확인)]
+
+			//타겟이 주인 계정이고 로그인 하지 않았을 경우 [전체공개] 만 해당
+
 			let userFeeds = await Feed.model
 				.find({
 					$or: [
@@ -582,22 +595,76 @@ router.post('/getFeedDetailById', (req, res) => {
 //추천 피드 리스트를 불러옴(홈화면)
 router.post('/getSuggestFeedList', (req, res) => {
 	controller(req, res, async () => {
-		const page = parseInt(req.body.page) * 1 || 1;
 		const limit = parseInt(req.body.limit) * 1 || 30;
-		const skip = (page - 1) * limit;
+		let feed;
 
-		let feed = await Feed.model
-			.find()
-			.where('feed_is_delete')
-			.ne(true)
-			.populate('feed_writer_id')
-			.populate('feed_avatar_id')
-			.sort('-_id')
-			.skip(skip)
-			.limit(limit)
-			.lean();
+		if (req.body.order_value != undefined) {
+			switch (req.body.order_value) {
+				//앞의 데이터 가져오기
+				case 'pre':
+					feed = await Feed.model
+						.find({_id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('feed_is_delete')
+						.ne(true)
+						.populate('feed_writer_id')
+						.populate('feed_avatar_id')
+						.sort('-id')
+						.limit(limit)
+						.lean();
+					feed = feed.reverse();
+					break;
+
+				//바로 게시물을 찾을 경우
+				case 'interrupt':
+					feedList1 = await Feed.model
+						.find({_id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('feed_is_delete')
+						.ne(true)
+						.populate('feed_writer_id')
+						.populate('feed_avatar_id')
+						.sort('_id')
+						.limit(limit)
+						.lean();
+					console.log('feedList1=>', feedList1.reverse());
+
+					feedList2 = await Feed.model
+						.find({_id: {$lte: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('feed_is_delete')
+						.ne(true)
+						.populate('feed_writer_id')
+						.populate('feed_avatar_id')
+						.sort('-_id')
+						.limit(limit + 1)
+						.lean();
+					console.log('feedList2=>', feedList2);
+					feed = feedList1.reverse().concat(feedList2);
+					break;
+				//뒤의 데이터 가져오기
+				case 'next':
+					feed = await Feed.model
+						.find({_id: {$lt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('feed_is_delete')
+						.ne(true)
+						.populate('feed_writer_id')
+						.populate('feed_avatar_id')
+						.sort('-_id')
+						.limit(limit)
+						.lean();
+					break;
+			}
+		} else {
+			feed = await Feed.model
+				.find()
+				.where('feed_is_delete')
+				.ne(true)
+				.populate('feed_writer_id')
+				.populate('feed_avatar_id')
+				.sort('-_id')
+				.limit(limit)
+				.lean();
+		}
+
 		if (!feed) {
-			//res.status(404);
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
@@ -605,17 +672,19 @@ router.post('/getSuggestFeedList', (req, res) => {
 		let feedCount = await Feed.model.find().where('feed_is_delete').ne(true).count().lean();
 
 		let likedFeedList = [];
-		if (req.body.login_userobject_id) {
+		if (req.body.login_userobject_id != undefined) {
 			likedFeedList = await LikeFeed.model.find({like_feed_user_id: req.body.login_userobject_id, like_feed_is_delete: false}).lean();
 		}
 
-		feed = feed.map(feed => {
-			if (likedFeedList.find(likedFeed => likedFeed.like_feed_id == feed._id)) {
-				return {...feed, feed_is_like: true};
-			} else {
-				return {...feed, feed_is_like: false};
-			}
-		});
+		if (likedFeedList != null && likedFeedList.length > 0) {
+			feed = feed.map(feed => {
+				if (likedFeedList.find(likedFeed => likedFeed.like_feed_id == feed._id)) {
+					return {...feed, feed_is_like: true};
+				} else {
+					return {...feed, feed_is_like: false};
+				}
+			});
+		}
 
 		feed = feed.map(feed => {
 			if (feed.feed_type == 'report' && !feed.feed_content.indexOf('&#&##')) {
@@ -627,7 +696,6 @@ router.post('/getSuggestFeedList', (req, res) => {
 				return {...feed, feed_content: feed.feed_content};
 			}
 		});
-
 		res.json({status: 200, total_count: feedCount, msg: feed, liked: likedFeedList});
 	});
 });
@@ -842,7 +910,15 @@ router.post('/getFavoriteFeedListByUserId', (req, res) => {
 			.lean();
 		feedlist = feedlist.map(v => v.favorite_feed_id);
 
-		res.json({status: 200, msg: feedlist});
+		let feedlistCount = await FavoriteFeed.model
+			.find({
+				favorite_feed_user_id: user._id,
+				favorite_feed_is_delete: false,
+			})
+			.count()
+			.lean();
+
+		res.json({status: 200, total_count: feedlistCount, msg: feedlist});
 	});
 });
 
