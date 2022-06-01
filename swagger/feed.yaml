@@ -424,7 +424,7 @@ paths:
                   description: 태그된 피드 목록을 불러올 대상 유저 아이디.
                 target_object_id:
                   type: string
-                  description: 타겟 게시물 object_id
+                  description: 타겟 object_id
       responses:
         '200':
           $ref: '#/components/responses/200'
@@ -598,19 +598,22 @@ paths:
             schema:
               type: object
               required:
-                - page
                 - limit
                 - userobject_id
               properties:
-                page:
-                  type: integer
-                  description: 페이지 번호
+                order_value:
+                  type: string
+                  enum: ['pre', 'interrupt', 'next']
+                  description: 앞 데이터(pre), 바로 해당 게시물 찾을 경우(interrupt), 뒤 데이터 (next)
                 limit:
                   type: integer
                   description: 한번에 불러올 게시글 개수
                 userobject_id:
                   type: string
                   description: 즐겨찾기를 목록을 조회할 유저의 아이디(Mongodb ID)
+                target_object_id:
+                  type: string
+                  description: 타겟 object_id
       responses:
         '200':
           $ref: '#/components/responses/200'

@@ -475,7 +475,7 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 				//앞의 데이터 가져오기
 				case 'pre':
 					taggedFeeds = await FeedUserTag.model
-						.find({usertag_user_id: user._id, usertag_feed_id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.find({usertag_user_id: user._id, _id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
 						.where('usertag_is_delete')
 						.ne(true)
 						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
@@ -488,7 +488,7 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 				//바로 게시물을 찾을 경우
 				case 'interrupt':
 					taggedFeeds1 = await FeedUserTag.model
-						.find({usertag_user_id: user._id, usertag_feed_id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.find({usertag_user_id: user._id, _id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
 						.where('usertag_is_delete')
 						.ne(true)
 						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
@@ -497,7 +497,7 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 						.lean();
 
 					taggedFeeds2 = await FeedUserTag.model
-						.find({usertag_user_id: user._id, usertag_feed_id: {$lte: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.find({usertag_user_id: user._id, _id: {$lte: mongoose.Types.ObjectId(req.body.target_object_id)}})
 						.where('usertag_is_delete')
 						.ne(true)
 						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
@@ -509,7 +509,7 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 				//뒤의 데이터 가져오기
 				case 'next':
 					taggedFeeds = await FeedUserTag.model
-						.find({usertag_user_id: user._id, usertag_feed_id: {$lt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.find({usertag_user_id: user._id, _id: {$lt: mongoose.Types.ObjectId(req.body.target_object_id)}})
 						.where('usertag_is_delete')
 						.ne(true)
 						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
@@ -533,15 +533,10 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
-		let taggedFeedsTotalCount = await FeedUserTag.model
-			.find({
-				usertag_user_id: user._id,
-			})
-			.where('usertag_is_delete')
-			.ne(true)
-			.count()
-			.lean();
-		res.json({status: 200, total_count: taggedFeedsTotalCount, msg: taggedFeeds.map(v => v.usertag_feed_id)});
+
+		total_count = await FeedUserTag.model.find({usertag_user_id: user._id}).where('usertag_is_delete').ne(true).count().lean();
+
+		res.json({status: 200, total_count: total_count, msg: taggedFeeds});
 		return;
 	});
 });
@@ -938,37 +933,87 @@ router.post('/favoriteFeed', (req, res) => {
 //유저의 피드 즐겨찾기 목록 조회
 router.post('/getFavoriteFeedListByUserId', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
-		const page = parseInt(req.body.page) * 1 || 1;
 		const limit = parseInt(req.body.limit) * 1 || 30;
-		const skip = (page - 1) * limit;
 
 		let user = await User.model.findById(req.body.userobject_id);
 		if (!user) {
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
 			return;
 		}
+		let feedlist;
 
-		let feedlist = await FavoriteFeed.model
+		if (req.body.order_value != undefined) {
+			switch (req.body.order_value) {
+				//앞의 데이터 가져오기
+				case 'pre':
+					feedlist = await FavoriteFeed.model
+						.find({favorite_feed_user_id: user._id, _id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('favorite_feed_is_delete')
+						.ne(true)
+						.populate({path: 'favorite_feed_id', populate: 'feed_writer_id'})
+						.sort('_id')
+						.limit(limit)
+						.lean();
+					feedlist = feedlist.reverse();
+					break;
+
+				//바로 게시물을 찾을 경우
+				case 'interrupt':
+					feedList1 = await FavoriteFeed.model
+						.find({favorite_feed_user_id: user._id, _id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('favorite_feed_is_delete')
+						.ne(true)
+						.populate({path: 'favorite_feed_id', populate: 'feed_writer_id'})
+						.sort('_id')
+						.limit(limit)
+						.lean();
+					console.log('feedList1=>', feedList1.reverse());
+
+					feedList2 = await FavoriteFeed.model
+						.find({favorite_feed_user_id: user._id, _id: {$lte: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('favorite_feed_is_delete')
+						.ne(true)
+						.populate({path: 'favorite_feed_id', populate: 'feed_writer_id'})
+						.sort('-_id')
+						.limit(limit + 1)
+						.lean();
+					console.log('feedList2=>', feedList2);
+					feedlist = feedList1.reverse().concat(feedList2);
+					break;
+				//뒤의 데이터 가져오기
+				case 'next':
+					feedlist = await FavoriteFeed.model
+						.find({usertag_user_id: user._id, _id: {$lt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.where('favorite_feed_is_delete')
+						.ne(true)
+						.populate({path: 'favorite_feed_id', populate: 'feed_writer_id'})
+						.sort('-_id')
+						.limit(limit)
+						.lean();
+					break;
+			}
+		} else {
+			feedlist = await FavoriteFeed.model
+				.find({favorite_feed_user_id: user._id})
+				.where('favorite_feed_is_delete')
+				.ne(true)
+				.populate({path: 'favorite_feed_id', populate: 'feed_writer_id'})
+				.sort('-_id')
+				.limit(limit)
+				.lean();
+		}
+
+		let total_count = await FavoriteFeed.model
 			.find({
 				favorite_feed_user_id: user._id,
 				favorite_feed_is_delete: false,
 			})
-			.populate({path: 'favorite_feed_id', populate: 'feed_writer_id'})
-			.sort('-_id')
-			.skip(skip)
-			.limit(limit)
-			.lean();
-		feedlist = feedlist.map(v => v.favorite_feed_id);
-
-		let feedlistCount = await FavoriteFeed.model
-			.find({
-				favorite_feed_user_id: user._id,
-				favorite_feed_is_delete: false,
-			})
+			.where('favorite_feed_is_delete')
+			.ne(true)
 			.count()
 			.lean();
 
-		res.json({status: 200, total_count: feedlistCount, msg: feedlist});
+		res.json({status: 200, total_count: total_count, msg: feedlist});
 	});
 });
 
