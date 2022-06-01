@@ -267,15 +267,14 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               required:
-                - page
                 - limit
                 - userobject_id
-                # - user_type
               type: object
               properties:
-                page:
-                  type: integer
-                  description: 페이지
+                order_value:
+                  type: string
+                  enum: ['pre', 'interrupt', 'next']
+                  description: 앞 데이터(pre), 바로 해당 게시물 찾을 경우(interrupt), 뒤 데이터 (next)
                 limit:
                   type: integer
                   description: 한번에 불러올 보호요청 게시글 갯수
@@ -285,6 +284,9 @@ paths:
                 userobject_id:
                   type: string
                   description: 피드 리스트를 불로오고자 하는 유저의 몽고디비 아이디
+                target_object_id:
+                  type: string
+                  description: 타겟 object_id
       responses:
         '200':
           $ref: '#/components/responses/200'

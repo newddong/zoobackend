@@ -346,10 +346,8 @@ router.post('/createReport', uploadS3.array('media_uri'), (req, res) => {
 //특정 유저가 작성한 피드 리스트를 불러온다.
 router.post('/getFeedListByUserId', (req, res) => {
 	controller(req, res, async () => {
-		const page = parseInt(req.body.page) * 1 || 1;
 		const limit = parseInt(req.body.limit) * 1 || 30;
-		const skip = (page - 1) * limit;
-
+		let userFeeds;
 		let user = await User.model.findById(req.body.userobject_id);
 		if (!user) {
 			//res.status(400);
@@ -375,7 +373,6 @@ router.post('/getFeedListByUserId', (req, res) => {
 				.ne(true)
 				.populate('feed_avatar_id')
 				.sort('-_id')
-				.skip(skip)
 				.limit(limit)
 				.lean();
 			if (petFeeds.length < 1) {
@@ -384,12 +381,13 @@ router.post('/getFeedListByUserId', (req, res) => {
 				return;
 			}
 
-			let totalCount = await Feed.model.find({feed_avatar_id: req.body.userobject_id}).where('feed_is_delete').ne(true).count().lean();
+			let total_count = await Feed.model.find({feed_avatar_id: req.body.userobject_id}).where('feed_is_delete').ne(true).count().lean();
 
 			//res.status(200);
 			res.json({
 				status: 200,
 				user_type: 'pet',
+				total_count: total_count,
 				msg: petFeeds.map(feed => {
 					if (likedFeedList.find(likedFeed => likedFeed.like_feed_id == feed._id)) {
 						return {...feed, feed_is_like: true};
@@ -406,28 +404,105 @@ router.post('/getFeedListByUserId', (req, res) => {
 
 			//타겟이 주인 계정이고 로그인 하지 않았을 경우 [전체공개] 만 해당
 
-			let userFeeds = await Feed.model
-				.find({
-					$or: [
-						{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
-						{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
-					],
-				})
-				.where('feed_writer_id', req.body.userobject_id)
-				.where('feed_is_delete')
-				.ne(true)
-				.populate('feed_writer_id')
-				.sort('-_id')
-				.skip(skip)
-				.limit(limit)
-				.lean();
-			if (userFeeds < 1) {
-				//res.status(404);
-				res.json({status: 404, user_type: user.user_type, msg: ALERT_NO_RESULT});
-				return;
-			}
+			if (req.body.order_value != undefined) {
+				switch (req.body.order_value) {
+					//앞의 데이터 가져오기
+					case 'pre':
+						userFeeds = await Feed.model
+							.find({
+								_id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)},
+								$or: [
+									{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
+									{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+								],
+							})
+							.where('feed_writer_id', req.body.userobject_id)
+							.where('feed_is_delete')
+							.ne(true)
+							.populate('feed_writer_id')
+							.sort('_id')
+							.limit(limit)
+							.lean();
+						userFeeds = userFeeds.reverse();
+						break;
 
-			let totalCount = await Feed.model
+					//바로 게시물을 찾을 경우
+					case 'interrupt':
+						userFeeds1 = await Feed.model
+							.find({
+								_id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)},
+								$or: [
+									{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
+									{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+								],
+							})
+							.where('feed_writer_id', req.body.userobject_id)
+							.where('feed_is_delete')
+							.ne(true)
+							.populate('feed_writer_id')
+							.sort('_id')
+							.limit(limit)
+							.lean();
+
+						userFeeds2 = await Feed.model
+							.find({
+								_id: {$lte: mongoose.Types.ObjectId(req.body.target_object_id)},
+								$or: [
+									{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
+									{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+								],
+							})
+							.where('feed_writer_id', req.body.userobject_id)
+							.where('feed_is_delete')
+							.ne(true)
+							.populate('feed_writer_id')
+							.sort('-_id')
+							.limit(limit + 1)
+							.lean();
+						userFeeds = userFeeds1.reverse().concat(userFeeds2);
+						break;
+					//뒤의 데이터 가져오기
+					case 'next':
+						userFeeds = await Feed.model
+							.find({
+								_id: {$lt: mongoose.Types.ObjectId(req.body.target_object_id)},
+								$or: [
+									{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
+									{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+								],
+							})
+							.where('feed_writer_id', req.body.userobject_id)
+							.where('feed_is_delete')
+							.ne(true)
+							.populate('feed_writer_id')
+							.sort('-_id')
+							.limit(limit)
+							.lean();
+						break;
+				}
+			} else {
+				let userFeeds = await Feed.model
+					.find({
+						$or: [
+							{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
+							{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+						],
+					})
+					.where('feed_writer_id', req.body.userobject_id)
+					.where('feed_is_delete')
+					.ne(true)
+					.populate('feed_writer_id')
+					.sort('-_id')
+					.limit(limit)
+					.lean();
+
+				if (userFeeds < 1) {
+					//res.status(404);
+					res.json({status: 404, user_type: user.user_type, msg: ALERT_NO_RESULT});
+					return;
+				}
+			}
+			let total_count = await Feed.model
 				.find({
 					$or: [
 						{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
@@ -444,7 +519,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 			res.json({
 				status: 200,
 				user_type: user.user_type,
-				total_count: totalCount,
+				total_count: total_count,
 				msg: userFeeds.map(feed => {
 					if (likedFeedList.find(likedFeed => likedFeed.like_feed_id == feed._id)) {
 						return {...feed, feed_is_like: true};
