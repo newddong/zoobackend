@@ -50,12 +50,20 @@ router.post('/getUserProtectAnimalList', (req, res) => {
 			})
 			.exec();
 
+		userCnt = await User.model
+			.findById(req.body.userobject_id)
+			.populate({
+				path: 'user_my_pets' /*,select:'user_type user_nickname user_profile_uri pet_status'*/,
+				match: {pet_status: 'protect'},
+			})
+			.exec();
+
 		if (user.user_my_pets.length < 1) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
 
-		res.json({status: 200, total_count: user.user_my_pets.length, msg: user.user_my_pets});
+		res.json({status: 200, total_count: userCnt.user_my_pets.length, msg: user.user_my_pets});
 	});
 });
 
