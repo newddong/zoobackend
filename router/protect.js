@@ -39,9 +39,15 @@ router.post('/getUserProtectAnimalList', (req, res) => {
 
 		user = await User.model
 			.findById(req.body.userobject_id)
-			.populate({path: 'user_my_pets' /*,select:'user_type user_nickname user_profile_uri pet_status'*/, match: {pet_status: 'protect'}})
-			.skip(skip)
-			.limit(limit)
+			.populate({
+				path: 'user_my_pets' /*,select:'user_type user_nickname user_profile_uri pet_status'*/,
+				match: {pet_status: 'protect'},
+				options: {
+					sort: {_id: -1},
+					skip: skip,
+					limit: limit,
+				},
+			})
 			.exec();
 
 		if (user.user_my_pets.length < 1) {
@@ -49,7 +55,7 @@ router.post('/getUserProtectAnimalList', (req, res) => {
 			return;
 		}
 
-		res.json({status: 200, msg: user.user_my_pets});
+		res.json({status: 200, total_count: user.user_my_pets.length, msg: user.user_my_pets});
 	});
 });
 
@@ -156,8 +162,14 @@ router.post('/getUserAdoptProtectionList', (req, res) => {
 			return;
 		}
 
+		let total_count = await ProtectActivity.model
+			.find({protect_act_applicant_id: req.session.loginUser, protect_act_type: req.body.protect_act_type})
+			.count()
+			.lean();
+
 		res.json({
 			status: 200,
+			total_count: total_count,
 			msg: applies,
 		});
 	});
@@ -511,22 +523,34 @@ router.post('/getSearchResultProtectRequest', (req, res) => {
 		let query = {};
 		let send_query = {};
 		let result;
+		let notice_sdt;
+		let notice_edt;
+		let date_notice_sdt;
+		let date_notice_edt;
 
 		for (let filed in req.body) {
 			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
 		}
 
-		let notice_sdt = query.protect_request_notice_sdt;
-		let notice_edt = query.protect_request_notice_edt;
-		let date_notice_sdt = new Date(await dateFormatForBetween(notice_sdt));
-		let date_notice_edt = new Date(await dateFormatForBetween(notice_edt));
-
-		send_query['protect_request_date'] = {$gte: date_notice_sdt, $lte: date_notice_edt};
+		if (query.protect_request_notice_sdt != undefined && query.protect_request_notice_edt != undefined) {
+			notice_sdt = query.protect_request_notice_sdt;
+			notice_edt = query.protect_request_notice_edt;
+			date_notice_sdt = new Date(await dateFormatForBetween(notice_sdt));
+			date_notice_edt = new Date(await dateFormatForBetween(notice_edt));
+			send_query['protect_request_date'] = {$gte: date_notice_sdt, $lte: date_notice_edt};
+		}
 
 		//공고번호를 지역 필터로 사용
 		if (query.city != undefined) {
 			cityName = await addressMaching(query.city);
 			send_query['protect_animal_noticeNo'] = {$regex: cityName};
+		}
+
+		//입양 가능한 게시글만 보기
+		if (query.protect_request_status != undefined) {
+			if ((query.protect_request_status = 'true')) {
+				send_query['protect_request_status'] = 'rescue';
+			}
 		}
 
 		//보호소 필터

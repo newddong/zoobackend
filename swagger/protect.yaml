@@ -413,6 +413,9 @@ paths:
                   items:
                     type: string
                     description: Array 보호소 동물 종류 ('개' | '고양이' | '그 외')
+                protect_request_status:
+                  type: boolean
+                  description: //입양 가능한 게시글만 보기 (true|rescue만 보이기, false 또는 선택안함|모두 보이기)
       responses:
         '200':
           $ref: '#/components/responses/200'
