@@ -599,12 +599,11 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 					break;
 			}
 		} else {
-			console.log('ddds')
 			taggedFeeds = await FeedUserTag.model
 				.find({usertag_user_id: user._id})
 				.where('usertag_is_delete')
 				.ne(true)
-				.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
+				.populate({path: 'usertag_feed_id', populate: 'feed_writer_id feed_avatar_id'})
 				.sort('-_id')
 				.limit(limit)
 				.lean();

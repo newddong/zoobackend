@@ -65,7 +65,7 @@ app.use(
 		resave: false,
 		saveUninitialized: false,
 		store: MongoStore.create({
-			mongoUrl: databaseUrl,
+			mongoUrl: databaseUrl||process.env.ANILOG_DBURI,
 			dbName: 'app',
 		}),
 		proxy: true,
