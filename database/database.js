@@ -1,12 +1,15 @@
 const mongoose = require("mongoose");
 
 let database;
-
+let config;
 module.exports = async () => {
 	function connectDB() {
-		
 		let databaseUrl = process.env.ANILOG_DBURI;
-
+		if(process.env.ANILOG_ENV!='production'&&process.env.ANILOG_ENV!='dev'){
+			config = require('../common/awscredentials');
+			databaseUrl = config.dburi;
+		}
+		
 		console.log("try to connect database.");
 
 		mongoose.Promise = global.Promise;

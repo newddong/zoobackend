@@ -9,7 +9,7 @@ s3 = new AWS.S3(s3config);
 
 const storage = multerS3({
     s3:s3,
-    bucket:process.env.ANILOG_S3BUCKET,
+    bucket:s3config.bucket,
     contentType:multerS3.AUTO_CONTENT_TYPE,
     acl:'public-read',
     metadata:(req,file,callback)=>{

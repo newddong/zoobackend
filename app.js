@@ -35,6 +35,7 @@ const options = {
 const specs = swaggerJsdoc(options);
 
 const app = express();
+
 app.set('trust proxy', true);
 app.set('port', process.env.PORT || 3000); //Port 설정
 
@@ -52,13 +53,19 @@ app.use(
 );
 app.use(cookieParser());
 app.use(cors());
+
+let databaseUrl;
+if(process.env.ANILOG_ENV!='production'&&process.env.ANILOG_ENV!='dev'){
+	config = require('./common/awscredentials');
+	databaseUrl = config.dburi;
+}
 app.use(
 	expressSession({
 		secret: 'anilog',
 		resave: false,
 		saveUninitialized: false,
 		store: MongoStore.create({
-			mongoUrl: process.env.ANILOG_DBURI,
+			mongoUrl: databaseUrl,
 			dbName: 'app',
 		}),
 		proxy: true,
@@ -111,7 +118,6 @@ router.get('/', (req, res) => {
 	res.status(200);
 	res.send('server alive');
 });
-
 const dbconnection = database();
 
 //Api routes
@@ -141,6 +147,7 @@ app.use('/favoriteetc', favoriteetc);
 app.use('/report', report);
 app.use('/scheduler', scheduler);
 app.use('/', router);
+
 
 //Launch Server
 http.createServer(app).listen(app.get('port'), function () {

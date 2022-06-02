@@ -420,6 +420,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 							.where('feed_is_delete')
 							.ne(true)
 							.populate('feed_writer_id')
+							.populate('feed_avatar_id')
 							.sort('_id')
 							.limit(limit)
 							.lean();
@@ -440,6 +441,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 							.where('feed_is_delete')
 							.ne(true)
 							.populate('feed_writer_id')
+							.populate('feed_avatar_id')
 							.sort('_id')
 							.limit(limit)
 							.lean();
@@ -456,6 +458,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 							.where('feed_is_delete')
 							.ne(true)
 							.populate('feed_writer_id')
+							.populate('feed_avatar_id')
 							.sort('-_id')
 							.limit(limit + 1)
 							.lean();
@@ -475,16 +478,17 @@ router.post('/getFeedListByUserId', (req, res) => {
 							.where('feed_is_delete')
 							.ne(true)
 							.populate('feed_writer_id')
+							.populate('feed_avatar_id')
 							.sort('-_id')
 							.limit(limit)
 							.lean();
 						break;
 				}
 			} else {
-				let userFeeds = await Feed.model
+				userFeeds = await Feed.model
 					.find({
 						$or: [
-							{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
+							{$and: [{feed_type: 'feed'}, {feed_writer_id: req.body.userobject_id}]},
 							{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
 						],
 					})
@@ -492,6 +496,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 					.where('feed_is_delete')
 					.ne(true)
 					.populate('feed_writer_id')
+					.populate('feed_avatar_id')
 					.sort('-_id')
 					.limit(limit)
 					.lean();
@@ -520,7 +525,7 @@ router.post('/getFeedListByUserId', (req, res) => {
 				status: 200,
 				user_type: user.user_type,
 				total_count: total_count,
-				msg: userFeeds.map(feed => {
+				msg: userFeeds?.map(feed => {
 					if (likedFeedList.find(likedFeed => likedFeed.like_feed_id == feed._id)) {
 						return {...feed, feed_is_like: true};
 					} else {
@@ -594,6 +599,7 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 					break;
 			}
 		} else {
+			console.log('ddds')
 			taggedFeeds = await FeedUserTag.model
 				.find({usertag_user_id: user._id})
 				.where('usertag_is_delete')
@@ -605,13 +611,14 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 		}
 
 		if (!taggedFeeds) {
+			console.log('no result')
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
 
 		total_count = await FeedUserTag.model.find({usertag_user_id: user._id}).where('usertag_is_delete').ne(true).count().lean();
 
-		res.json({status: 200, total_count: total_count, msg: taggedFeeds});
+		res.json({status: 200, total_count: total_count, msg: taggedFeeds.map(v=>v.usertag_feed_id)});
 		return;
 	});
 });
