@@ -183,7 +183,8 @@ router.post('/getCommunityListByUserId', (req, res) => {
 			if (req.body.community_type == 'all') {
 				query.community_writer_id = req.body.userobject_id;
 			} else {
-				(query.community_writer_id = req.body.userobject_id), (query.community_type = req.body.community_type);
+				query.community_writer_id = req.body.userobject_id;
+				query.community_type = req.body.community_type;
 			}
 		}
 
