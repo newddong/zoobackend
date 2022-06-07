@@ -266,11 +266,11 @@ paths:
                   type: boolean
                   description: 이미지, 동영상 첨부 여부
                 community_free_type:
-                  type: boolean
+                  type: string
                   enum: ['talk', 'qustion', 'meeting']
                   description: 자유게시판 타입 - (잡담|'talk', 질문|'qustion', 모임'meeting')
                 community_animal_type:
-                  type: boolean
+                  type: string
                   enum: ['doc', 'cat', 'etc']
                   description: 글 내용 동물 타입 - (개|'doc', 고양이|'cat', 기타|'etc')
                 community_interests:

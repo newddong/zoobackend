@@ -93,6 +93,7 @@ router.post('/getCommunityList', (req, res) => {
 		const limit = parseInt(req.body.limit) * 1 || 30;
 		const skip = (page - 1) * limit;
 		let community;
+		let total_count;
 
 		if (req.body.community_type == 'all') {
 			community = await Community.model
@@ -105,6 +106,7 @@ router.post('/getCommunityList', (req, res) => {
 				.ne(true)
 				.sort('-_id')
 				.lean();
+			total_count = await Community.model.find().where('community_is_delete').ne(true).count().lean();
 		} else {
 			community = await Community.model
 				.find({community_type: req.body.community_type})
@@ -116,6 +118,7 @@ router.post('/getCommunityList', (req, res) => {
 				.ne(true)
 				.sort('-_id')
 				.lean();
+			total_count = await Community.model.find({community_type: req.body.community_type}).where('community_is_delete').ne(true).count().lean();
 		}
 
 		if (!community) {
@@ -151,6 +154,7 @@ router.post('/getCommunityList', (req, res) => {
 
 		res.json({
 			status: 200,
+			total_count: total_count,
 			msg: {
 				free: community.filter(v => v.community_type == 'free'),
 				review: community.filter(v => v.community_type == 'review'),
