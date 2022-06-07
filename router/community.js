@@ -94,6 +94,7 @@ router.post('/getCommunityList', (req, res) => {
 		const skip = (page - 1) * limit;
 		let community;
 		let total_count;
+		let query = {};
 
 		if (req.body.community_type == 'all') {
 			community = await Community.model
@@ -108,17 +109,38 @@ router.post('/getCommunityList', (req, res) => {
 				.lean();
 			total_count = await Community.model.find().where('community_is_delete').ne(true).count().lean();
 		} else {
-			community = await Community.model
-				.find({community_type: req.body.community_type})
-				.populate('community_writer_id')
-				.populate('community_avatar_id')
-				.where('community_is_delete')
-				.skip(skip)
-				.limit(limit)
-				.ne(true)
-				.sort('-_id')
-				.lean();
-			total_count = await Community.model.find({community_type: req.body.community_type}).where('community_is_delete').ne(true).count().lean();
+			if (req.body.community_type == 'free') {
+				if (req.body.community_free_type != 'all') {
+					query['community_type'] = req.body.community_type;
+					query['community_free_type'] = req.body.community_free_type;
+				} else if (req.body.community_free_type == 'all') {
+					query['community_type'] = req.body.community_type;
+				}
+				community = await Community.model
+					.find(query)
+					.populate('community_writer_id')
+					.populate('community_avatar_id')
+					.where('community_is_delete')
+					.skip(skip)
+					.limit(limit)
+					.ne(true)
+					.sort('-_id')
+					.lean();
+				total_count = await Community.model.find(query).where('community_is_delete').ne(true).count().lean();
+			} else if (req.body.community_type == 'review') {
+				query['community_type'] = req.body.community_type;
+				community = await Community.model
+					.find(query)
+					.populate('community_writer_id')
+					.populate('community_avatar_id')
+					.where('community_is_delete')
+					.skip(skip)
+					.limit(limit)
+					.ne(true)
+					.sort('-_id')
+					.lean();
+				total_count = await Community.model.find(query).where('community_is_delete').ne(true).count().lean();
+			}
 		}
 
 		if (!community) {
