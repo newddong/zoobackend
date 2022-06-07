@@ -467,15 +467,25 @@ router.post('/getShelterInfo', (req, res) => {
 	controller(req, res, async () => {
 		let shelterInfoList;
 		if (req.body.city == 'all') {
-			shelterInfoList = await User.model.find({user_type: 'shelter'}).sort('user_name').lean();
+			shelterInfoList = await User.model.find({user_type: 'shelter'}).where('user_is_delete').ne(true).sort('user_name').lean();
+			total_count = await User.model.find({user_type: 'shelter'}).where('user_is_delete').ne(true).count().lean();
 		} else {
 			shelterInfoList = await User.model
 				.find({'shelter_address.city': {$regex: req.body.city}, user_type: 'shelter'})
+				.where('user_is_delete')
+				.ne(true)
 				.sort('user_name')
+				.lean();
+			total_count = await User.model
+				.find({'shelter_address.city': {$regex: req.body.city}, user_type: 'shelter'})
+				.where('user_is_delete')
+				.ne(true)
+				.count()
 				.lean();
 		}
 		res.json({
 			status: 200,
+			total_count: total_count,
 			msg: shelterInfoList,
 		});
 	});

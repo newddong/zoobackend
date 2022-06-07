@@ -182,7 +182,7 @@ paths:
                 community_free_type:
                   type: string
                   enum: ['all', 'talk', 'question', 'meeting']
-                  description: 자유글일 경우 필터 (전체글(all), 잡담(talk) | 질문(qustion) | 모임(meeting))
+                  description: 자유글일 경우 필터 (전체글|'all', 잡담|'talk' , 질문|'qustion' , 모임|'meeting')
       responses:
         '200':
           $ref: '#/components/responses/200'

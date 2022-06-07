@@ -168,6 +168,9 @@ const UserObject = {
 
 	/** @type { Boolean} 공공데이터 자료 여부 */
 	user_is_public_data: {type: Boolean, default: false},
+
+	/** @type { Boolean} 사용자 삭제 여부 */
+	user_is_delete: {type: Boolean, default: false},
 };
 
 /** @type {mongoose.Schema} */
