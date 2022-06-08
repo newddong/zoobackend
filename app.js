@@ -100,6 +100,7 @@ const likeetc = require('./router/likeetc');
 const favoriteetc = require('./router/favoriteetc');
 const report = require('./router/report');
 const scheduler = require('./router/scheduler');
+const maketestdata = require('./router/maketestdata');
 const router = express.Router();
 const moment = require('moment-timezone');
 //server health
@@ -146,8 +147,8 @@ app.use('/likeetc', likeetc);
 app.use('/favoriteetc', favoriteetc);
 app.use('/report', report);
 app.use('/scheduler', scheduler);
+app.use('/maketestdata', maketestdata);
 app.use('/', router);
-
 
 //Launch Server
 http.createServer(app).listen(app.get('port'), function () {

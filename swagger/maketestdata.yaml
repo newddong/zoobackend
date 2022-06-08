@@ -1,0 +1,71 @@
+paths:
+  /maketestdata/createCommunityFree:
+    post:
+      tags:
+        - maketestdata
+      summary: 커뮤니티 자유글 생성
+      description: 커뮤니티 자유글 생성
+      operationId: createCommunityFree
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - data_number
+                - community_type
+                - community_free_type
+                - community_title
+              type: object
+              properties:
+                data_number:
+                  type: integer
+                  description: 데이터 insert 개수
+                community_type:
+                  type: string
+                  enum: ['free', 'review']
+                  description: 게시글의 타입 (자유게시판|'free', 리뷰|'review')
+                community_free_type:
+                  type: string
+                  enum: ['talk', 'question', 'meeting']
+                  description: 자유게시판 타입 - (잡담|'talk', 질문|'question', 모임'meeting')
+                community_title:
+                  type: string
+                  description: 카테고리별 도움말 제목
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /maketestdata/deleteCommunityFree:
+    post:
+      tags:
+        - maketestdata
+      summary: 커뮤니티 자유글 삭제
+      description: 커뮤니티 자유글 삭제
+      operationId: deleteCommunityFree
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - community_title_for_delete
+              type: object
+              properties:
+                community_title_for_delete:
+                  type: string
+                  description: 삭제할 제목
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

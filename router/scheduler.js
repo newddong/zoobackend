@@ -6,13 +6,19 @@ const ProtectRequest = require('../schema/protectrequest');
 const ProtectActivity = require('../schema/protectionActivityApplicant');
 const Community = require('../schema/community');
 const CommonCode = require('../schema/commoncode');
+const Publicdatabyscheduler = require('../schema/publicdatabyscheduler');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
 const cron = require('node-cron');
 const request = require('request');
-global.change_totalCount = 0;
-global.change_endNumber = 0;
+global.crolling_totalCount = 0; //수집 데이터 총 건수
+global.insert_totalCount = 0; //수집 데이터 대상 신규 데이터 건수
+global.update_totalCount = 0; //수집 데이터 대상 신규 데이터 건수
+global.change_totalCount = 0; //수집 데이터 대상 현재 페이지
+global.change_endNumber = 0; //최대 페이지 수
+global.start_date = ''; //시작일
+global.end_date = ''; //종료일
 const WANT_DAY = 3;
 
 let task = cron.schedule(
@@ -173,7 +179,7 @@ async function checkShelterExist(data, sidoData) {
 	let phone_number = data.careTel.replace(/[-"]/gi, '');
 
 	//보호소 계정확인
-	result = await User.model.findOne({user_nickname: data.careNm, user_phone_number: phone_number}).exec();
+	result = await User.model.findOne({user_nickname: data.careNm, user_phone_number: phone_number}).where('user_is_delete').ne(true).exec();
 	//계정이 없다면 새로 계정 생성한다.
 	if (!result) {
 		let shelter_address = {};
@@ -200,10 +206,16 @@ async function checkShelterExist(data, sidoData) {
 			shelter_delegate_contact_number: phone_number,
 			user_is_public_data: true,
 		});
-		console.log('shelter===>', shelter);
 		result = await shelter.save();
-	} else {
-		console.log('보호소 존재 ---------');
+
+		//신규로 등록된 보호소 정보를 수집 컬렉션에 insert 한다.
+		let qeury = await Publicdatabyscheduler.makeNewdoc({
+			process_date: new Date(),
+			type: 'new_shelter',
+			target_collection: 'userobjects',
+			target_id: result._id,
+		});
+		result_shelter = await qeury.save();
 	}
 	return result._id;
 }
@@ -255,6 +267,17 @@ async function makeDocAndInsertDB(data, userobject_id) {
 	});
 	protectAnimal_result = await protectAnimal.save();
 
+	//수집 컬렉션에 insert 한다.
+	let qeury_ShelterAnimal = await Publicdatabyscheduler.makeNewdoc({
+		process_date: new Date(),
+		noticeNo: noticeNo,
+		type: 'new_shelter',
+		target_collection: 'shelterprotectanimalobjects',
+		target_id: protectAnimal_result._id,
+		old_status: processState.animal,
+	});
+	await qeury_ShelterAnimal.save();
+
 	const protectRequest = await ProtectRequest.makeNewdoc({
 		protect_request_title: data.specialMark,
 		protect_request_content: data.specialMark + '\n색:' + colorCd,
@@ -268,15 +291,27 @@ async function makeDocAndInsertDB(data, userobject_id) {
 		protect_request_notice_edt: new Date(await dateFormatForDB(data.noticeEdt)),
 		protect_desertion_no: desertionNo,
 		protect_animal_noticeNo: noticeNo,
+		protect_request_status: processState.status,
 	});
 	protectRequest.protect_animal_id = {...protectAnimal};
 	protectRequest_result = await protectRequest.save();
+
+	//수집 컬렉션에 insert 한다.
+	let qeury_ProtectRequest = await Publicdatabyscheduler.makeNewdoc({
+		process_date: new Date(),
+		noticeNo: noticeNo,
+		type: 'new_request',
+		target_collection: 'protectrequestobjects',
+		target_id: protectRequest_result._id,
+		old_status: processState.status,
+	});
+	await qeury_ProtectRequest.save();
 }
 
 async function insertPetDataIntoDB(petDataItems) {
 	let data = petDataItems.item;
 	let dataLength = petDataItems.item.length;
-	let count = 0;
+
 	for (let i = 0; i < dataLength; i++) {
 		//보호소 계정 생성 확인(없을 경우 생성)
 		//보호소 존재 여부 확인 후 useronbject_id를 가져 옴.
@@ -289,38 +324,86 @@ async function insertPetDataIntoDB(petDataItems) {
 		protectRequestInfo = await ProtectRequest.model.findOne({protect_animal_noticeNo: data[i].noticeNo}).exec();
 
 		if (!protectRequestInfo) {
+			insert_totalCount++;
 			//ShelterAnimal 컬렉션과 ProtectRequest 컬렉션에 데이터 insert 진행
 			await makeDocAndInsertDB(data[i], userobject_id);
 		} else {
 			let changedValue = await parseDataForDB('checkProcessState', protectRequestInfo.protect_request_status);
+
 			//값이 다를 경우 상태 업데이트
 			if (changedValue.status != data[i].processState) {
-				count++;
+				update_totalCount++;
 				console.log('------------------------------------------------------');
 				console.log('changedValue.status =>', changedValue.status);
 				console.log('data[i].processState =>', data[i].processState);
-				//보호 요청글 상태 업데이트
-				let protect_request_status = await parseDataForDB('processState', data[i].processState);
-				protectRequestInfo.protect_request_status = protect_request_status.status;
-				console.log('protectRequestInfo_.id =>', protectRequestInfo._id);
-				console.log('protectRequestInfo.protect_request_status =>', protectRequestInfo.protect_request_status);
-				await protectRequestInfo.save();
 
-				//보호소의 보호중인 동물의 상태 업데이트
+				//공공데이터포털 값을 코드값으로 변경
 				shelterAnimalInfo = await ShelterAnimal.model.findById(protectRequestInfo.protect_animal_id).exec();
 				let protect_animal_status = await parseDataForDB('processState', data[i].processState);
+
+				{
+					//수집 컬렉션에 insert 한다.
+					let qeury_ShelterAnimal = await Publicdatabyscheduler.makeNewdoc({
+						process_date: new Date(),
+						type: 'update_shelteranimal',
+						target_collection: 'shelterprotectanimalobjects',
+						target_id: shelterAnimalInfo._id,
+						old_status: shelterAnimalInfo.protect_animal_status,
+						new_status: protect_animal_status.animal,
+					});
+					await qeury_ShelterAnimal.save();
+				}
+
+				//보호소의 보호중인 동물의 상태 업데이트
 				shelterAnimalInfo.protect_animal_status = protect_animal_status.animal;
 				console.log('shelterAnimalInfo.id =>', shelterAnimalInfo._id);
 				console.log('shelterAnimalInfo.protect_animal_status =>', shelterAnimalInfo.protect_animal_status);
 				await shelterAnimalInfo.save();
+
+				//공공데이터포털 값을 코드값으로 변경
+				let protect_request_status = await parseDataForDB('processState', data[i].processState);
+
+				{
+					//수집 컬렉션에 insert 한다.
+					let qeury_ProtectRequest = await Publicdatabyscheduler.makeNewdoc({
+						process_date: new Date(),
+						type: 'update_request',
+						target_collection: 'protectrequestobjects',
+						target_id: protectRequestInfo._id,
+						old_status: protectRequestInfo.protect_request_status,
+						new_status: protect_request_status.status,
+					});
+					await qeury_ProtectRequest.save();
+				}
+
+				//보호 요청글 상태 업데이트
+				protectRequestInfo.protect_request_status = protect_request_status.status;
+				console.log('protectRequestInfo_.id =>', protectRequestInfo._id);
+				console.log('protectRequestInfo.protect_request_status =>', protectRequestInfo.protect_request_status);
+				await protectRequestInfo.save();
 			}
 		}
 	}
 	change_totalCount++;
-	console.log('count------------', count);
-	console.log('totalCount------------', change_totalCount);
+	console.log('상태 업데이트된 count------------', update_totalCount);
+	console.log('insert 된 데이터 count------------', insert_totalCount);
+	console.log('현재 페이지------------', change_totalCount);
+
+	//수집 컬렉션에 insert 한다.
+	let statistics = await Publicdatabyscheduler.makeNewdoc({
+		process_date: new Date(),
+		sdate: start_date,
+		edate: end_date,
+		type: 'report',
+		totalCount_on_date: crolling_totalCount,
+		count_new_data: insert_totalCount,
+		count_update_data: update_totalCount,
+	});
+	await statistics.save();
+
 	if (change_endNumber == change_totalCount) {
-		console.log('last change_endNumber------------', change_totalCount);
+		console.log('최대 페이지------------', change_endNumber);
+		console.log('crolling_totalCount------------', crolling_totalCount);
 	}
 }
 
@@ -339,12 +422,19 @@ const sleep = ms => {
 	});
 };
 
+//크롤링 해오기 위한 파라미터 값 셋팅
 async function settingDataForApi(bgnde, endde, pageNo) {
+	//공공데이터 포털 가입 후 서비스키 값을 받도록 한다.
 	let params = 'ServiceKey=lw1RRanlp%2B6KTO2qlo2i2D0VYissKd4QEm8OhB%2FKAnxcgiwkKNmk%2BzQlUuSBwFmmQYw1dIZNUlSmF7ws0oUUXQ%3D%3D';
+	//시작날짜
 	params += '&bgnde=' + bgnde;
+	//종료날짜
 	params += '&endde=' + endde;
+	//무조건 1000으로 맞춘다 - 그래야 페이징 처리가 편하다.
 	params += '&numOfRows=1000';
+	//페이지 번호
 	params += '&pageNo=' + pageNo;
+	//데이터 타입은 json을 쓰도록 한다.
 	params += '&_type=json';
 
 	let options = {
@@ -353,12 +443,23 @@ async function settingDataForApi(bgnde, endde, pageNo) {
 		url: 'https://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?' + params,
 		headers: {Cookie: 'application/json'},
 	};
+
+	let qeury = await Publicdatabyscheduler.makeNewdoc({
+		process_date: new Date(),
+		sdate: bgnde,
+		edate: endde,
+		type: 'report',
+		url: options.url,
+	});
+	await qeury.save();
+
 	return options;
 }
 
 async function accessOpenApi(options) {
 	let petDataArray;
 	let info;
+	console.log('accessOpenApi---진입');
 	return new Promise(function (resolve, reject) {
 		request(options, function (error, response, body) {
 			if (body != undefined) {
@@ -371,16 +472,24 @@ async function accessOpenApi(options) {
 	});
 }
 
-router.post('/getCityTypeFromPublicData', (req, res) => {
+//공공데이터 포털 보호요청 게시물 크롤링 해오기
+router.post('/getProtectRequestFromPublicData', (req, res) => {
 	controller(req, res, async () => {
 		let bgnde = req.body.bgnde;
+		start_date = '';
+		end_date = '';
+		insert_totalCount = 0;
+		update_totalCount = 0;
 		change_totalCount = 0;
 		change_endNumber = 1;
+		crolling_totalCount = 0;
 		if (req.body.endde == undefined) {
 			req.body.endde = '';
 		}
 		let endde = req.body.endde;
 		let pageNo = 1;
+		start_date = bgnde;
+		end_date = endde;
 
 		//openapi 설정값 셋팅
 		options = await settingDataForApi(bgnde, endde, pageNo);
@@ -389,7 +498,7 @@ router.post('/getCityTypeFromPublicData', (req, res) => {
 
 		//크롤링 진행
 		let totalCount = await accessOpenApi(options);
-
+		crolling_totalCount = totalCount;
 		console.log('totalCount=>', totalCount);
 
 		//크롤링을 진행 후 totalCount 카운트가 1000 초과시 1000을 나눈 몫만큼 반복
@@ -408,6 +517,7 @@ router.post('/getCityTypeFromPublicData', (req, res) => {
 	});
 });
 
+//공공데이터 삭제 ShelterAnimal, ProtectRequest 컬렉션 크롤링 데이터 모두 삭제
 router.post('/deletePublicData', (req, res) => {
 	controller(req, res, async () => {
 		await ShelterAnimal.model.deleteMany({protect_desertion_no: {$exists: true}}).lean();
@@ -472,6 +582,7 @@ async function accessOpenApi(options) {
 	});
 }
 
+//공공데이터 보호소 정보 가져오기
 router.post('/getPublicShelterData', (req, res) => {
 	controller(req, res, async () => {
 		let paramsList;
@@ -487,6 +598,7 @@ router.post('/getPublicShelterData', (req, res) => {
 				sidoDataList = await accessForShelterOpenApi(options);
 			} catch (error) {
 				console.log('error=>', error);
+				//에러 발생시 2초 후에 재접속해서 가져온다. (대부분 에러는 재접속시 해결됨.)
 				z--;
 				await sleep(2000);
 				continue;
@@ -505,6 +617,7 @@ router.post('/getPublicShelterData', (req, res) => {
 						sigunguDataList = await accessForShelterOpenApi(options);
 					} catch (error) {
 						console.log('error=>', error);
+						//에러 발생시 2초 후에 재접속해서 가져온다. (대부분 에러는 재접속시 해결됨.)
 						i--;
 						await sleep(2000);
 						continue;
@@ -523,6 +636,7 @@ router.post('/getPublicShelterData', (req, res) => {
 								shelterDataList = await accessForShelterOpenApi(options);
 							} catch (error) {
 								console.log('error=>', error);
+								//에러 발생시 2초 후에 재접속해서 가져온다. (대부분 에러는 재접속시 해결됨.)
 								j--;
 								await sleep(2000);
 								continue;
@@ -541,6 +655,7 @@ router.post('/getPublicShelterData', (req, res) => {
 										abandonmentPublicDataList = await accessForShelterOpenApi(options);
 									} catch (error) {
 										console.log('error=>', error);
+										//에러 발생시 2초 후에 재접속해서 가져온다. (대부분 에러는 재접속시 해결됨.)
 										k--;
 										await sleep(2000);
 										continue;
@@ -562,6 +677,7 @@ router.post('/getPublicShelterData', (req, res) => {
 	});
 });
 
+//커뮤니티 리뷰 추천 게시물 계산 함수
 async function scheduler_communityRecommand() {
 	//현재 날짜와 기간설정 날짜 계산
 	let now = new Date();
