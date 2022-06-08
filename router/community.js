@@ -425,4 +425,156 @@ router.post('/getCommunityByObjectId', (req, res) => {
 	});
 });
 
+//커뮤니티 페이지 번호 클릭 형식 페이징 불러옴(필터 적용)
+router.post('/getCommunityListByPageNumber', (req, res) => {
+	controller(req, res, async () => {
+		// const page = parseInt(req.body.page) * 1 || 1;
+		// const limit = parseInt(req.body.limit) * 1 || 30;
+		let page = 1;
+		let limit = 3;
+		const skip = (page - 1) * limit;
+		let interrupt_id = '629ef309d6fecd5049bb676f';
+		let start_id;
+		let end_id;
+		let oriList;
+		let resultList;
+
+		//상세페이지의 하단 커뮤니티 리스트 페이징 (상세 페이지 ID = interrupt_id)
+		if (interrupt_id) {
+			oriList = await Community.model
+				.find({community_type: 'free', _id: {$lte: mongoose.Types.ObjectId(interrupt_id)}}, {_id: 1})
+				.skip(skip)
+				.limit(limit)
+				.where('community_is_delete')
+				.ne(true)
+				.sort('-_id')
+				.lean();
+			start_id = oriList[0]._id;
+			end_id = oriList[oriList.length - 1]._id;
+
+			resultList = await Community.model
+				.find({community_type: 'free', _id: {$gte: end_id}, _id: {$lte: start_id}})
+				.where('community_is_delete')
+				.limit(limit)
+				.ne(true)
+				.sort('-_id')
+				.lean();
+		}
+		//일반적인 커뮤니티 페이징
+		else {
+			//페이지별 게시물에 해당되는 id 리스트를 구한다.
+			oriList = await Community.model
+				.find({community_type: 'free'}, {_id: 1})
+				.skip(skip)
+				.limit(limit)
+				.where('community_is_delete')
+				.ne(true)
+				.sort('-_id')
+				.lean();
+			let start_id = oriList[0]._id;
+			let end_id = oriList[oriList.length - 1]._id;
+
+			resultList = await Community.model
+				.find({community_type: 'free', _id: {$gte: end_id}, _id: {$lte: start_id}})
+				.where('community_is_delete')
+				.limit(limit)
+				.ne(true)
+				.sort('-_id')
+				.lean();
+		}
+		res.json({
+			status: 200,
+			id_list: oriList,
+			msg: resultList,
+		});
+
+		// if (req.body.community_type == 'all') {
+		// 	community = await Community.model
+		// 		.find()
+		// 		.populate('community_writer_id')
+		// 		.populate('community_avatar_id')
+		// 		.where('community_is_delete')
+		// 		.skip(skip)
+		// 		.limit(limit)
+		// 		.ne(true)
+		// 		.sort('-_id')
+		// 		.lean();
+		// 	total_count = await Community.model.find().where('community_is_delete').ne(true).count().lean();
+		// } else {
+		// 	if (req.body.community_type == 'free') {
+		// 		if (req.body.community_free_type != 'all') {
+		// 			query['community_type'] = req.body.community_type;
+		// 			query['community_free_type'] = req.body.community_free_type;
+		// 		} else if (req.body.community_free_type == 'all') {
+		// 			query['community_type'] = req.body.community_type;
+		// 		}
+		// 		community = await Community.model
+		// 			.find(query)
+		// 			.populate('community_writer_id')
+		// 			.populate('community_avatar_id')
+		// 			.where('community_is_delete')
+		// 			.skip(skip)
+		// 			.limit(limit)
+		// 			.ne(true)
+		// 			.sort('-_id')
+		// 			.lean();
+		// 		total_count = await Community.model.find(query).where('community_is_delete').ne(true).count().lean();
+		// 	} else if (req.body.community_type == 'review') {
+		// 		query['community_type'] = req.body.community_type;
+		// 		community = await Community.model
+		// 			.find(query)
+		// 			.populate('community_writer_id')
+		// 			.populate('community_avatar_id')
+		// 			.where('community_is_delete')
+		// 			.skip(skip)
+		// 			.limit(limit)
+		// 			.ne(true)
+		// 			.sort('-_id')
+		// 			.lean();
+		// 		total_count = await Community.model.find(query).where('community_is_delete').ne(true).count().lean();
+		// 	}
+		// }
+
+		// if (!community) {
+		// 	res.json({status: 404, msg: ALERT_NO_RESULT});
+		// 	return;
+		// }
+
+		// let likedCommunityList = [];
+		// if (req.session.loginUser) {
+		// 	likedCommunityList = await LikeEtc.model.find({like_etc_user_id: req.session.loginUser, like_etc_is_delete: false}).lean();
+		// }
+
+		// community = community.map(community => {
+		// 	if (likedCommunityList.find(likedCommunity => likedCommunity.like_etc_post_id == community._id)) {
+		// 		return {...community, community_is_like: true};
+		// 	} else {
+		// 		return {...community, community_is_like: false};
+		// 	}
+		// });
+
+		// let favoritedCommunityList = [];
+		// if (req.session.loginUser) {
+		// 	favoritedCommunityList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
+		// }
+
+		// community = community.map(community => {
+		// 	if (favoritedCommunityList.find(favoritedCommunity => favoritedCommunity.favorite_etc_target_object_id == community._id)) {
+		// 		return {...community, community_is_favorite: true};
+		// 	} else {
+		// 		return {...community, community_is_favorite: false};
+		// 	}
+		// });
+
+		// res.json({
+		// 	status: 200,
+		// 	total_count: total_count,
+		// 	msg: {
+		// 		free: community.filter(v => v.community_type == 'free'),
+		// 		review: community.filter(v => v.community_type == 'review'),
+		// 	},
+		// });
+	});
+});
+
 module.exports = router;
