@@ -426,62 +426,68 @@ router.post('/getCommunityByObjectId', (req, res) => {
 });
 
 //커뮤니티 페이지 번호 클릭 형식 페이징 불러옴(필터 적용)
-router.post('/getCommunityListByPageNumber', (req, res) => {
+router.post('/getCommunityListFreeByPageNumber', (req, res) => {
 	controller(req, res, async () => {
-		// const page = parseInt(req.body.page) * 1 || 1;
-		// const limit = parseInt(req.body.limit) * 1 || 30;
-		let page = 1;
-		let limit = 3;
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 2;
 		const skip = (page - 1) * limit;
-		let interrupt_id = '629ef309d6fecd5049bb676f';
 		let start_id;
 		let end_id;
 		let oriList;
 		let resultList;
+		let query_id = {}; //자유게시판 상세 페이징 처리 용
+		let query_list = {}; //자유게시판 겉 페이징 처리 용
+		let query_list_count = {}; //자유게시판 겉 페이징 total count 처리 용
 
-		//상세페이지의 하단 커뮤니티 리스트 페이징 (상세 페이지 ID = interrupt_id)
-		if (interrupt_id) {
-			oriList = await Community.model
-				.find({community_type: 'free', _id: {$lte: mongoose.Types.ObjectId(interrupt_id)}}, {_id: 1})
-				.skip(skip)
-				.limit(limit)
-				.where('community_is_delete')
-				.ne(true)
-				.sort('-_id')
-				.lean();
-			start_id = oriList[0]._id;
-			end_id = oriList[oriList.length - 1]._id;
+		//커뮤니티 타입 정의
+		query_id['community_type'] = 'free';
+		query_list['community_type'] = 'free';
+		query_list_count['community_type'] = 'free';
 
-			resultList = await Community.model
-				.find({community_type: 'free', _id: {$gte: end_id}, _id: {$lte: start_id}})
-				.where('community_is_delete')
-				.limit(limit)
-				.ne(true)
-				.sort('-_id')
-				.lean();
+		//상세페이지의 하단 커뮤니티 리스트 페이징에는 target_object_id가 추가 (상세 페이지 ID = target_object_id)
+		if (req.body.target_object_id != undefined) {
+			query_id['_id'] = {$lte: mongoose.Types.ObjectId(req.body.target_object_id)};
 		}
-		//일반적인 커뮤니티 페이징
-		else {
-			//페이지별 게시물에 해당되는 id 리스트를 구한다.
-			oriList = await Community.model
-				.find({community_type: 'free'}, {_id: 1})
-				.skip(skip)
-				.limit(limit)
-				.where('community_is_delete')
-				.ne(true)
-				.sort('-_id')
-				.lean();
-			let start_id = oriList[0]._id;
-			let end_id = oriList[oriList.length - 1]._id;
 
-			resultList = await Community.model
-				.find({community_type: 'free', _id: {$gte: end_id}, _id: {$lte: start_id}})
-				.where('community_is_delete')
-				.limit(limit)
-				.ne(true)
-				.sort('-_id')
-				.lean();
+		//자유게시글 타입은 배열 형식이라서 별도의 처리 필요.
+		if (req.body.community_free_type != undefined) {
+			let array_community_free_type = Array();
+			let community_free_type =
+				typeof req.body.community_free_type == 'string'
+					? req.body.community_free_type.replace(/[\[\]\"]/g, '').split(',')
+					: req.body.community_free_type;
+			for (let p = 0; p < community_free_type.length; p++) {
+				array_community_free_type.push(community_free_type[p]);
+			}
+			query_id['community_free_type'] = {$in: array_community_free_type};
+			query_list['community_free_type'] = {$in: array_community_free_type};
+			query_list_count['community_free_type'] = {$in: array_community_free_type};
 		}
+
+		//페이지별 게시물에 해당되는 id 리스트를 구한다.
+		oriList = await Community.model.find(query_id, {_id: 1}).skip(skip).limit(limit).where('community_is_delete').ne(true).sort('-_id').lean();
+		start_id = oriList[0]._id;
+		end_id = oriList[oriList.length - 1]._id;
+
+		//시작과 끝 _id 값을 구한다.
+		query_list['$and'] = [{_id: {$gte: end_id}}, {_id: {$lte: start_id}}];
+		console.log('query_list=>', query_list);
+		resultList = await Community.model
+			.find(query_list)
+			.where('community_is_delete')
+			.populate('community_writer_id')
+			.populate('community_avatar_id')
+			.limit(limit)
+			.ne(true)
+			.sort('-_id')
+			.lean();
+
+		if (req.body.target_object_id != undefined) {
+			total_count = await Community.model.find(query_id, {_id: 1}).where('community_is_delete').ne(true).count().lean();
+		} else {
+			total_count = await Community.model.find(query_list_count, {_id: 1}).where('community_is_delete').ne(true).count().lean();
+		}
+
 		res.json({
 			status: 200,
 			id_list: oriList,
