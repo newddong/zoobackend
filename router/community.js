@@ -429,7 +429,7 @@ router.post('/getCommunityByObjectId', (req, res) => {
 router.post('/getCommunityListFreeByPageNumber', (req, res) => {
 	controller(req, res, async () => {
 		const page = parseInt(req.body.page) * 1 || 1;
-		const limit = parseInt(req.body.limit) * 1 || 2;
+		const limit = parseInt(req.body.limit) * 1 || 10;
 		const skip = (page - 1) * limit;
 		let start_id;
 		let end_id;
@@ -471,115 +471,39 @@ router.post('/getCommunityListFreeByPageNumber', (req, res) => {
 
 		//시작과 끝 _id 값을 구한다.
 		query_list['$and'] = [{_id: {$gte: end_id}}, {_id: {$lte: start_id}}];
-		console.log('query_list=>', query_list);
-		resultList = await Community.model
-			.find(query_list)
+		community = await Community.model
+			.find(query_list, {
+				_id: 1,
+				community_title: 1,
+				community_date: 1,
+				community_is_attached_file: 1,
+				community_type: 1,
+				community_free_type: 1,
+				community_comment_count: 1,
+			})
 			.where('community_is_delete')
-			.populate('community_writer_id')
-			.populate('community_avatar_id')
 			.limit(limit)
 			.ne(true)
 			.sort('-_id')
 			.lean();
 
+		//total_count는 자유게시판 상세 페이징 처리용과 일반 페이징용을 구분해서 구한다.
 		if (req.body.target_object_id != undefined) {
 			total_count = await Community.model.find(query_id, {_id: 1}).where('community_is_delete').ne(true).count().lean();
 		} else {
 			total_count = await Community.model.find(query_list_count, {_id: 1}).where('community_is_delete').ne(true).count().lean();
 		}
 
+		if (!community) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
 		res.json({
 			status: 200,
-			id_list: oriList,
-			msg: resultList,
+			total_count: total_count,
+			msg: community,
 		});
-
-		// if (req.body.community_type == 'all') {
-		// 	community = await Community.model
-		// 		.find()
-		// 		.populate('community_writer_id')
-		// 		.populate('community_avatar_id')
-		// 		.where('community_is_delete')
-		// 		.skip(skip)
-		// 		.limit(limit)
-		// 		.ne(true)
-		// 		.sort('-_id')
-		// 		.lean();
-		// 	total_count = await Community.model.find().where('community_is_delete').ne(true).count().lean();
-		// } else {
-		// 	if (req.body.community_type == 'free') {
-		// 		if (req.body.community_free_type != 'all') {
-		// 			query['community_type'] = req.body.community_type;
-		// 			query['community_free_type'] = req.body.community_free_type;
-		// 		} else if (req.body.community_free_type == 'all') {
-		// 			query['community_type'] = req.body.community_type;
-		// 		}
-		// 		community = await Community.model
-		// 			.find(query)
-		// 			.populate('community_writer_id')
-		// 			.populate('community_avatar_id')
-		// 			.where('community_is_delete')
-		// 			.skip(skip)
-		// 			.limit(limit)
-		// 			.ne(true)
-		// 			.sort('-_id')
-		// 			.lean();
-		// 		total_count = await Community.model.find(query).where('community_is_delete').ne(true).count().lean();
-		// 	} else if (req.body.community_type == 'review') {
-		// 		query['community_type'] = req.body.community_type;
-		// 		community = await Community.model
-		// 			.find(query)
-		// 			.populate('community_writer_id')
-		// 			.populate('community_avatar_id')
-		// 			.where('community_is_delete')
-		// 			.skip(skip)
-		// 			.limit(limit)
-		// 			.ne(true)
-		// 			.sort('-_id')
-		// 			.lean();
-		// 		total_count = await Community.model.find(query).where('community_is_delete').ne(true).count().lean();
-		// 	}
-		// }
-
-		// if (!community) {
-		// 	res.json({status: 404, msg: ALERT_NO_RESULT});
-		// 	return;
-		// }
-
-		// let likedCommunityList = [];
-		// if (req.session.loginUser) {
-		// 	likedCommunityList = await LikeEtc.model.find({like_etc_user_id: req.session.loginUser, like_etc_is_delete: false}).lean();
-		// }
-
-		// community = community.map(community => {
-		// 	if (likedCommunityList.find(likedCommunity => likedCommunity.like_etc_post_id == community._id)) {
-		// 		return {...community, community_is_like: true};
-		// 	} else {
-		// 		return {...community, community_is_like: false};
-		// 	}
-		// });
-
-		// let favoritedCommunityList = [];
-		// if (req.session.loginUser) {
-		// 	favoritedCommunityList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
-		// }
-
-		// community = community.map(community => {
-		// 	if (favoritedCommunityList.find(favoritedCommunity => favoritedCommunity.favorite_etc_target_object_id == community._id)) {
-		// 		return {...community, community_is_favorite: true};
-		// 	} else {
-		// 		return {...community, community_is_favorite: false};
-		// 	}
-		// });
-
-		// res.json({
-		// 	status: 200,
-		// 	total_count: total_count,
-		// 	msg: {
-		// 		free: community.filter(v => v.community_type == 'free'),
-		// 		review: community.filter(v => v.community_type == 'review'),
-		// 	},
-		// });
 	});
 });
 
