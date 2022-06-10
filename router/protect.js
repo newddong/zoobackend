@@ -606,9 +606,21 @@ router.post('/getSearchResultProtectRequest', (req, res) => {
 		}
 
 		result = await ProtectRequest.model
-			.find(send_query)
-			.populate('protect_request_writer_id')
+			.find(send_query, {
+				_id: 1,
+				protect_request_status: 1,
+				protect_request_photos_uri: 1,
+				protect_animal_sex: 1,
+				protect_request_date: 1,
+				protect_request_notice_sdt: 1,
+				protect_request_notice_edt: 1,
+				protect_animal_species: 1,
+				protect_animal_species_detail: 1,
+				protect_request_writer_id: 1,
+			})
+			.populate('protect_request_writer_id', 'user_nickname _id')
 			.where('protect_request_is_delete')
+			.select('protect_animal_id.protect_animal_rescue_location')
 			.ne(true)
 			.skip(skip)
 			.limit(limit)
