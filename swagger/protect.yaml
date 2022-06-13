@@ -431,7 +431,7 @@ paths:
         - protect
       summary: 동물보호 필터 정보 검색
       description: 동물보호 필터 정보 검색
-      operationId: getSearchResultProtectRequest
+      operationId: getSearchResultProtectRequestWithoutLimit
       requestBody:
         description: 요청정보
         content:
