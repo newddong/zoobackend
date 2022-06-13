@@ -425,3 +425,53 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /protect/getSearchResultProtectRequestWithoutLimit:
+    post:
+      tags:
+        - protect
+      summary: 동물보호 필터 정보 검색
+      description: 동물보호 필터 정보 검색
+      operationId: getSearchResultProtectRequest
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - protect_request_notice_sdt
+                - protect_request_notice_edt
+              properties:
+                protect_request_notice_sdt:
+                  type: string
+                  description: 검색 시작일 ex) 20220521
+                protect_request_notice_edt:
+                  type: string
+                  description: 검색 종료일 ex) 20220524
+                city:
+                  type: string
+                  description: 보호소 지역(시,도) ('모든지역' 일경우 값을 넣지 말 것, 그외 지역은 해당 시,도 - 카카오 주소체계로 입력 )
+                shelter_object_id_list:
+                  type: array
+                  description: 보호소 userobject_id ('모든 보호소' 일경우 값을 넣지 말 것, 그외 보호소는 userobject_id)
+                  items:
+                    type: string
+                    description: Array 보호소 object_id
+                protect_animal_species:
+                  type: array
+                  description: Array 보호소 동물 종류 ('개' | '고양이' | '그 외')
+                  items:
+                    type: string
+                    description: Array 보호소 동물 종류 ('개' | '고양이' | '그 외')
+                protect_request_status:
+                  type: boolean
+                  description: //입양 가능한 게시글만 보기 (true|rescue만 보이기, false 또는 선택안함|모두 보이기)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

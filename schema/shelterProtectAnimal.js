@@ -25,7 +25,7 @@ const ShelterProtectAnimalObject = {
 	/** 다른 스키마와의 관계 */
 
 	/** @type { 'rescue'|'adopt'|'protect'|'rainbowbridge'|'discuss'} 보호중인 동물의 상태 기본상태는 rescue임 (동물이 구조되어 보호소로 들어온 최초 상태) 임시보호가 되면 protect로 변경 입양을 가게 되면 상태가 adopt로 변경 임시보호, 입양 협의중이면 discuss로 변경 안락사, 혹은 폐사상태가 되면 rainbowbridge로 변경 */
-	protect_animal_status: {type: String, default: 'rescue'},
+	protect_animal_status: {type: String},
 
 	/** @type { String} 보호요청을 작성한 작성자(보호소) */
 	protect_animal_writer_id: {type: Schema.Types.ObjectId, ref: 'UserObject'},

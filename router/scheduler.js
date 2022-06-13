@@ -345,6 +345,7 @@ async function insertPetDataIntoDB(petDataItems) {
 					//수집 컬렉션에 insert 한다.
 					let qeury_ShelterAnimal = await Publicdatabyscheduler.makeNewdoc({
 						process_date: new Date(),
+						noticeNo: data[i].noticeNo,
 						type: 'update_shelteranimal',
 						target_collection: 'shelterprotectanimalobjects',
 						target_id: shelterAnimalInfo._id,
@@ -367,6 +368,7 @@ async function insertPetDataIntoDB(petDataItems) {
 					//수집 컬렉션에 insert 한다.
 					let qeury_ProtectRequest = await Publicdatabyscheduler.makeNewdoc({
 						process_date: new Date(),
+						noticeNo: data[i].noticeNo,
 						type: 'update_request',
 						target_collection: 'protectrequestobjects',
 						target_id: protectRequestInfo._id,

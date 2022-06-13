@@ -550,6 +550,9 @@ router.post('/getSearchResultProtectRequest', (req, res) => {
 			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
 		}
 
+		console.log('protect_request_notice_sdt=>', query.protect_request_notice_sdt);
+		console.log('protect_request_notice_edt=>', query.protect_request_notice_edt);
+
 		if (query.protect_request_notice_sdt != undefined && query.protect_request_notice_edt != undefined) {
 			notice_sdt = query.protect_request_notice_sdt;
 			notice_edt = query.protect_request_notice_edt;
@@ -624,6 +627,139 @@ router.post('/getSearchResultProtectRequest', (req, res) => {
 			.ne(true)
 			.skip(skip)
 			.limit(limit)
+			.sort('-protect_request_date')
+			.lean();
+
+		let favoritedList = [];
+		if (req.session.loginUser) {
+			favoritedList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
+
+			result = result.map(result => {
+				if (favoritedList.find(favorited => favorited.favorite_etc_target_object_id == result._id)) {
+					return {...result, is_favorite: true};
+				} else {
+					return {...result, is_favorite: false};
+				}
+			});
+		}
+
+		let now = new Date(); // 오늘
+		let nowValue = JSON.stringify(now).substr(1, 10);
+		let nowTypeValue = new Date(nowValue);
+
+		result = result.map(result => {
+			if (result.protect_request_notice_edt != undefined) {
+				let edtValue = JSON.stringify(result.protect_request_notice_edt).substr(1, 10);
+				let edtTypeValue = new Date(edtValue);
+
+				//날짜 차이 계산
+				const diffDate = nowTypeValue.getTime() - edtTypeValue.getTime();
+				//계산한 시차의 일 수를 계산하려면 시차에서 하루의 밀리초를 나눠 얻는 수식
+				let dateDays = diffDate / (1000 * 3600 * 24);
+
+				return {...result, notice_day: dateDays};
+			} else return {...result};
+		});
+
+		res.json({
+			status: 200,
+			msg: result,
+		});
+	});
+});
+
+/**
+ * 보호요청 필터 검색 limit 없는 버전
+ */
+router.post('/getSearchResultProtectRequestWithoutLimit', (req, res) => {
+	controller(req, res, async () => {
+		let query = {};
+		let send_query = {};
+		let result;
+		let notice_sdt;
+		let notice_edt;
+		let date_notice_sdt;
+		let date_notice_edt;
+
+		for (let filed in req.body) {
+			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
+		}
+
+		console.log('protect_request_notice_sdt=>', query.protect_request_notice_sdt);
+		console.log('protect_request_notice_edt=>', query.protect_request_notice_edt);
+
+		if (query.protect_request_notice_sdt != undefined && query.protect_request_notice_edt != undefined) {
+			notice_sdt = query.protect_request_notice_sdt;
+			notice_edt = query.protect_request_notice_edt;
+			date_notice_sdt = new Date(await dateFormatForBetween(notice_sdt));
+			date_notice_edt = new Date(await dateFormatForBetween(notice_edt));
+			send_query['protect_request_date'] = {$gte: date_notice_sdt, $lte: date_notice_edt};
+		}
+
+		//공고번호를 지역 필터로 사용
+		if (query.city != undefined) {
+			cityName = await addressMaching(query.city);
+			send_query['protect_animal_noticeNo'] = {$regex: cityName};
+		}
+
+		//입양 가능한 게시글만 보기
+		if (query.protect_request_status != undefined) {
+			if ((query.protect_request_status = 'true')) {
+				send_query['protect_request_status'] = 'rescue';
+			}
+		}
+
+		//보호소 필터
+		if (query.shelter_object_id_list != undefined) {
+			let changedType_object_id = Array();
+			let shelter_object_id_list =
+				typeof req.body.shelter_object_id_list == 'string'
+					? req.body.shelter_object_id_list.replace(/[\[\]\"]/g, '').split(',')
+					: req.body.shelter_object_id_list;
+			for (let p = 0; p < shelter_object_id_list.length; p++) {
+				changedType_object_id.push(mongoose.Types.ObjectId(shelter_object_id_list[p]));
+			}
+			send_query['protect_animal_id.protect_animal_belonged_shelter_id'] = {$in: changedType_object_id};
+		}
+
+		//동물 종류 필터
+		if (query.protect_animal_species != undefined) {
+			let protect_animal_species =
+				typeof req.body.protect_animal_species == 'string'
+					? req.body.protect_animal_species.replace(/[\[\]\"]/g, '').split(',')
+					: req.body.protect_animal_species;
+
+			if (protect_animal_species.length == 1 && protect_animal_species[0] != '그 외') {
+				send_query['protect_animal_species'] = protect_animal_species[0];
+			} else if (protect_animal_species.length == 2 && protect_animal_species.filter(x => !['개', '그 외'].includes(x)).length == 0) {
+				send_query['protect_animal_species'] = {$ne: '고양이'};
+			} else if (protect_animal_species.length == 2 && protect_animal_species.filter(x => !['고양이', '그 외'].includes(x)).length == 0) {
+				send_query['protect_animal_species'] = {$ne: '개'};
+			} else if (protect_animal_species.length == 1 && protect_animal_species[0] == '그 외') {
+				send_query['protect_animal_species'] = {$nin: ['개', '고양이']};
+			} else if (protect_animal_species.length == 2 && protect_animal_species.filter(x => !['개', '고양이'].includes(x)).length == 0) {
+				send_query['protect_animal_species'] = {$in: protect_animal_species};
+			} else if (protect_animal_species.filter(x => !['개', '고양이', '그 외'].includes(x)).length == 0) {
+			}
+		}
+
+		result = await ProtectRequest.model
+			.find(send_query, {
+				_id: 1,
+				protect_request_status: 1,
+				protect_request_photos_uri: 1,
+				protect_animal_sex: 1,
+				protect_request_date: 1,
+				protect_request_notice_sdt: 1,
+				protect_request_notice_edt: 1,
+				protect_animal_species: 1,
+				protect_animal_species_detail: 1,
+				protect_request_writer_id: 1,
+			})
+			.populate('protect_request_writer_id', 'user_nickname _id')
+			.where('protect_request_is_delete')
+			.select('protect_animal_id.protect_animal_rescue_location')
+			.ne(true)
 			.sort('-protect_request_date')
 			.lean();
 
