@@ -36,7 +36,7 @@ const ProtectRequestObject = {
 	protect_recent_comment: RecentComment,
 
 	/** @type { Date} 보호요청 게시글 작성일시 */
-	protect_request_date: {type: Date, default: Date.now},
+	protect_request_date: {type: Date, default: Date.now, index: true},
 	/** @type { Date} 보호요청 게시글 수정일시 */
 	protect_request_update_date: {type: Date, default: Date.now},
 
@@ -62,7 +62,7 @@ const ProtectRequestObject = {
 	protect_request_notice_edt: {type: Date},
 
 	/** @type { String} 유기번호 */
-	protect_desertion_no: {type: String},
+	protect_desertion_no: {type: Number, unique: true, index: true},
 
 	/** @type { String} 공고번호 */
 	protect_animal_noticeNo: {type: String},

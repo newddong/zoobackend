@@ -262,7 +262,7 @@ async function makeDocAndInsertDB(data, userobject_id) {
 		protect_animal_weight: weight.weight,
 		protect_animal_status: processState.animal,
 		protect_animal_belonged_shelter_id: userobject_id,
-		protect_desertion_no: desertionNo,
+		protect_desertion_no: Number(desertionNo),
 		protect_animal_noticeNo: noticeNo,
 	});
 	protectAnimal_result = await protectAnimal.save();
@@ -289,7 +289,7 @@ async function makeDocAndInsertDB(data, userobject_id) {
 		protect_request_date: new Date(await dateFormatForDB(happenDt)),
 		protect_request_notice_sdt: new Date(await dateFormatForDB(data.noticeSdt)),
 		protect_request_notice_edt: new Date(await dateFormatForDB(data.noticeEdt)),
-		protect_desertion_no: desertionNo,
+		protect_desertion_no: Number(desertionNo),
 		protect_animal_noticeNo: noticeNo,
 		protect_request_status: processState.status,
 	});

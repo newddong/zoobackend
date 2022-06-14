@@ -425,13 +425,13 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-  /protect/getSearchResultProtectRequestWithoutLimit:
+  /protect/getSearchResultProtectRequestImprovingV1:
     post:
       tags:
         - protect
       summary: 동물보호 필터 정보 검색
       description: 동물보호 필터 정보 검색
-      operationId: getSearchResultProtectRequestWithoutLimit
+      operationId: getSearchResultProtectRequestImprovingV1
       requestBody:
         description: 요청정보
         content:
@@ -442,12 +442,15 @@ paths:
                 - protect_request_notice_sdt
                 - protect_request_notice_edt
               properties:
+                limit:
+                  type: integer
+                  description: 한번에 불러올 보호요청 게시글 갯수
                 protect_request_notice_sdt:
                   type: string
-                  description: 검색 시작일 ex) 20220521
+                  description: 검색 시작일 ex) 20220613
                 protect_request_notice_edt:
                   type: string
-                  description: 검색 종료일 ex) 20220524
+                  description: 검색 종료일 ex) 20220614
                 city:
                   type: string
                   description: 보호소 지역(시,도) ('모든지역' 일경우 값을 넣지 말 것, 그외 지역은 해당 시,도 - 카카오 주소체계로 입력 )
@@ -466,6 +469,12 @@ paths:
                 protect_request_status:
                   type: boolean
                   description: //입양 가능한 게시글만 보기 (true|rescue만 보이기, false 또는 선택안함|모두 보이기)
+                target_protect_desertion_no:
+                  type: string
+                  description: // 마지막 게시물 protect_desertion_no
+                target_protect_request_date:
+                  type: string
+                  description: // 마지막 게시물 protect_request_date
       responses:
         '200':
           $ref: '#/components/responses/200'

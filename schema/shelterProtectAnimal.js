@@ -49,7 +49,7 @@ const ShelterProtectAnimalObject = {
 	protect_act_applicants: [{type: Schema.Types.ObjectId, ref: 'ProtectionActivityApplicantObject'}],
 
 	/** @type { String} 유기번호 */
-	protect_desertion_no: {type: String},
+	protect_desertion_no: {type: Number},
 
 	/** @type { String} 공고번호 */
 	protect_animal_noticeNo: {type: String},

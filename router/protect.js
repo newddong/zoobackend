@@ -670,10 +670,13 @@ router.post('/getSearchResultProtectRequest', (req, res) => {
 });
 
 /**
- * 보호요청 필터 검색 limit 없는 버전
+ * 보호요청 필터 검색 페이징 간소화
  */
-router.post('/getSearchResultProtectRequestWithoutLimit', (req, res) => {
+router.post('/getSearchResultProtectRequestImprovingV1', (req, res) => {
 	controller(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+
 		let query = {};
 		let send_query = {};
 		let result;
@@ -685,9 +688,6 @@ router.post('/getSearchResultProtectRequestWithoutLimit', (req, res) => {
 		for (let filed in req.body) {
 			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
 		}
-
-		console.log('protect_request_notice_sdt=>', query.protect_request_notice_sdt);
-		console.log('protect_request_notice_edt=>', query.protect_request_notice_edt);
 
 		if (query.protect_request_notice_sdt != undefined && query.protect_request_notice_edt != undefined) {
 			notice_sdt = query.protect_request_notice_sdt;
@@ -744,25 +744,43 @@ router.post('/getSearchResultProtectRequestWithoutLimit', (req, res) => {
 			}
 		}
 
-		result = await ProtectRequest.model
-			.find(send_query, {
-				_id: 1,
-				protect_request_status: 1,
-				protect_request_photos_uri: 1,
-				protect_animal_sex: 1,
-				protect_request_date: 1,
-				protect_request_notice_sdt: 1,
-				protect_request_notice_edt: 1,
-				protect_animal_species: 1,
-				protect_animal_species_detail: 1,
-				protect_request_writer_id: 1,
-			})
-			.populate('protect_request_writer_id', 'user_nickname _id')
-			.where('protect_request_is_delete')
-			.select('protect_animal_id.protect_animal_rescue_location')
-			.ne(true)
-			.sort('-protect_request_date')
-			.lean();
+		if (req.body.target_protect_desertion_no != undefined) {
+			send_query['protect_request_date'] = {$lte: new Date(await dateFormatForBetween(req.body.target_protect_request_date))};
+			send_query['protect_desertion_no'] = {$lt: Number(req.body.target_protect_desertion_no)};
+		}
+		send_query['protect_request_is_delete'] = {$ne: true};
+		result = await ProtectRequest.model.aggregate([
+			{$match: send_query},
+			{
+				$lookup: {
+					from: 'userobjects',
+					localField: 'protect_request_writer_id',
+					foreignField: '_id',
+					as: 'protect_request_writer_id',
+				},
+			},
+
+			{
+				$project: {
+					_id: 1,
+					protect_desertion_no: 1,
+					protect_request_status: 1,
+					protect_request_photos_uri: 1,
+					protect_request_photo_thumbnail: 1,
+					protect_animal_sex: 1,
+					protect_request_date: 1,
+					protect_request_notice_sdt: 1,
+					protect_request_notice_edt: 1,
+					protect_animal_species: 1,
+					protect_animal_species_detail: 1,
+					'protect_animal_id.protect_animal_rescue_location': 1,
+					'protect_request_writer_id.user_nickname': 1,
+					'protect_request_writer_id._id': 1,
+				},
+			},
+			{$limit: limit},
+			{$sort: {protect_request_date: -1, protect_desertion_no: -1}},
+		]);
 
 		let favoritedList = [];
 		if (req.session.loginUser) {
