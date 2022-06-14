@@ -55,62 +55,6 @@ router.post('/userLogin', (req, res) => {
 			return;
 		}
 
-		// //로그인시 사용자 업로드,팔로워,팔로잉 개수 맞추기
-		// //업로드 게시물 개수 업데이트
-		// let feedCount = await Feed.model
-		// 	.find({
-		// 		$or: [
-		// 			{$and: [{feed_type: 'feed'}, {feed_avatar_id: loginUser._id}]},
-		// 			{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
-		// 		],
-		// 	})
-		// 	.where('feed_writer_id', loginUser._id)
-		// 	.where('feed_is_delete')
-		// 	.ne(true)
-		// 	.count();
-
-		// let communityCount = await Community.model.find({community_writer_id: loginUser._id}).where('community_is_delete').ne(true).count();
-		// let totalCount = feedCount + communityCount;
-
-		// let follow = await Follow.model
-		// .find({follow_id: targetUser._id, follow_is_delete: false})
-		// .populate({path: 'follow_id', select: 'user_type user_nickname user_introduction user_profile_uri'})
-		// .populate({path: 'follower_id', select: 'user_type user_nickname user_introduction user_profile_uri'})
-		// .lean();
-
-		// //로그인 계정 팔로우, 팔로워 업데이트 하기
-		// let loginUser_follow_count = await Follow.model
-		// 	.find({follow_id: mongoose.Types.ObjectId(loginUser._id)})
-		// 	.where('follow_is_delete')
-		// 	.ne(true)
-		// 	.populate({path: 'follow_id', select: 'user_type user_nickname user_introduction user_profile_uri'})
-		// 	.count()
-		// 	.lean();
-		// console.log('loginUser_follow_count=>', loginUser_follow_count);
-		// let loginUser_follower_count = await Follow.model
-		// 	.find({follower_id: mongoose.Types.ObjectId(loginUser._id)})
-		// 	.where('follow_is_delete')
-		// 	.ne(true)
-		// 	.count()
-		// 	.lean();
-		// console.log('loginUser_follower_count=>', loginUser_follower_count);
-		// let countUpdate = await User.model
-		// 	.findOneAndUpdate(
-		// 		{
-		// 			_id: loginUser._id,
-		// 		},
-		// 		{
-		// 			$set: {
-		// 				user_upload_count: totalCount,
-		// 				user_follow_count: loginUser_follow_count,
-		// 				user_follower_count: loginUser_follower_count,
-		// 			},
-		// 			$currentDate: {feed_update_date: true},
-		// 		},
-		// 		{new: true, upsert: true},
-		// 	)
-		// 	.lean();
-
 		req.session.loginUser = loginUser._id;
 		req.session.user_type = loginUser.user_type;
 		req.session.user_nickname = loginUser.user_nickname;
@@ -245,6 +189,68 @@ router.post('/getUserProfile', (req, res) => {
 			res.json({status: 404, msg: USER_NOT_FOUND});
 			return;
 		}
+
+		//사용자 업로드,팔로워,팔로잉 개수 카운트
+		let feedCount = await Feed.model
+			.find({
+				$or: [
+					{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
+					{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+				],
+			})
+			.where('feed_writer_id', req.body.userobject_id)
+			.where('feed_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+
+		let communityCount = await Community.model
+			.find({community_writer_id: req.body.userobject_id})
+			.where('community_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+		let totalCount = feedCount + communityCount;
+
+		let followList = await Follow.model
+			.find({follow_id: req.body.userobject_id, follow_is_delete: false})
+			.populate({path: 'follower_id', select: '_id'})
+			.lean();
+		let followerList = await Follow.model
+			.find({follower_id: req.body.userobject_id, follow_is_delete: false})
+			.populate({path: 'follow_id', select: '_id'})
+			.lean();
+		let followCount = 0;
+		let follwerCount = 0;
+
+		for (let k = 0; k < followList.length; k++) {
+			if (followList[k].follower_id != null) {
+				followCount++;
+			}
+		}
+
+		for (let i = 0; i < followerList.length; i++) {
+			if (followerList[i].follow_id != null) {
+				follwerCount++;
+			}
+		}
+		//게시물 업로드 개수, 팔로워 개수, 팔로잉 개수 사용자 컬렉션에 최종 업로드
+		let countUpdate = await User.model
+			.findOneAndUpdate(
+				{
+					_id: req.body.userobject_id,
+				},
+				{
+					$set: {
+						user_upload_count: totalCount,
+						user_follow_count: followCount,
+						user_follower_count: follwerCount,
+					},
+					$currentDate: {feed_update_date: true},
+				},
+				{new: true, upsert: true},
+			)
+			.lean();
 
 		let feedList = [];
 		if (userInfo.user_type == 'pet') {
