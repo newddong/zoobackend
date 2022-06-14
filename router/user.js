@@ -11,6 +11,7 @@ const Notice = require('../schema/notice');
 const NoticeUser = require('../schema/noticeuser');
 const FavoriteEtc = require('../schema/favoriteetc');
 const ShelterProtect = require('../schema/shelterProtectAnimal');
+const Community = require('../schema/community');
 
 const {controller, controllerLoggedIn} = require('./controller');
 const {
@@ -53,6 +54,62 @@ router.post('/userLogin', (req, res) => {
 			res.json({status: 404, msg: USER_PASSWORD_NOT_VALID});
 			return;
 		}
+
+		// //로그인시 사용자 업로드,팔로워,팔로잉 개수 맞추기
+		// //업로드 게시물 개수 업데이트
+		// let feedCount = await Feed.model
+		// 	.find({
+		// 		$or: [
+		// 			{$and: [{feed_type: 'feed'}, {feed_avatar_id: loginUser._id}]},
+		// 			{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+		// 		],
+		// 	})
+		// 	.where('feed_writer_id', loginUser._id)
+		// 	.where('feed_is_delete')
+		// 	.ne(true)
+		// 	.count();
+
+		// let communityCount = await Community.model.find({community_writer_id: loginUser._id}).where('community_is_delete').ne(true).count();
+		// let totalCount = feedCount + communityCount;
+
+		// let follow = await Follow.model
+		// .find({follow_id: targetUser._id, follow_is_delete: false})
+		// .populate({path: 'follow_id', select: 'user_type user_nickname user_introduction user_profile_uri'})
+		// .populate({path: 'follower_id', select: 'user_type user_nickname user_introduction user_profile_uri'})
+		// .lean();
+
+		// //로그인 계정 팔로우, 팔로워 업데이트 하기
+		// let loginUser_follow_count = await Follow.model
+		// 	.find({follow_id: mongoose.Types.ObjectId(loginUser._id)})
+		// 	.where('follow_is_delete')
+		// 	.ne(true)
+		// 	.populate({path: 'follow_id', select: 'user_type user_nickname user_introduction user_profile_uri'})
+		// 	.count()
+		// 	.lean();
+		// console.log('loginUser_follow_count=>', loginUser_follow_count);
+		// let loginUser_follower_count = await Follow.model
+		// 	.find({follower_id: mongoose.Types.ObjectId(loginUser._id)})
+		// 	.where('follow_is_delete')
+		// 	.ne(true)
+		// 	.count()
+		// 	.lean();
+		// console.log('loginUser_follower_count=>', loginUser_follower_count);
+		// let countUpdate = await User.model
+		// 	.findOneAndUpdate(
+		// 		{
+		// 			_id: loginUser._id,
+		// 		},
+		// 		{
+		// 			$set: {
+		// 				user_upload_count: totalCount,
+		// 				user_follow_count: loginUser_follow_count,
+		// 				user_follower_count: loginUser_follower_count,
+		// 			},
+		// 			$currentDate: {feed_update_date: true},
+		// 		},
+		// 		{new: true, upsert: true},
+		// 	)
+		// 	.lean();
 
 		req.session.loginUser = loginUser._id;
 		req.session.user_type = loginUser.user_type;
@@ -756,6 +813,7 @@ router.post('/getFollows', (req, res) => {
 		let targetUser = await User.model.findById(req.body.userobject_id).lean();
 		let user_nickname = req.body.user_nickname;
 		let userList = new Array();
+		let userListTemp = new Array();
 
 		if (!targetUser) {
 			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
@@ -780,8 +838,15 @@ router.post('/getFollows', (req, res) => {
 		let follower_id_array = new Array();
 		//결과 리스트의 _id를 가져와서 follower_id_array 리스트를 만든다.
 		for (let k = 0; k < userList.length; k++) {
-			follower_id_array.push(JSON.stringify(userList[k].follower_id._id).replace(/[\"]/gi, ''));
+			//팔로워 ID null 값 체크 (아이디 삭제 여부 판단을 위함)
+			if (userList[k].follower_id != null) {
+				userListTemp.push(userList[k]);
+				follower_id_array.push(JSON.stringify(userList[k].follower_id._id).replace(/[\"]/gi, ''));
+			}
 		}
+		userList = Array();
+		//배열 복사 (하단에서 userList로 모두 쓰고 있어서 복사진행)
+		userList = JSON.parse(JSON.stringify(userListTemp));
 
 		//팔로우 컬렉션에서 팔로우이고 팔로우 array에 속한 리스트를 가져옴 (이 사람들이 처음 검색 결과에서 내가 팔로우 한 사람들임)
 		follower_list = await Follow.model
@@ -816,6 +881,7 @@ router.post('/getFollowers', (req, res) => {
 		let targetUser = await User.model.findById(req.body.userobject_id).lean();
 		let user_nickname = req.body.user_nickname;
 		let userList = new Array();
+		let userListTemp = new Array();
 
 		if (!targetUser) {
 			res.json({status: 403, msg: '대상 유저가 존재하지 않습니다.'});
@@ -841,8 +907,16 @@ router.post('/getFollowers', (req, res) => {
 		let follow_id_array = new Array();
 		//검색 결과 리스트의 _id를 가져와서 follow_id 리스트를 만든다.
 		for (let k = 0; k < userList.length; k++) {
-			follow_id_array.push(JSON.stringify(userList[k].follow_id._id).replace(/[\"]/gi, ''));
+			//팔로워 ID null 값 체크 (아이디 삭제 여부 판단을 위함)
+			if (userList[k].follow_id != null) {
+				userListTemp.push(userList[k]);
+				follow_id_array.push(JSON.stringify(userList[k].follow_id._id).replace(/[\"]/gi, ''));
+			}
 		}
+
+		userList = Array();
+		//배열 복사 (하단에서 userList로 모두 쓰고 있어서 복사진행)
+		userList = JSON.parse(JSON.stringify(userListTemp));
 
 		//팔로우 컬렉션에서 내가 팔로우이고 위의 검색 결과에서 나온 리스트가 팔로워로 들어가 있는 리스트
 		follower_list = await Follow.model

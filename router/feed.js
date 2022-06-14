@@ -610,14 +610,15 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 		}
 
 		if (!taggedFeeds) {
-			console.log('no result')
+			console.log('no result');
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
 		}
 
 		total_count = await FeedUserTag.model.find({usertag_user_id: user._id}).where('usertag_is_delete').ne(true).count().lean();
 
-		res.json({status: 200, total_count: total_count, msg: taggedFeeds.map(v=>v.usertag_feed_id)});
+		res.json({status: 200, total_count: total_count, msg: taggedFeeds});
+		// res.json({status: 200, total_count: total_count, msg: taggedFeeds.map(v=>v.usertag_feed_id)});
 		return;
 	});
 });
