@@ -17,10 +17,10 @@ paths:
               properties:
                 bgnde:
                   type: string
-                  description: 유기날짜 (검색 시작일)
+                  description: 유기날짜 (검색 시작일) ex) 20220610
                 endde:
                   type: string
-                  description: 유기날짜 (검색 종료일)
+                  description: 유기날짜 (검색 종료일) ex) 20220611
       responses:
         '200':
           $ref: '#/components/responses/200'

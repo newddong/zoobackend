@@ -613,6 +613,7 @@ router.post('/getSearchResultProtectRequest', (req, res) => {
 				_id: 1,
 				protect_request_status: 1,
 				protect_request_photos_uri: 1,
+				protect_request_photo_thumbnail: 1,
 				protect_animal_sex: 1,
 				protect_request_date: 1,
 				protect_request_notice_sdt: 1,

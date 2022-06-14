@@ -225,10 +225,10 @@ async function makeDocAndInsertDB(data, userobject_id) {
 
 	//상태가 공고중이면서 desertionNo 번호가 ProtectRequest 컬렉션에 존재할 경우 리턴시킴
 
-	//사진 퀄리티 때문에 무조건 고화질 사진만 씀.
 	let popfile = Array();
 	popfile.push(data.popfile);
 	let filename = data.popfile;
+	let thumbnail = data.filename;
 	let happenDt = data.happenDt;
 	let happenPlace = data.happenPlace;
 	let kindCd = await parseDataForDB('species', data.kindCd);
@@ -285,7 +285,7 @@ async function makeDocAndInsertDB(data, userobject_id) {
 		protect_animal_species: kindCd.species,
 		protect_animal_species_detail: kindCd.species_detail,
 		protect_request_photos_uri: popfile,
-		protect_request_photo_thumbnail: data.popfile,
+		protect_request_photo_thumbnail: thumbnail,
 		protect_request_date: new Date(await dateFormatForDB(happenDt)),
 		protect_request_notice_sdt: new Date(await dateFormatForDB(data.noticeSdt)),
 		protect_request_notice_edt: new Date(await dateFormatForDB(data.noticeEdt)),
