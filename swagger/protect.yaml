@@ -474,7 +474,7 @@ paths:
                   description: // 마지막 게시물 protect_desertion_no
                 target_protect_request_date:
                   type: string
-                  description: // 마지막 게시물 protect_request_date
+                  description: // 마지막 게시물 protect_request_date ex) 20220613
       responses:
         '200':
           $ref: '#/components/responses/200'
