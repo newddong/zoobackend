@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const User = require('../schema/user');
 const Community = require('../schema/community');
 const {controller, controllerLoggedIn} = require('./controller');
 const mongoose = require('mongoose');
@@ -48,6 +49,32 @@ router.post('/deleteCommunityFree', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		await Community.model.deleteMany({community_title: {$regex: req.body.community_title_for_delete}}).lean();
 		res.json({status: 200, msg: 'ok'});
+	});
+});
+
+//사용자 관심도 에러 수정(기존 배열 데이터 타입을 오브젝트로 변경)
+router.post('/updateUserInterestsToNoError', (req, res) => {
+	controller(req, res, async () => {
+		let test1 = Array();
+		test1.push('111');
+		let test2 = {};
+		test2['col1'] = '111';
+		let userList = await User.model.find({}).lean();
+		let needToUpdateIdList = Array();
+		for (let i = 0; i < userList.length; i++) {
+			if (userList[i].user_interests instanceof Object && userList[i].user_interests instanceof Array) {
+				needToUpdateIdList.push(userList[i]._id);
+			}
+		}
+		console.log('needToUpdateIdList=>', needToUpdateIdList);
+		let result = await User.model
+			.find()
+			.where('_id')
+			.in(needToUpdateIdList)
+			.updateMany({$set: {user_interests: {}}})
+			.lean();
+
+		typeof res.json({status: 200, msg: 'ok'});
 	});
 });
 

@@ -69,3 +69,25 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /maketestdata/updateUserInterestsToNoError:
+    post:
+      tags:
+        - maketestdata
+      summary: 사용자 관심도 에러 수정(기존 배열 데이터 타입을 오브젝트로 변경)
+      description: 사용자 관심도 에러 수정(기존 배열 데이터 타입을 오브젝트로 변경)
+      operationId: updateUserInterestsToNoError
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
