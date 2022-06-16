@@ -256,7 +256,8 @@ async function makeDocAndInsertDB(data, userobject_id) {
 	let weight = await parseDataForDB('weight', data.weight);
 	let processState = await parseDataForDB('processState', data.processState);
 	let sexCd = await parseDataForDB('sex', data.sexCd);
-	let neuterYn = await parseDataForDB('neuter', data.neuterYn);_
+	let neuterYn = await parseDataForDB('neuter', data.neuterYn);
+	_;
 	let specialMark = data.specialMark;
 	let noticeNo = data.noticeNo;
 	let colorCd = data.colorCd;
@@ -350,7 +351,11 @@ async function insertPetDataIntoDB(petDataItems) {
 
 		if (!protectRequestInfo) {
 			//사진이 없을 경우 insert 하지 않는다
-			if(data[i].)
+			console.log('data[i].filename=>', data[i].filename);
+			if (data[i].filename.indexOf('.jpg') < 0 || data[i].popfile.indexOf('.jpg') < 0) {
+				continue;
+			}
+
 			insert_totalCount++;
 			//ShelterAnimal 컬렉션과 ProtectRequest 컬렉션에 데이터 insert 진행
 			await makeDocAndInsertDB(data[i], userobject_id);
