@@ -438,9 +438,6 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              required:
-                - protect_request_notice_sdt
-                - protect_request_notice_edt
               properties:
                 limit:
                   type: integer
@@ -469,9 +466,9 @@ paths:
                 protect_request_status:
                   type: boolean
                   description: //입양 가능한 게시글만 보기 (true|rescue만 보이기, false 또는 선택안함|모두 보이기)
-                target_protect_desertion_no:
+                target_protect_animal_noticeNo:
                   type: string
-                  description: // 마지막 게시물 protect_desertion_no
+                  description: // 마지막 게시물 공고번호 target_protect_animal_noticeNo
                 target_protect_request_date:
                   type: string
                   description: // 마지막 게시물 protect_request_date ex) 20220613

@@ -674,7 +674,6 @@ router.post('/getSearchResultProtectRequest', (req, res) => {
  */
 router.post('/getSearchResultProtectRequestImprovingV1', (req, res) => {
 	controller(req, res, async () => {
-		const page = parseInt(req.body.page) * 1 || 1;
 		const limit = parseInt(req.body.limit) * 1 || 30;
 
 		let query = {};
@@ -744,13 +743,32 @@ router.post('/getSearchResultProtectRequestImprovingV1', (req, res) => {
 			}
 		}
 
-		if (req.body.target_protect_desertion_no != undefined) {
-			send_query['protect_request_date'] = {$lte: new Date(await dateFormatForBetween(req.body.target_protect_request_date))};
-			send_query['protect_desertion_no'] = {$lt: Number(req.body.target_protect_desertion_no)};
+		// .find({
+		// 	$or: [
+		// 		{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.session.loginUser}]},
+		// 		{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+		// 	],
+		// })
+
+		if (req.body.target_protect_animal_noticeNo != undefined) {
+			send_query['$or'] = [
+				{protect_request_date: {$lte: new Date(await dateFormatForBetween(req.body.target_protect_request_date))}},
+				{
+					$and: [
+						{protect_request_date: {$lte: new Date(await dateFormatForBetween(req.body.target_protect_request_date))}},
+						{protect_animal_noticeNo: {$gt: req.body.target_protect_animal_noticeNo}},
+					],
+				},
+			];
+
+			// send_query['protect_request_date'] = {$lte: new Date(await dateFormatForBetween(req.body.target_protect_request_date))};
+			// send_query['protect_animal_noticeNo'] = {$gt: req.body.target_protect_animal_noticeNo};
 		}
 		send_query['protect_request_is_delete'] = {$ne: true};
+		console.log('send_query=>', send_query);
 		result = await ProtectRequest.model.aggregate([
 			{$match: send_query},
+			{$sort: {protect_request_date: -1, protect_animal_noticeNo: 1}},
 			{
 				$lookup: {
 					from: 'userobjects',
@@ -764,6 +782,7 @@ router.post('/getSearchResultProtectRequestImprovingV1', (req, res) => {
 				$project: {
 					_id: 1,
 					protect_desertion_no: 1,
+					protect_animal_noticeNo: 1,
 					protect_request_status: 1,
 					protect_request_photos_uri: 1,
 					protect_request_photo_thumbnail: 1,
@@ -779,7 +798,6 @@ router.post('/getSearchResultProtectRequestImprovingV1', (req, res) => {
 				},
 			},
 			{$limit: limit},
-			{$sort: {protect_request_date: -1, protect_desertion_no: -1}},
 		]);
 
 		let favoritedList = [];

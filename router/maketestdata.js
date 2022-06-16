@@ -66,7 +66,6 @@ router.post('/updateUserInterestsToNoError', (req, res) => {
 				needToUpdateIdList.push(userList[i]._id);
 			}
 		}
-		console.log('needToUpdateIdList=>', needToUpdateIdList);
 		let result = await User.model
 			.find()
 			.where('_id')
@@ -74,7 +73,24 @@ router.post('/updateUserInterestsToNoError', (req, res) => {
 			.updateMany({$set: {user_interests: {}}})
 			.lean();
 
-		typeof res.json({status: 200, msg: 'ok'});
+		res.json({status: 200, msg: 'ok'});
+	});
+});
+
+async function splitPicNumForOrder(str) {
+	let picnumArray = str.split('/');
+	console.log('picnumArray[7]', picnumArray[7].replace('_s.jpg', ''));
+	return picnumArray[7].replace('_s.jpg', '');
+}
+
+//사용자 관심도 에러 수정(기존 배열 데이터 타입을 오브젝트로 변경)
+router.post('/testConfirm', (req, res) => {
+	controller(req, res, async () => {
+		let data = 'http://www.animal.go.kr/files/shelter/2022/05/202205300905963_s.jpg';
+		let result = await splitPicNumForOrder(data);
+		console.log('result=>', result);
+
+		res.json({status: 200, msg: result});
 	});
 });
 

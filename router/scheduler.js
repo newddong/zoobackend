@@ -220,6 +220,26 @@ async function checkShelterExist(data, sidoData) {
 	return result._id;
 }
 
+async function splitPicNumForOrder(str) {
+	let padLen = 15; //MAX길이
+	let padStr = '0';
+	let picnumArray = str.split('/');
+	let resutStr = '';
+	let temp = '';
+	temp = picnumArray[7];
+	console.log('temp=>', temp);
+	resutStr = temp
+		.replace('[0]', '')
+		.replace('[1]', '')
+		.replace('[2]', '')
+		.replace('[3]', '')
+		.replace('[4]', '')
+		.replace('[5]', '')
+		.replace('_s.jpg', '');
+	while (resutStr.length < padLen) resutStr += padStr;
+	return resutStr;
+}
+
 async function makeDocAndInsertDB(data, userobject_id) {
 	let desertionNo = data.desertionNo;
 
@@ -236,10 +256,14 @@ async function makeDocAndInsertDB(data, userobject_id) {
 	let weight = await parseDataForDB('weight', data.weight);
 	let processState = await parseDataForDB('processState', data.processState);
 	let sexCd = await parseDataForDB('sex', data.sexCd);
-	let neuterYn = await parseDataForDB('neuter', data.neuterYn);
+	let neuterYn = await parseDataForDB('neuter', data.neuterYn);_
 	let specialMark = data.specialMark;
 	let noticeNo = data.noticeNo;
 	let colorCd = data.colorCd;
+	console.log('thumbnail=>', thumbnail);
+	console.log('filename=>', filename);
+	let picNum = await splitPicNumForOrder(thumbnail, filename);
+	console.log('picNum=>', picNum);
 
 	//--현재 쓰이지 않음
 	//보호소 이름
@@ -292,6 +316,7 @@ async function makeDocAndInsertDB(data, userobject_id) {
 		protect_desertion_no: Number(desertionNo),
 		protect_animal_noticeNo: noticeNo,
 		protect_request_status: processState.status,
+		protect_picture_no: Number(picNum),
 	});
 	protectRequest.protect_animal_id = {...protectAnimal};
 	protectRequest_result = await protectRequest.save();
@@ -324,6 +349,8 @@ async function insertPetDataIntoDB(petDataItems) {
 		protectRequestInfo = await ProtectRequest.model.findOne({protect_animal_noticeNo: data[i].noticeNo}).exec();
 
 		if (!protectRequestInfo) {
+			//사진이 없을 경우 insert 하지 않는다
+			if(data[i].)
 			insert_totalCount++;
 			//ShelterAnimal 컬렉션과 ProtectRequest 컬렉션에 데이터 insert 진행
 			await makeDocAndInsertDB(data[i], userobject_id);

@@ -91,3 +91,25 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /maketestdata/testConfirm:
+    post:
+      tags:
+        - maketestdata
+      summary: 테스트 (서버 확인용)
+      description: 테스트 (서버 확인용)
+      operationId: testConfirm
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

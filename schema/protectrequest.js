@@ -66,6 +66,9 @@ const ProtectRequestObject = {
 
 	/** @type { String} 공고번호 */
 	protect_animal_noticeNo: {type: String},
+
+	/** @type { String} 사진번호 */
+	protect_picture_no: {type: Number, unique: true, index: true},
 };
 
 /** @type {mongoose.Schema} */
