@@ -166,8 +166,6 @@ paths:
               required:
                 - page
                 - limit
-                - community_type
-                - community_free_type
               properties:
                 page:
                   type: integer
@@ -175,14 +173,12 @@ paths:
                 limit:
                   type: integer
                   description: 한번에 불러올 게시글 개수
-                community_type:
-                  type: string
-                  enum: ['all', 'free', 'review']
-                  description: 게시글의 타입 (전체글|'all', 자유게시판|'free', 리뷰|'review')
-                community_free_type:
-                  type: string
-                  enum: ['all', 'talk', 'question', 'meeting']
-                  description: 자유글일 경우 필터 (전체글|'all', 잡담|'talk' , 질문|'question' , 모임|'meeting')
+                community_animal_type:
+                  type: array
+                  description: Array 보호소 동물 종류 ('dog' | 'cat' | 'etc')
+                  items:
+                    type: string
+                    description: Array 보호소 동물 종류 ('dog' | 'cat' | 'etc')
       responses:
         '200':
           $ref: '#/components/responses/200'

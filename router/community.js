@@ -96,52 +96,42 @@ router.post('/getCommunityList', (req, res) => {
 		let total_count;
 		let query = {};
 
-		if (req.body.community_type == 'all') {
-			community = await Community.model
-				.find()
-				.populate('community_writer_id')
-				.populate('community_avatar_id')
-				.where('community_is_delete')
-				.skip(skip)
-				.limit(limit)
-				.ne(true)
-				.sort('-_id')
-				.lean();
-			total_count = await Community.model.find().where('community_is_delete').ne(true).count().lean();
-		} else {
-			if (req.body.community_type == 'free') {
-				if (req.body.community_free_type != 'all') {
-					query['community_type'] = req.body.community_type;
-					query['community_free_type'] = req.body.community_free_type;
-				} else if (req.body.community_free_type == 'all') {
-					query['community_type'] = req.body.community_type;
-				}
-				community = await Community.model
-					.find(query)
-					.populate('community_writer_id')
-					.populate('community_avatar_id')
-					.where('community_is_delete')
-					.skip(skip)
-					.limit(limit)
-					.ne(true)
-					.sort('-_id')
-					.lean();
-				total_count = await Community.model.find(query).where('community_is_delete').ne(true).count().lean();
-			} else if (req.body.community_type == 'review') {
-				query['community_type'] = req.body.community_type;
-				community = await Community.model
-					.find(query)
-					.populate('community_writer_id')
-					.populate('community_avatar_id')
-					.where('community_is_delete')
-					.skip(skip)
-					.limit(limit)
-					.ne(true)
-					.sort('-_id')
-					.lean();
-				total_count = await Community.model.find(query).where('community_is_delete').ne(true).count().lean();
+		//동물 종류 필터
+		if (req.body.community_animal_type != undefined) {
+			query['community_animal_type'] = req.body.community_animal_type;
+			let community_animal_type =
+				typeof req.body.community_animal_type == 'string'
+					? req.body.community_animal_type.replace(/[\[\]\"]/g, '').split(',')
+					: req.body.community_animal_type;
+
+			if (community_animal_type.length == 1 && community_animal_type[0] != 'etc') {
+				query['community_animal_type'] = community_animal_type[0];
+			} else if (community_animal_type.length == 2 && community_animal_type.filter(x => !['dog', 'etc'].includes(x)).length == 0) {
+				query['community_animal_type'] = {$ne: 'cat'};
+			} else if (community_animal_type.length == 2 && community_animal_type.filter(x => !['cat', 'etc'].includes(x)).length == 0) {
+				query['community_animal_type'] = {$ne: 'dog'};
+			} else if (community_animal_type.length == 1 && community_animal_type[0] == 'etc') {
+				query['community_animal_type'] = {$nin: ['dog', 'cat']};
+			} else if (community_animal_type.length == 2 && community_animal_type.filter(x => !['dog', 'cat'].includes(x)).length == 0) {
+				query['community_animal_type'] = {$in: community_animal_type};
+			} else if (community_animal_type.filter(x => !['dog', 'cat', 'etc'].includes(x)).length == 0) {
 			}
 		}
+
+		query['community_type'] = 'review';
+		console.log('query=>', query);
+		console.time();
+		community = await Community.model
+			.find(query, {community_is_temporary: 0, type: 0})
+			.populate('community_writer_id', 'user_nickname _id')
+			.where('community_is_delete')
+			.ne(true)
+			.skip(skip)
+			.limit(limit)
+			.sort('-_id')
+			.lean();
+		console.timeEnd();
+		total_count = await Community.model.find(query).where('community_is_delete').ne(true).count().lean();
 
 		if (!community) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
@@ -177,10 +167,7 @@ router.post('/getCommunityList', (req, res) => {
 		res.json({
 			status: 200,
 			total_count: total_count,
-			msg: {
-				free: community.filter(v => v.community_type == 'free'),
-				review: community.filter(v => v.community_type == 'review'),
-			},
+			msg: community,
 		});
 	});
 });

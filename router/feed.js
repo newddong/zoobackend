@@ -1297,7 +1297,7 @@ router.post('/deleteFeed', (req, res) => {
 	});
 });
 
-//태그된 피드 즐겨찾기 디스플레이 설정/취소
+//태그된 피드 디스플레이 설정/취소
 router.post('/updateUserTagDisplay', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		let feedUserTag = await FeedUserTag.model
