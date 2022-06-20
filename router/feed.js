@@ -520,6 +520,22 @@ router.post('/getFeedListByUserId', (req, res) => {
 				.count()
 				.lean();
 
+			let favoritedFeedList = [];
+			//로그인 상태에서만 is_favorite 표출
+			if (req.session.loginUser) {
+				let favoritedFeedList = [];
+				//내가 즐겨찾기를 누른 데이터 불러오기
+				favoritedFeedList = await FavoriteFeed.model.find({favorite_feed_user_id: req.session.loginUser, favorite_feed_is_delete: false}).lean();
+
+				userFeeds = userFeeds.map(userFeeds => {
+					if (favoritedFeedList.find(favoritedFeed => favoritedFeed.favorite_feed_id == userFeeds._id)) {
+						return {...userFeeds, is_favorite: true};
+					} else {
+						return {...userFeeds, is_favorite: false};
+					}
+				});
+			}
+
 			//res.status(200);
 			res.json({
 				status: 200,
@@ -809,6 +825,21 @@ router.post('/getSuggestFeedList', (req, res) => {
 					return {...feed, feed_is_like: true};
 				} else {
 					return {...feed, feed_is_like: false};
+				}
+			});
+		}
+
+		//로그인 상태에서만 is_favorite 표출
+		if (req.session.loginUser) {
+			let favoritedFeedList = [];
+			//내가 즐겨찾기를 누른 데이터 불러오기
+			favoritedFeedList = await FavoriteFeed.model.find({favorite_feed_user_id: req.session.loginUser, favorite_feed_is_delete: false}).lean();
+
+			feed = feed.map(feed => {
+				if (favoritedFeedList.find(favoritedFeed => favoritedFeed.favorite_feed_id == feed._id)) {
+					return {...feed, is_favorite: true};
+				} else {
+					return {...feed, is_favorite: false};
 				}
 			});
 		}
