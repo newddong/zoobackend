@@ -350,8 +350,11 @@ router.post('/getSearchCommunityList', (req, res) => {
 			});
 
 			followList = await Follow.model.find({follow_id: req.session.loginUser, follow_is_delete: false}).lean();
+			//null일 경우 is_follow를 추가하지 않고 그냥 넘긴다. (사용자 null처리 로직)
 			communityList = communityList.map(communityList => {
-				if (followList.find(follow => follow.follower_id.equals(communityList.community_writer_id._id))) {
+				if (communityList.community_writer_id == null || communityList.community_writer_id == undefined) {
+					return {...communityList};
+				} else if (followList.find(follow => follow.follower_id.equals(communityList.community_writer_id._id))) {
 					return {...communityList, is_follow: true};
 				} else {
 					return {...communityList, is_follow: false};
@@ -359,7 +362,6 @@ router.post('/getSearchCommunityList', (req, res) => {
 			});
 
 			likedCommunityList = await LikeEtc.model.find({like_etc_user_id: req.session.loginUser, like_etc_is_delete: false}).lean();
-
 			communityList = communityList.map(communityList => {
 				if (likedCommunityList.find(likedCommunity => likedCommunity.like_etc_post_id == communityList._id)) {
 					return {...communityList, is_like: true};
@@ -368,7 +370,6 @@ router.post('/getSearchCommunityList', (req, res) => {
 				}
 			});
 		}
-
 		res.json({
 			status: 200,
 			msg: {
