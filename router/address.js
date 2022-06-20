@@ -30,11 +30,11 @@ router.post('/getAddressList', (req, res) => {
 		}
 
 		if (city && !district) {
-			address = await Address.model.find({city: city}).exec();
+			address = await Address.model.find({city: city}).sort({district: 1}).exec();
 			address.map(v => {
 				list.includes(v.district) || list.push(v.district);
 			});
-            list.shift();
+			list.shift();
 		}
 
 		if (city && district) {
@@ -42,7 +42,7 @@ router.post('/getAddressList', (req, res) => {
 			address.map(v => {
 				list.includes(v.neighbor) || list.push(v.neighbor);
 			});
-            list.shift();
+			list.shift();
 		}
 
 		res.json({status: 200, msg: list});
@@ -67,9 +67,9 @@ router.get('/pushAddressFromfile', (req, res) => {
 				.then(r => console.log(r));
 		});
 	});
-    if(!req.session.loginUser){
-        req.session.destroy();
-    }
+	if (!req.session.loginUser) {
+		req.session.destroy();
+	}
 	res.json({status: 200});
 });
 
