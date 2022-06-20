@@ -588,6 +588,8 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 						.find({usertag_user_id: user._id, _id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
 						.where('usertag_is_delete')
 						.ne(true)
+						.where('usertag_is_display_on_taged_user')
+						.ne(false)
 						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
 						.sort('_id')
 						.limit(limit)
@@ -601,6 +603,8 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 						.find({usertag_user_id: user._id, _id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
 						.where('usertag_is_delete')
 						.ne(true)
+						.where('usertag_is_display_on_taged_user')
+						.ne(false)
 						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
 						.sort('_id')
 						.limit(limit)
@@ -610,6 +614,8 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 						.find({usertag_user_id: user._id, _id: {$lte: mongoose.Types.ObjectId(req.body.target_object_id)}})
 						.where('usertag_is_delete')
 						.ne(true)
+						.where('usertag_is_display_on_taged_user')
+						.ne(false)
 						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
 						.sort('-_id')
 						.limit(limit + 1)
@@ -622,6 +628,8 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 						.find({usertag_user_id: user._id, _id: {$lt: mongoose.Types.ObjectId(req.body.target_object_id)}})
 						.where('usertag_is_delete')
 						.ne(true)
+						.where('usertag_is_display_on_taged_user')
+						.ne(false)
 						.populate({path: 'usertag_feed_id', populate: 'feed_writer_id'})
 						.sort('-_id')
 						.limit(limit)
@@ -633,6 +641,8 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 				.find({usertag_user_id: user._id})
 				.where('usertag_is_delete')
 				.ne(true)
+				.where('usertag_is_display_on_taged_user')
+				.ne(false)
 				.populate({path: 'usertag_feed_id', populate: 'feed_writer_id feed_avatar_id'})
 				.sort('-_id')
 				.limit(limit)
@@ -1284,6 +1294,17 @@ router.post('/deleteFeed', (req, res) => {
 			.lean();
 
 		res.json({status: 200, msg: feedResult});
+	});
+});
+
+//태그된 피드 즐겨찾기 디스플레이 설정/취소
+router.post('/updateUserTagDisplay', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let feedUserTag = await FeedUserTag.model
+			.findOneAndUpdate({_id: req.body.feed_user_tag_object_id}, {$set: {usertag_is_display_on_taged_user: req.body.is_display}}, {new: true})
+			.exec();
+
+		res.json({status: 200, msg: feedUserTag});
 	});
 });
 

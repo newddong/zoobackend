@@ -743,7 +743,36 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
-
+  /feed/updateUserTagDisplay:
+    post:
+      tags:
+        - feed
+      summary: 태그된 피드 디스플레이 설정/취소
+      description: 태그된 피드 디스플레이 설정/취소
+      operationId: updateUserTagDisplay
+      requestBody:
+        description: 요청 정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - feed_user_tag_object_id
+                - is_display
+              properties:
+                feed_user_tag_object_id:
+                  type: string
+                  description: 태그된 게시물의 feed_user_tag_object_id (feed의 _id가 아님!)
+                is_display:
+                  type: boolean
+                  description: 태그된 피드 디스플레이 설정 true, 않보이도록 설정 false (default 값은 true임)
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
   #jsdoc을 yaml으로 변환
 #.*?\{(.*?)\}.*?\.(.*?)\s- (.*?)$
 #$2:\n  type: $1\n  description: $3

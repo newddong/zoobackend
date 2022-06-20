@@ -18,6 +18,8 @@ const FeedUserTagObject = {
 	usertag_update_date: {type: Date, default: Date.now},
 	/** @type { Boolean} 유저-게시물 태그 삭제여부 */
 	usertag_is_delete: {type: Boolean, default: false},
+	/** @type { Boolean} 태그된 유저 입장에서의 표출 여부 */
+	usertag_is_display_on_taged_user: {type: Boolean, default: true},
 };
 
 /** @type {mongoose.Schema} */
