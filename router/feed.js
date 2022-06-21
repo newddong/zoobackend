@@ -655,7 +655,14 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 			return;
 		}
 
-		total_count = await FeedUserTag.model.find({usertag_user_id: user._id}).where('usertag_is_delete').ne(true).count().lean();
+		total_count = await FeedUserTag.model
+			.find({usertag_user_id: user._id})
+			.where('usertag_is_delete')
+			.ne(true)
+			.where('usertag_is_display_on_taged_user')
+			.ne(false)
+			.count()
+			.lean();
 
 		res.json({status: 200, total_count: total_count, msg: taggedFeeds});
 		// res.json({status: 200, total_count: total_count, msg: taggedFeeds.map(v=>v.usertag_feed_id)});
