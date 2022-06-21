@@ -11,6 +11,7 @@ const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require(
 const mongoose = require('mongoose');
 const WANT_DAY = 4;
 const Follow = require('../schema/follow');
+const CommonCode = require('../schema/commoncode');
 
 // 로컬정보를 s3 정보로 변경
 router.post('/changeLocalPathToS3Path', uploadS3.array('s3path_uri'), (req, res) => {
@@ -86,6 +87,20 @@ router.post('/createCommunity', (req, res) => {
 	});
 });
 
+async function addressMaching(adressData) {
+	switch (adressData) {
+		case '충청북도':
+		case '충청남도':
+		case '전라북도':
+		case '전라남도':
+		case '경상남도':
+		case '경상북도':
+			return adressData.substring(0, 1) + adressData.substring(2, 3);
+		default:
+			return adressData.substring(0, 2);
+	}
+}
+
 //커뮤니티를 불러옴(전체 홈화면)
 router.post('/getCommunityList', (req, res) => {
 	controller(req, res, async () => {
@@ -95,10 +110,16 @@ router.post('/getCommunityList', (req, res) => {
 		let community;
 		let total_count;
 		let query = {};
+		let city = '';
+		let district = '';
+
+		for (let filed in req.body) {
+			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
+		}
 
 		//동물 종류 필터
-		if (req.body.community_animal_type != undefined) {
-			query['community_animal_type'] = req.body.community_animal_type;
+		if (query['community_animal_type'] != undefined) {
+			// query['community_animal_type'] = req.body.community_animal_type;
 			let community_animal_type =
 				typeof req.body.community_animal_type == 'string'
 					? req.body.community_animal_type.replace(/[\[\]\"]/g, '').split(',')
@@ -115,6 +136,48 @@ router.post('/getCommunityList', (req, res) => {
 			} else if (community_animal_type.length == 2 && community_animal_type.filter(x => !['dog', 'cat'].includes(x)).length == 0) {
 				query['community_animal_type'] = {$in: community_animal_type};
 			} else if (community_animal_type.filter(x => !['dog', 'cat', 'etc'].includes(x)).length == 0) {
+			}
+		}
+
+		//시 정보 불러오기
+		if (query['interests_city'] != undefined) {
+			//db와 사용자 입력값이 다르기 때문에 addressMaching 함수로 필터시킴
+			city = await addressMaching(query['interests_city']);
+			query['community_interests.interests_location.city'] = city;
+			//쿼리문에서 불필요하게 조건문이 형성되므로 해당 필드는 삭제
+			delete query['interests_city'];
+		}
+		//구,군 정보 불러오기
+		if (query['interests_district'] != undefined) {
+			district = query['interests_district'];
+			query['community_interests.interests_location.district'] = district;
+			//쿼리문에서 불필요하게 조건문이 형성되므로 해당 필드는 삭제
+			delete query['interests_district'];
+		}
+
+		//관심도에 따른 리스트 형성 (관심도는 정해져 있지 않기 때문에 공통코드에서 불러와 확인)
+		let commoncode_condition = {};
+		//공통코드 쿼리 조건
+		commoncode_condition['common_code_c_name'] = 'communityobjects';
+		commoncode_condition['common_code_f_name'] = 'community_interests';
+		commoncode_condition['common_code_category'] = 'topic';
+		commonCodeInterestList = await CommonCode.model.find(commoncode_condition, {common_code_value: 1, _id: 0}).lean();
+		let interestList = Array();
+		let ineterestField = '';
+		let ineterestValue = '';
+		for (let i = 0; i < commonCodeInterestList.length; i++) {
+			ineterestField = '';
+			ineterestField = commonCodeInterestList[i].common_code_value;
+			ineterestFieldComplete = 'community_interests.' + commonCodeInterestList[i].common_code_value;
+
+			//쿼리 조건 형성을 위해 셋팅
+			if (req.body[ineterestField] != undefined) {
+				interestList =
+					typeof req.body[ineterestField] == 'string' ? req.body[ineterestField].replace(/[\[\]\"]/g, '').split(',') : req.body[ineterestField];
+				//쿼리문에서 불필요하게 조건문이 형성되므로 해당 필드는 삭제
+				delete query[ineterestField];
+				//실제 필요한 필드 형성 (아래 형성된 필드가 실제 DB와 매칭됨)
+				query[ineterestFieldComplete] = {$in: interestList};
 			}
 		}
 
@@ -168,6 +231,7 @@ router.post('/getCommunityList', (req, res) => {
 			status: 200,
 			total_count: total_count,
 			msg: community,
+			// msg: '',
 		});
 	});
 });
