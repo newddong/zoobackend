@@ -22,6 +22,17 @@ global.end_date = ''; //종료일
 const WANT_DAY = 3;
 const WANT_END_DAY = 90;
 const YESTER_DAY = 1;
+const RELEASE_SERVICE_KEY = 'iFljJL%2BKgYWWBU%2FhOTEz9kMWdb7oQKMFTI5zY1%2BO7%2Byhe%2Fsw%2FQaII7Re5I%2Fq7qog139j%2BF%2FZ%2Frl8oqWspCOCFw%3D%3D';
+const TEST_SERVICE_KEY = 'lw1RRanlp%2B6KTO2qlo2i2D0VYissKd4QEm8OhB%2FKAnxcgiwkKNmk%2BzQlUuSBwFmmQYw1dIZNUlSmF7ws0oUUXQ%3D%3D';
+global.service_key = '';
+
+function settingServiceKey() {
+	if (process.env['ANILOG_SERVERURL'] == 'https://api.pinefriend.net') {
+		global.service_key = RELEASE_SERVICE_KEY;
+	} else {
+		global.service_key = TEST_SERVICE_KEY;
+	}
+}
 
 let task = cron.schedule(
 	'0 * * * *',
@@ -39,6 +50,7 @@ let publicData = cron.schedule('0 8-20 * * *', function () {
 	let now = new Date(); // 오늘
 	nowformat = new Date(+now + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
 	console.log('nowformat=>', nowformat);
+	settingServiceKey();
 	if (process.env['ANILOG_SERVERURL'] != 'http://localhost:3000') {
 		scheduler_getProtectRequestFromPublicData(nowformat, '');
 	} else {
@@ -58,7 +70,7 @@ let publicData_pre = cron.schedule('20 8,12,16,17,18,19,20 * * *', function () {
 	let lastweek = new Date(now.setDate(now.getDate() - WANT_END_DAY)); // 한달 전
 	monthformat = new Date(+lastweek + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
 	console.log('monthformat=>', monthformat);
-
+	settingServiceKey();
 	if (process.env['ANILOG_SERVERURL'] != 'http://localhost:3000') {
 		scheduler_getProtectRequestFromPublicData(monthformat, yesterdayformat);
 	} else {
@@ -293,7 +305,7 @@ async function makeDocAndInsertDB(data, userobject_id) {
 	let specialMark = data.specialMark;
 	let noticeNo = data.noticeNo;
 	let colorCd = data.colorCd;
-	let picNum = await splitPicNumForOrder(thumbnail);
+	// let picNum = await splitPicNumForOrder(thumbnail);
 
 	//--현재 쓰이지 않음
 	//보호소 이름
@@ -346,7 +358,6 @@ async function makeDocAndInsertDB(data, userobject_id) {
 		protect_desertion_no: Number(desertionNo),
 		protect_animal_noticeNo: noticeNo,
 		protect_request_status: processState.status,
-		protect_picture_no: Number(picNum),
 	});
 	protectRequest.protect_animal_id = {...protectAnimal};
 	protectRequest_result = await protectRequest.save();
@@ -366,7 +377,6 @@ async function makeDocAndInsertDB(data, userobject_id) {
 async function insertPetDataIntoDB(petDataItems) {
 	let data = petDataItems.item;
 	let dataLength = petDataItems.item.length;
-
 	for (let i = 0; i < dataLength; i++) {
 		//보호소 계정 생성 확인(없을 경우 생성)
 		//보호소 존재 여부 확인 후 useronbject_id를 가져 옴.
@@ -478,7 +488,7 @@ const sleep = ms => {
 //크롤링 해오기 위한 파라미터 값 셋팅
 async function settingDataForApi(bgnde, endde, pageNo) {
 	//공공데이터 포털 가입 후 서비스키 값을 받도록 한다.
-	let params = 'ServiceKey=lw1RRanlp%2B6KTO2qlo2i2D0VYissKd4QEm8OhB%2FKAnxcgiwkKNmk%2BzQlUuSBwFmmQYw1dIZNUlSmF7ws0oUUXQ%3D%3D';
+	let params = 'ServiceKey=' + global.service_key;
 	//시작날짜
 	params += '&bgnde=' + bgnde;
 	//종료날짜
@@ -542,7 +552,7 @@ router.post('/getProtectRequestFromPublicData', (req, res) => {
 		let pageNo = 1;
 		start_date = bgnde;
 		end_date = endde;
-
+		settingServiceKey();
 		//openapi 설정값 셋팅
 		options = await settingDataForApi(bgnde, endde, pageNo);
 
@@ -591,7 +601,7 @@ router.post('/deleteShelterInfo', (req, res) => {
 });
 
 async function settingSidoForApi(urlInfo, paramsList) {
-	let params = 'ServiceKey=lw1RRanlp%2B6KTO2qlo2i2D0VYissKd4QEm8OhB%2FKAnxcgiwkKNmk%2BzQlUuSBwFmmQYw1dIZNUlSmF7ws0oUUXQ%3D%3D';
+	let params = 'ServiceKey=' + global.service_key;
 	params += '&_type=json';
 	if (paramsList != '') params += paramsList;
 
