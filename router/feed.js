@@ -12,6 +12,7 @@ const NoticeUser = require('../schema/noticeuser');
 const FavoriteEtc = require('../schema/favoriteetc');
 const Community = require('../schema/community');
 const uploadS3 = require('../common/uploadS3');
+const Follow = require('../schema/follow');
 const {controller, controllerLoggedIn} = require('./controller');
 const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MEDIA_INFO, ALERT_NOT_VALID_OBJECT_ID} = require('./constants');
 const mongoose = require('mongoose');
@@ -771,7 +772,6 @@ router.post('/getSuggestFeedList', (req, res) => {
 	controller(req, res, async () => {
 		const limit = parseInt(req.body.limit) * 1 || 30;
 		let feed;
-
 		if (req.body.order_value != undefined) {
 			switch (req.body.order_value) {
 				//앞의 데이터 가져오기
@@ -859,6 +859,42 @@ router.post('/getSuggestFeedList', (req, res) => {
 				}
 			});
 		}
+		if (req.session.loginUser) {
+			let tempFeed = Array();
+			//로그인 한 ID로 팔로워 리스트 가져옴. (로그인 사용자 기준으로 누군가 나를 팔로우 한 리스트임.)
+			let followerList = await Follow.model.find({follower_id: req.session.loginUser, follow_is_delete: false}).lean();
+			feed.map(item => {
+				//feed_public_type이 정의되어 있지 않거나 public일 경우 모두 공개
+				if (item.feed_public_type == null || item.feed_public_type == undefined || item.feed_public_type == 'public') {
+					// console.log('public--');
+					// return {...feed};
+					tempFeed.push(item);
+				}
+				//ID가 삭제 되었을때 일단 모두 공개
+				else if (item.feed_writer_id._id == null || item.feed_writer_id._id == undefined) {
+					// console.log('ID  삭제 --');
+					tempFeed.push(item);
+				}
+				//ID가 follow만 공개일때(당연히 작성자는 보여야 한다)
+				else if (item.feed_public_type == 'follow') {
+					// console.log('follow --');
+					if (
+						followerList.find(follow => follow.follow_id.equals(item.feed_writer_id._id)) ||
+						followerList.find(follow => mongoose.Types.ObjectId(req.session.loginUser).equals(item.feed_writer_id._id))
+					) {
+						tempFeed.push(item);
+					}
+				} else if (item.feed_public_type == 'private') {
+					// console.log('비공개 --');
+					if (item.feed_writer_id._id == req.session.loginUser) {
+						tempFeed.push(item);
+					}
+				}
+			});
+
+			feed = Array();
+			feed = JSON.parse(JSON.stringify(tempFeed));
+		}
 
 		//로그인 상태에서만 is_favorite 표출
 		if (req.session.loginUser) {
@@ -876,7 +912,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 		}
 
 		feed = feed.map(feed => {
-			if (feed.feed_type == 'report' && !feed.feed_content.indexOf('&#&##')) {
+			if (feed.feed_type != null && feed.feed_type != undefined && feed.feed_type == 'report' && !feed.feed_content.indexOf('&#&##')) {
 				return {
 					...feed,
 					feed_content: feed.feed_content.replace('&#&##', '#').replace('%&%61d2e0c3ce5bd4c9dba45ae0&#&#', ''),
