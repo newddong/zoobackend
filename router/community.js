@@ -125,7 +125,9 @@ router.post('/getCommunityList', (req, res) => {
 					? req.body.community_animal_type.replace(/[\[\]\"]/g, '').split(',')
 					: req.body.community_animal_type;
 
-			if (community_animal_type.length == 1 && community_animal_type[0] != 'etc') {
+			if (community_animal_type.length == 3) {
+				delete query['community_animal_type'];
+			} else if (community_animal_type.length == 1 && community_animal_type[0] != 'etc') {
 				query['community_animal_type'] = community_animal_type[0];
 			} else if (community_animal_type.length == 2 && community_animal_type.filter(x => !['dog', 'etc'].includes(x)).length == 0) {
 				query['community_animal_type'] = {$ne: 'cat'};
