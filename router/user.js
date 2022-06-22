@@ -834,9 +834,8 @@ router.post('/getFollows', (req, res) => {
 		// 	userList = follow.filter(v => v.follow_id.user_nickname.includes(user_nickname));
 		// 	res.json({status: 200, msg: userList});
 		// } else res.json({status: 200, msg: follow});
-
 		if (user_nickname) {
-			userList = follow.filter(v => v.follower_id.user_nickname.includes(user_nickname));
+			userList = follow.filter(v => v.follower_id != null && v.follower_id.user_nickname.includes(user_nickname));
 		} else {
 			userList = follow;
 		}
@@ -905,7 +904,7 @@ router.post('/getFollowers', (req, res) => {
 		// } else res.json({status: 200, msg: follow});
 
 		if (user_nickname) {
-			userList = follow.filter(v => v.follow_id.user_nickname.includes(user_nickname));
+			userList = follow.filter(v => v.follow_id != null && v.follow_id.user_nickname.includes(user_nickname));
 		} else {
 			userList = follow;
 		}
