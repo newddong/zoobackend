@@ -94,4 +94,13 @@ router.post('/testConfirm', (req, res) => {
 	});
 });
 
+//사용자 관심도 에러 수정(기존 배열 데이터 타입을 오브젝트로 변경)
+router.post('/doTest', (req, res) => {
+	controller(req, res, async () => {
+		console.log('process.env=>', process.env['ANILOG_SERVERURL']);
+
+		res.json({status: 200, msg: ''});
+	});
+});
+
 module.exports = router;

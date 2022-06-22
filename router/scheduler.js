@@ -20,6 +20,8 @@ global.change_endNumber = 0; //최대 페이지 수
 global.start_date = ''; //시작일
 global.end_date = ''; //종료일
 const WANT_DAY = 3;
+const WANT_END_DAY = 90;
+const YESTER_DAY = 1;
 
 let task = cron.schedule(
 	'0 * * * *',
@@ -31,6 +33,38 @@ let task = cron.schedule(
 		scheduled: false,
 	},
 );
+
+//공공데이터 포털 데이터 가져오기(오늘만 진행)
+let publicData = cron.schedule('0 8-20 * * *', function () {
+	let now = new Date(); // 오늘
+	nowformat = new Date(+now + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
+	console.log('nowformat=>', nowformat);
+	if (process.env['ANILOG_SERVERURL'] != 'http://localhost:3000') {
+		scheduler_getProtectRequestFromPublicData(nowformat, '');
+	} else {
+		console.log('일일 데이터 실행 ------------------------------');
+	}
+});
+
+//공공데이터 포털 데이터 가져오기(3개월 전부터 어제 날짜까지 진행)
+let publicData_pre = cron.schedule('20 8,12,16,17,18,19,20 * * *', function () {
+	let now = new Date(); // 오늘
+	nowformat = new Date(+now + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
+	console.log('nowformat=>', nowformat);
+
+	let yesterday = new Date(now.setDate(now.getDate() - YESTER_DAY)); // 어제
+	yesterdayformat = new Date(+yesterday + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
+
+	let lastweek = new Date(now.setDate(now.getDate() - WANT_END_DAY)); // 한달 전
+	monthformat = new Date(+lastweek + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
+	console.log('monthformat=>', monthformat);
+
+	if (process.env['ANILOG_SERVERURL'] != 'http://localhost:3000') {
+		scheduler_getProtectRequestFromPublicData(monthformat, yesterdayformat);
+	} else {
+		console.log('3개월치 데이터 실행 ------------------------------');
+	}
+});
 
 //request 모듈을 통해 데이터를 공공데이터 포털로부터 가져옴.
 async function getAbandonedPetFromPublicData(options) {
@@ -227,7 +261,6 @@ async function splitPicNumForOrder(str) {
 	let resutStr = '';
 	let temp = '';
 	temp = picnumArray[7];
-	console.log('temp=>', temp);
 	resutStr = temp
 		.replace('[0]', '')
 		.replace('[1]', '')
@@ -257,14 +290,10 @@ async function makeDocAndInsertDB(data, userobject_id) {
 	let processState = await parseDataForDB('processState', data.processState);
 	let sexCd = await parseDataForDB('sex', data.sexCd);
 	let neuterYn = await parseDataForDB('neuter', data.neuterYn);
-	_;
 	let specialMark = data.specialMark;
 	let noticeNo = data.noticeNo;
 	let colorCd = data.colorCd;
-	console.log('thumbnail=>', thumbnail);
-	console.log('filename=>', filename);
-	let picNum = await splitPicNumForOrder(thumbnail, filename);
-	console.log('picNum=>', picNum);
+	let picNum = await splitPicNumForOrder(thumbnail);
 
 	//--현재 쓰이지 않음
 	//보호소 이름
@@ -351,23 +380,17 @@ async function insertPetDataIntoDB(petDataItems) {
 
 		if (!protectRequestInfo) {
 			//사진이 없을 경우 insert 하지 않는다
-			console.log('data[i].filename=>', data[i].filename);
-			if (data[i].filename.indexOf('.jpg') < 0 || data[i].popfile.indexOf('.jpg') < 0) {
+			if (data[i].filename.indexOf('.jpg') < 0) {
 				continue;
 			}
-
 			insert_totalCount++;
 			//ShelterAnimal 컬렉션과 ProtectRequest 컬렉션에 데이터 insert 진행
 			await makeDocAndInsertDB(data[i], userobject_id);
 		} else {
 			let changedValue = await parseDataForDB('checkProcessState', protectRequestInfo.protect_request_status);
-
 			//값이 다를 경우 상태 업데이트
 			if (changedValue.status != data[i].processState) {
 				update_totalCount++;
-				console.log('------------------------------------------------------');
-				console.log('changedValue.status =>', changedValue.status);
-				console.log('data[i].processState =>', data[i].processState);
 
 				//공공데이터포털 값을 코드값으로 변경
 				shelterAnimalInfo = await ShelterAnimal.model.findById(protectRequestInfo.protect_animal_id).exec();
@@ -389,8 +412,6 @@ async function insertPetDataIntoDB(petDataItems) {
 
 				//보호소의 보호중인 동물의 상태 업데이트
 				shelterAnimalInfo.protect_animal_status = protect_animal_status.animal;
-				console.log('shelterAnimalInfo.id =>', shelterAnimalInfo._id);
-				console.log('shelterAnimalInfo.protect_animal_status =>', shelterAnimalInfo.protect_animal_status);
 				await shelterAnimalInfo.save();
 
 				//공공데이터포털 값을 코드값으로 변경
@@ -412,8 +433,6 @@ async function insertPetDataIntoDB(petDataItems) {
 
 				//보호 요청글 상태 업데이트
 				protectRequestInfo.protect_request_status = protect_request_status.status;
-				console.log('protectRequestInfo_.id =>', protectRequestInfo._id);
-				console.log('protectRequestInfo.protect_request_status =>', protectRequestInfo.protect_request_status);
 				await protectRequestInfo.save();
 			}
 		}
@@ -493,7 +512,6 @@ async function settingDataForApi(bgnde, endde, pageNo) {
 async function accessOpenApi(options) {
 	let petDataArray;
 	let info;
-	console.log('accessOpenApi---진입');
 	return new Promise(function (resolve, reject) {
 		request(options, function (error, response, body) {
 			if (body != undefined) {
@@ -836,5 +854,46 @@ router.post('/startCommunityRecommand', (req, res) => {
 		res.json({status: 200, msg: '실행 =>' + recommandTask});
 	});
 });
+
+//커뮤니티 리뷰 추천 게시물 계산 함수
+async function scheduler_getProtectRequestFromPublicData(bgnde_str, endde_str) {
+	let bgnde = bgnde_str;
+	start_date = '';
+	end_date = '';
+	insert_totalCount = 0;
+	update_totalCount = 0;
+	change_totalCount = 0;
+	change_endNumber = 1;
+	crolling_totalCount = 0;
+	if (endde_str == null || endde_str == undefined || endde_str == '') {
+		endde_str = '';
+	}
+	let endde = endde_str;
+	let pageNo = 1;
+	start_date = bgnde;
+	end_date = endde;
+
+	//openapi 설정값 셋팅
+	options = await settingDataForApi(bgnde, endde, pageNo);
+
+	console.log('options=>', options);
+
+	//크롤링 진행
+	let totalCount = await accessOpenApi(options);
+	crolling_totalCount = totalCount;
+	console.log('totalCount=>', totalCount);
+
+	//크롤링을 진행 후 totalCount 카운트가 1000 초과시 1000을 나눈 몫만큼 반복
+	if (totalCount > 1000) {
+		maxLength = parseInt(totalCount / 1000) + 1;
+		change_endNumber = maxLength;
+		for (let i = 2; i <= maxLength; i++) {
+			options = await settingDataForApi(bgnde, endde, i);
+			console.log('options=>', options);
+			//크롤링 진행
+			await accessOpenApi(options);
+		}
+	}
+}
 
 module.exports = router;
