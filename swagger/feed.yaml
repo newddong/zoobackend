@@ -453,6 +453,7 @@ paths:
                 - feedobject_id
                 - feed_content
                 - feed_is_protect_diary
+                - feed_public_type
               properties:
                 feedobject_id:
                   type: string
@@ -469,6 +470,10 @@ paths:
                 feed_is_protect_diary:
                   type: boolean
                   description: 임보일기여부
+                feed_public_type:
+                  type: string
+                  enum: ['public', 'private', 'follow']
+                  description: 전체공개, 비공개, 팔로워공개
                 media_uri:
                   type: array
                   description: 피드 첨부파일 uri리스트

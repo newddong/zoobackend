@@ -938,7 +938,7 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 		targetFeed.feed_type = 'feed';
 		targetFeed.feed_is_protect_diary = req.body.feed_is_protect_diary;
 		targetFeed.feed_update_date = Date.now();
-
+		targetFeed.feed_public_type = req.body.feed_public_type;
 		targetFeed.feed_location = typeof req.body.feed_location == 'string' ? JSON.parse(req.body.feed_location) : req.body.feed_location;
 
 		let feedMedias = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
