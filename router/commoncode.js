@@ -35,7 +35,6 @@ router.post('/getCommonCodeDynamicQuery', (req, res) => {
 		if (query['common_code_out_type'] == 'interests') {
 			query['common_code_value'] = {$regex: 'interests'};
 		}
-		console.log('query=>', query);
 		result = await CommonCode.model
 			.find(query, {
 				_id: 1,
