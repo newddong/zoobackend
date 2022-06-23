@@ -20,7 +20,7 @@ global.change_endNumber = 0; //최대 페이지 수
 global.start_date = ''; //시작일
 global.end_date = ''; //종료일
 const WANT_DAY = 3;
-const WANT_END_DAY = 90;
+const WANT_END_DAY = 30;
 const YESTER_DAY = 1;
 const RELEASE_SERVICE_KEY = 'iFljJL%2BKgYWWBU%2FhOTEz9kMWdb7oQKMFTI5zY1%2BO7%2Byhe%2Fsw%2FQaII7Re5I%2Fq7qog139j%2BF%2FZ%2Frl8oqWspCOCFw%3D%3D';
 const TEST_SERVICE_KEY = 'lw1RRanlp%2B6KTO2qlo2i2D0VYissKd4QEm8OhB%2FKAnxcgiwkKNmk%2BzQlUuSBwFmmQYw1dIZNUlSmF7ws0oUUXQ%3D%3D';
@@ -58,7 +58,7 @@ let publicData = cron.schedule('0 23,0-11 * * *', function () {
 	}
 });
 
-//공공데이터 포털 데이터 가져오기(3개월 전부터 어제 날짜까지 진행)
+//공공데이터 포털 데이터 가져오기(WANT_END_DAY 전부터 어제 날짜까지 진행)
 let publicData_pre = cron.schedule('20 0,3,6,8-12 * * *', function () {
 	let now = new Date(); // 오늘
 	nowformat = new Date(+now + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
@@ -67,7 +67,7 @@ let publicData_pre = cron.schedule('20 0,3,6,8-12 * * *', function () {
 	let yesterday = new Date(now.setDate(now.getDate() - YESTER_DAY)); // 어제
 	yesterdayformat = new Date(+yesterday + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
 
-	let lastweek = new Date(now.setDate(now.getDate() - WANT_END_DAY)); // 한달 전
+	let lastweek = new Date(now.setDate(now.getDate() - WANT_END_DAY)); // WANT_DAY
 	monthformat = new Date(+lastweek + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
 	console.log('monthformat=>', monthformat);
 	settingServiceKey();
