@@ -51,10 +51,10 @@ let publicData = cron.schedule('0 23,0-11 * * *', function () {
 	nowformat = new Date(+now + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
 	console.log('nowformat=>', nowformat);
 	settingServiceKey();
-	if (process.env['ANILOG_SERVERURL'] == 'http://localhost:3000') {
-		console.log('일일 데이터 실행 ------------------------------');
-	} else {
+	if (process.env['ANILOG_SERVERURL'] == 'https://api.pinefriend.net') {
 		scheduler_getProtectRequestFromPublicData(nowformat, '');
+	} else {
+		console.log('일일 데이터 스케줄러 실행 ------------------------------');
 	}
 });
 
@@ -71,10 +71,10 @@ let publicData_pre = cron.schedule('20 0,3,6,8-12 * * *', function () {
 	monthformat = new Date(+lastweek + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
 	console.log('monthformat=>', monthformat);
 	settingServiceKey();
-	if (process.env['ANILOG_SERVERURL'] == 'http://localhost:3000') {
-		console.log('3개월치 데이터 실행 ------------------------------');
-	} else {
+	if (process.env['ANILOG_SERVERURL'] == 'https://api.pinefriend.net') {
 		scheduler_getProtectRequestFromPublicData(monthformat, yesterdayformat);
+	} else {
+		console.log('3개월치 데이터 스케줄러 실행 ------------------------------');
 	}
 });
 
