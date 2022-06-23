@@ -405,7 +405,7 @@ router.post('/getCommentListByCommunityId', (req, res) => {
 		}
 
 		let likedCommentList = [];
-		if (req.body.login_userobject_id) {
+		if (req.session.loginUser) {
 			likedCommentList = await LikeComment.model.find({like_comment_user_id: req.session.loginUser, like_comment_is_delete: false}).lean();
 		}
 
