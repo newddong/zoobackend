@@ -20,6 +20,12 @@ const CommonCodeObject = {
 	common_code_update_date: {type: Date},
 	/** @type { String} 추후 사용을 위한 임시 필드 */
 	common_code_spare: {type: String},
+	/** @type { String}  순서 정의를 위한 필드1*/
+	common_order_1depth: {type: String},
+	/** @type { String}  순서 정의를 위한 필드2*/
+	common_order_2depth: {type: String},
+	/** @type { String}  순서 정의를 위한 필드3*/
+	common_order_3depth: {type: String},
 };
 
 /** @type {mongoose.Schema} */

@@ -32,9 +32,26 @@ router.post('/getCommonCodeDynamicQuery', (req, res) => {
 			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
 		}
 
+		if (query['common_code_out_type'] == 'interests') {
+			query['common_code_value'] = {$regex: 'interests'};
+		}
+		console.log('query=>', query);
 		result = await CommonCode.model
-			.find(query, {_id: 1, common_code_value: 1, common_code_msg_kor: 1, common_code_msg_eng: 1, common_code_category: 1})
-			.exec();
+			.find(query, {
+				_id: 1,
+				common_code_value: 1,
+				common_code_msg_kor: 1,
+				common_code_msg_eng: 1,
+				common_code_category: 1,
+				common_order_1depth: 1,
+				common_order_2depth: 1,
+			})
+			.where('common_code_value')
+			.ne('interests_review')
+			.where('common_code_category')
+			.ne('root')
+			.sort('common_order_1depth common_order_2depth')
+			.lean();
 
 		//언어별 메시지 셋팅
 		let common_code_msg = 'common_code_msg_' + query.common_code_language;
