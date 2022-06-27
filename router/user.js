@@ -339,12 +339,6 @@ router.post('/updateUserDetailInformation', (req, res) => {
 
 		let user_address = typeof req.body.user_address == 'string' ? JSON.parse(req.body.user_address) : req.body.user_address;
 
-		if (req.body.user_birthday) {
-			userInfo.user_birthday = req.body.user_birthday;
-		}
-		if (req.body.user_sex) {
-			userInfo.user_sex = req.body.user_sex;
-		}
 		if (user_interests) {
 			userInfo.user_interests = user_interests;
 		}

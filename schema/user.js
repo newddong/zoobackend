@@ -35,14 +35,30 @@ const UserAddress = {
 const UserInterest = {
 	/** @type {[String]} 지역 관심사 */
 	interests_location: {type: [String]},
-	/** @type {[String]} 미용 관심사 */
-	interests_beauty: {type: [String]},
-	/** @type {[String]} 활동 관심사 */
-	interests_activity: {type: [String]},
-	/** @type {[String]} 음식 관심사 */
-	interests_food: {type: [String]},
+
+	/** @type {[String]} 관심사 그룹1 */
+	interests_group1: {type: [String]},
+	/** @type {[String]} 관심사 그룹2 */
+	interests_group2: {type: [String]},
+	/** @type {[String]} 관심사 그룹3 */
+	interests_group3: {type: [String]},
+	/** @type {[String]} 관심사 그룹4 */
+	interests_group4: {type: [String]},
+	/** @type {[String]} 관심사 그룹5 */
+	interests_group5: {type: [String]},
+	/** @type {[String]} 관심사 그룹6 */
+	interests_group6: {type: [String]},
+	/** @type {[String]} 관심사 그룹7 */
+	interests_group7: {type: [String]},
+	/** @type {[String]} 관심사 그룹8 */
+	interests_group8: {type: [String]},
+	/** @type {[String]} 관심사 그룹9 */
+	interests_group9: {type: [String]},
+	/** @type {[String]} 관심사 그룹10 */
+	interests_group10: {type: [String]},
+
 	/** @type {[String]} 건강 관심사 */
-	interests_health: {type: [String]},
+	interests_etc: {type: [String]},
 };
 
 const ShelterAddress = {

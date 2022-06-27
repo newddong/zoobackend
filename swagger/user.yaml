@@ -437,12 +437,6 @@ paths:
             schema:
               type: object
               properties:
-                user_birthday:
-                  type: string
-                  description: 유저 생일, 마이메뉴-프로필 상세정보에서 수정
-                user_sex:
-                  type: string
-                  description: 유저 성별, 마이메뉴-프로필 상세정보에서 수정('male'|'female')
                 user_interests:
                   type: object
                   description: 유저의 관심사, 마이메뉴-프로필 상세정보에서 수정
@@ -452,26 +446,26 @@ paths:
                       items:
                         type: string
                       description: 지역 관심사
-                    interests_beauty:
+                    interests_group1:
                       type: array
                       items:
                         type: string
-                      description: 미용 관심사
-                    interests_activity:
+                      description: 관심사 그룹1
+                    interests_group2:
                       type: array
                       items:
                         type: string
-                      description: 활동 관심사
-                    interests_food:
+                      description: 관심사 그룹2
+                    interests_group3:
                       type: array
                       items:
                         type: string
-                      description: 음식 관심사
-                    interests_health:
+                      description: 관심사 그룹3
+                    interests_etc:
                       type: array
                       items:
                         type: string
-                      description: 건강 관심사
+                      description: 관심사 기타
                 user_address:
                   type: object
                   description: 유저 지역정보
