@@ -68,6 +68,10 @@ router.post('/setFavoriteEtc', (req, res) => {
 //특정 유저의 즐겨찾기 목록 조회 (피드를 제외한 타 게시물)
 router.post('/getFavoriteEtcListByUserId', (req, res) => {
 	controller(req, res, async () => {
+		const page = parseInt(req.body.page) * 1 || 1;
+		const limit = parseInt(req.body.limit) * 1 || 30;
+		const skip = (page - 1) * limit;
+
 		let user = await User.model.findById(req.body.userobject_id).lean();
 		if (!user) {
 			res.json({status: 400, msg: ALERT_NOT_VALID_USEROBJECT_ID});
@@ -91,7 +95,7 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 				break;
 		}
 
-		//스키마 정보로 해당되는 게시판의 즐겨찾기 정보 불러오기
+		//sort 순서는 즐겨찾기를 한 역순대로 진행(최근 즐겨찾기 항목이 가장 상단에 위치)
 		let feedEtclist = await FavoriteEtc.model
 			.find({
 				favorite_etc_user_id: user._id,
@@ -99,7 +103,9 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 				favorite_etc_collection_name: collectionName,
 			})
 			.populate({path: 'favorite_etc_target_object_id', model: Schema.model.modelName, populate: writer_id})
-			.sort('-_id')
+			.sort('-favorite_etc_update_date')
+			.skip(skip)
+			.limit(limit)
 			.lean();
 
 		let followList = [];
