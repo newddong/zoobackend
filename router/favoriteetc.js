@@ -107,6 +107,14 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 			.skip(skip)
 			.limit(limit)
 			.lean();
+		let total_count = await FavoriteEtc.model
+			.find({
+				favorite_etc_user_id: user._id,
+				favorite_etc_is_delete: false,
+				favorite_etc_collection_name: collectionName,
+			})
+			.count()
+			.lean();
 
 		let followList = [];
 		let likedList = [];
@@ -160,7 +168,7 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 				}
 			});
 		}
-		res.json({status: 200, msg: feedEtclist});
+		res.json({status: 200, total_count: total_count, msg: feedEtclist});
 	});
 });
 
