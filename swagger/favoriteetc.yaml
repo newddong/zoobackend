@@ -97,6 +97,10 @@ paths:
                   type: string
                   enum: ['communityobjects', 'protectrequestobjects', 'userobjects']
                   description: 조회할 collectionName
+                community_type:
+                  type: string
+                  enum: ['free', 'review']
+                  description: 커뮤니티일 경우 자유게시물과 리뷰글 구별 값 (community_type) - 커뮤니티가 아닐 경우 필드값 보내지 말 것
       responses:
         '200':
           $ref: '#/components/responses/200'

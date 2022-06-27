@@ -71,6 +71,8 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 		const page = parseInt(req.body.page) * 1 || 1;
 		const limit = parseInt(req.body.limit) * 1 || 30;
 		const skip = (page - 1) * limit;
+		let feedEtclist;
+		let match_query = {};
 
 		let user = await User.model.findById(req.body.userobject_id).lean();
 		if (!user) {
@@ -95,26 +97,71 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 				break;
 		}
 
-		//sort 순서는 즐겨찾기를 한 역순대로 진행(최근 즐겨찾기 항목이 가장 상단에 위치)
-		let feedEtclist = await FavoriteEtc.model
-			.find({
-				favorite_etc_user_id: user._id,
-				favorite_etc_is_delete: false,
-				favorite_etc_collection_name: collectionName,
-			})
-			.populate({path: 'favorite_etc_target_object_id', model: Schema.model.modelName, populate: writer_id})
-			.sort('-favorite_etc_update_date')
-			.skip(skip)
-			.limit(limit)
-			.lean();
-		let total_count = await FavoriteEtc.model
-			.find({
-				favorite_etc_user_id: user._id,
-				favorite_etc_is_delete: false,
-				favorite_etc_collection_name: collectionName,
-			})
-			.count()
-			.lean();
+		let send_query = {};
+		send_query['favorite_etc_user_id'] = req.body.userobject_id;
+		send_query['favorite_etc_is_delete'] = false;
+		send_query['favorite_etc_collection_name'] = collectionName;
+
+		//favorite_etc_target_object_id 값이 [] 라는 것은 조인했을때 해당되는 _id값이 없다는 것(즉, 삭제된 데이터)
+		match_query['favorite_etc_target_object_id'] = {$ne: []};
+
+		//즐겨찾기 목록이 커뮤니티 컬렉션이고 community_type 값이 정의 되어 있을때 진행
+		if (collectionName == 'communityobjects' && req.body.community_type != undefined) {
+			match_query['favorite_etc_target_object_id.community_type'] = req.body.community_type;
+		}
+
+		feedEtclist = await FavoriteEtc.model.aggregate([
+			{
+				$match: send_query,
+			},
+			{$sort: {favorite_etc_update_date: -1}},
+			//데이터가 ObjectId로 안되어 있고 단순 string 일때 반드시 addFields를 통해 toObjectId를 진행하도록 한다.
+			{$addFields: {favorite_etc_target_object_id: {$toObjectId: '$favorite_etc_target_object_id'}}},
+			{
+				$lookup: {
+					from: collectionName,
+					localField: 'favorite_etc_target_object_id',
+					foreignField: '_id',
+					as: 'favorite_etc_target_object_id',
+				},
+			},
+			{
+				$unwind: '$favorite_etc_target_object_id',
+			},
+			{
+				$match: match_query,
+			},
+			{$skip: skip},
+			{$limit: limit},
+		]);
+		console.time();
+		let total_count = await FavoriteEtc.model.aggregate([
+			{
+				$match: send_query,
+			},
+			//데이터가 ObjectId로 안되어 있고 단순 string 일때 반드시 addFields를 통해 toObjectId를 진행하도록 한다.
+			{$addFields: {favorite_etc_target_object_id: {$toObjectId: '$favorite_etc_target_object_id'}}},
+			{
+				$lookup: {
+					from: collectionName,
+					localField: 'favorite_etc_target_object_id',
+					foreignField: '_id',
+					as: 'favorite_etc_target_object_id',
+				},
+			},
+			{
+				$unwind: '$favorite_etc_target_object_id',
+			},
+			{
+				$match: match_query,
+			},
+			{
+				$count: 'total_count',
+			},
+		]);
+
+		total_count = total_count[0].total_count;
+		console.timeEnd();
 
 		let followList = [];
 		let likedList = [];
