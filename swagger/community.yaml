@@ -158,9 +158,6 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              required:
-                - page
-                - limit
               properties:
                 page:
                   type: integer
@@ -180,36 +177,30 @@ paths:
                 interests_district:
                   type: string
                   description: 필터 - 시군구 (강동구, 강북구, 강서구 등등) - 값이 없으면 필드 보내지 말 것!
-                interests_trip:
+                interests_group1:
                   type: array
-                  description: 필터 - 관심도 - 여행.숙박.까페 ('관광지' | '펫 까페' | '펫 숙소' 등등) - 값이 없으면 필드 보내지 말 것!
+                  description: 필터 - 관심도 그룹1 - 값이 없으면 필드 보내지 말 것!
                   items:
                     type: string
-                    description: 필터 - 관심도 - 여행.숙박.까페 ('관광지' | '펫 까페' | '펫 숙소' 등등) - 값이 없으면 필드 보내지 말 것!
-                interests_hospital:
+                    description: 필터 - 관심도 그룹1 - 값이 없으면 필드 보내지 말 것!
+                interests_group2:
                   type: array
-                  description: 필터 - 관심도 - 병원.건강 ('사료' | '병원' | '간식' 등등) - 값이 없으면 필드 보내지 말 것!
+                  description: 필터 - 관심도 그룹2 - 값이 없으면 필드 보내지 말 것!
                   items:
                     type: string
-                    description: 필터 - 관심도 - 병원.건강 ('사료' | '병원' | '간식' 등등) - 값이 없으면 필드 보내지 말 것!
-                interests_interior:
+                    description: 필터 - 관심도 그룹2 - 값이 없으면 필드 보내지 말 것!
+                interests_group3:
                   type: array
-                  description: 필터 - 관심도 - 인테리어.놀이 ('가구' | '집 · 방석' | '노즈워크/장난감' 등등) - 값이 없으면 필드 보내지 말 것!
+                  description: 필터 - 관심도 그룹3- 값이 없으면 필드 보내지 말 것!
                   items:
                     type: string
-                    description: 필터 - 관심도 - 인테리어.놀이 ('가구' | '집 · 방석' | '노즈워크/장난감' 등등) - 값이 없으면 필드 보내지 말 것!
+                    description: 필터 - 관심도 그룹3- 값이 없으면 필드 보내지 말 것!
                 interests_etc:
                   type: array
-                  description: 필터 - 관심도 - 기타 ('의류' | '청결 용품' | '기타' 등등) - 값이 없으면 필드 보내지 말 것!
+                  description: 필터 - 관심도 - 기타  - 값이 없으면 필드 보내지 말 것!
                   items:
                     type: string
-                    description: 필터 - 관심도 - 기타 ('의류' | '청결 용품' | '기타' 등등) - 값이 없으면 필드 보내지 말 것!
-                interests_review:
-                  type: array
-                  description: 필터 - 관심도 - 후기 ('훈련 경험' | '치료 경험' | '다이어트 경험' 등등) - 값이 없으면 필드 보내지 말 것!
-                  items:
-                    type: string
-                    description: 필터 - 관심도 - 후기 ('훈련 경험' | '치료 경험' | '다이어트 경험' 등등) - 값이 없으면 필드 보내지 말 것!
+                    description: 필터 - 관심도 - 기타  - 값이 없으면 필드 보내지 말 것!
       responses:
         '200':
           $ref: '#/components/responses/200'
