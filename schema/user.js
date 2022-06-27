@@ -113,8 +113,8 @@ const UserObject = {
 	user_birthday: {type: String},
 	/** @type {'male'|'female'} 유저 성별, 마이메뉴-프로필 상세정보에서 수정 */
 	user_sex: {type: String},
-	/** @type {UserInterest} 유저의 관심사, 마이메뉴-프로필 상세정보에서 수정 */
-	user_interests: UserInterest,
+	/** @type {Object} 유저의 관심사, (공통 코드에 의해 확장 가능) */
+	user_interests: {type: Object},
 
 	/** 일반 필드 보호소*/
 	/** @type { String} 보호소 이름 */

@@ -561,4 +561,167 @@ router.post('/getCommunityListFreeByPageNumber', (req, res) => {
 	});
 });
 
+//관련 리뷰 더보기 5개
+router.post('/getReviewListMore', (req, res) => {
+	controller(req, res, async () => {
+		let community;
+		let query = {};
+		let city = '';
+		let district = '';
+
+		for (let filed in req.body) {
+			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
+		}
+
+		//관련 더보기 조건
+		//1. 최신글(community_date 역순)
+		//2. 관심도 일치 여부를 넣고
+		//3. 5개가 안된다면 랜덤으로 나머지 개수를 채워 5개를 맞추도록 함.
+
+		//관심도에 따른 리스트 형성 (관심도는 정해져 있지 않기 때문에 공통코드에서 불러와 확인)
+		let commoncode_condition = {};
+		//공통코드 쿼리 조건
+		commoncode_condition['common_code_c_name'] = 'communityobjects';
+		commoncode_condition['common_code_f_name'] = 'community_interests';
+		commoncode_condition['common_code_category'] = 'topic';
+		commonCodeInterestList = await CommonCode.model.find(commoncode_condition, {common_code_value: 1, _id: 0}).lean();
+		let interestList = Array();
+		let ineterestField = '';
+		let ineterestValue = '';
+		for (let i = 0; i < commonCodeInterestList.length; i++) {
+			ineterestField = '';
+			ineterestField = commonCodeInterestList[i].common_code_value;
+			ineterestFieldComplete = 'community_interests.' + commonCodeInterestList[i].common_code_value;
+
+			//쿼리 조건 형성을 위해 셋팅
+			if (req.body[ineterestField] != undefined) {
+				interestList =
+					typeof req.body[ineterestField] == 'string' ? req.body[ineterestField].replace(/[\[\]\"]/g, '').split(',') : req.body[ineterestField];
+				//쿼리문에서 불필요하게 조건문이 형성되므로 해당 필드는 삭제
+				delete query[ineterestField];
+				//실제 필요한 필드 형성 (아래 형성된 필드가 실제 DB와 매칭됨)
+				query[ineterestFieldComplete] = {$in: interestList};
+			}
+		}
+
+		if (query['interests_city'] != undefined) {
+			query['community_interests.interests_location.city'] = query['interests_city'];
+			delete query['interests_city'];
+			if (query['interests_district'] != undefined) {
+				query['community_interests.interests_location.district'] = query['interests_district'];
+			}
+		}
+
+		query['community_type'] = 'review';
+		console.log('query=>', query);
+		let communiuty_more_list1;
+		let communiuty_more_list2;
+		let communiuty_more_list3;
+		console.time();
+		community = await Community.model
+			.find(query, {community_is_temporary: 0, type: 0})
+			.populate('community_writer_id', 'user_nickname _id')
+			.where('community_is_delete')
+			.ne(true)
+			.where('_id')
+			.ne(query['community_object_id'])
+			.sort('-community_date')
+			.lean();
+
+		//step 1단계 : 원래 필터 조건이 5개가 안될 경우 지역 필터만 적용
+		if (community.length < 5) {
+			detail_query = {};
+			if (query['community_interests.interests_location.city'] != undefined) {
+				community2 = await Community.model
+					.find(
+						{'community_interests.interests_location.city': query['community_interests.interests_location.city']},
+						{community_is_temporary: 0, type: 0},
+					)
+					.populate('community_writer_id', 'user_nickname _id')
+					.where('community_type', 'review')
+					.where('community_is_delete')
+					.ne(true)
+					.where('_id')
+					.ne(query['community_object_id'])
+					.sort('-community_date')
+					.lean();
+				// console.log('community2=>', community2);
+			}
+			communiuty_more_list1 = community.concat(community2);
+			//step 2단계 : 지역 필터 적용 후 5개가 안될 경우 지역 필터를 제외한 관심도 적용
+			if (communiuty_more_list1.length < 5) {
+				let community3 = query;
+				delete community3['community_interests.interests_location.city'];
+
+				community3 = await Community.model
+					.find({community3}, {community_is_temporary: 0, type: 0})
+					.populate('community_writer_id', 'user_nickname _id')
+					.where('community_type', 'review')
+					.where('community_is_delete')
+					.ne(true)
+					.where('_id')
+					.ne(query['community_object_id'])
+					.sort('-community_date')
+					.lean();
+				communiuty_more_list = community.concat(community2);
+			}
+			//step 3단계 : 관심도 적용 후 5개가 안될 경우 랜덤 적용
+			if (communiuty_more_list.length < 5) {
+				let community3 = query;
+				console.log('community3=>', community3);
+				delete community3['community_interests.interests_location.city'];
+
+				community2 = await Community.model
+					.find({community3}, {community_is_temporary: 0, type: 0})
+					.populate('community_writer_id', 'user_nickname _id')
+					.where('community_type', 'review')
+					.where('community_is_delete')
+					.ne(true)
+					.where('_id')
+					.ne(query['community_object_id'])
+					.sort('-community_date')
+					.lean();
+			}
+		}
+
+		console.timeEnd();
+
+		if (!community) {
+			res.json({status: 404, msg: ALERT_NO_RESULT});
+			return;
+		}
+
+		let likedCommunityList = [];
+		if (req.session.loginUser) {
+			likedCommunityList = await LikeEtc.model.find({like_etc_user_id: req.session.loginUser, like_etc_is_delete: false}).lean();
+		}
+
+		community = community.map(community => {
+			if (likedCommunityList.find(likedCommunity => likedCommunity.like_etc_post_id == community._id)) {
+				return {...community, community_is_like: true};
+			} else {
+				return {...community, community_is_like: false};
+			}
+		});
+
+		let favoritedCommunityList = [];
+		if (req.session.loginUser) {
+			favoritedCommunityList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
+		}
+
+		community = community.map(community => {
+			if (favoritedCommunityList.find(favoritedCommunity => favoritedCommunity.favorite_etc_target_object_id == community._id)) {
+				return {...community, community_is_favorite: true};
+			} else {
+				return {...community, community_is_favorite: false};
+			}
+		});
+
+		res.json({
+			status: 200,
+			msg: community,
+			// msg: '',
+		});
+	});
+});
 module.exports = router;

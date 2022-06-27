@@ -78,31 +78,26 @@ paths:
                   type: object
                   description: 관심사 항목 키워드
                   properties:
-                    interests_trip:
+                    interests_group1:
                       type: array
                       items:
                         type: string
-                      description: 여행 · 숙박 · 까페
-                    interests_hospital:
+                      description: 관심사 그룹1
+                    interests_group2:
                       type: array
                       items:
                         type: string
-                      description: 병원 · 건강
-                    interests_interior:
+                      description: 관심사 그룹2
+                    interests_group3:
                       type: array
                       items:
                         type: string
-                      description: 펫 인테리어 · 놀이
+                      description: 관심사 그룹3
                     interests_etc:
                       type: array
                       items:
                         type: string
-                      description: 기타
-                    interests_review:
-                      type: array
-                      items:
-                        type: string
-                      description: 후기
+                      description: 관심사 그룹 기타
                 community_address:
                   type: object
                   description: 커뮤니티 리뷰 관련 주소
@@ -456,6 +451,70 @@ paths:
                   items:
                     type: string
                     description: 자유게시글 타입 (잡담|'talk', 질문|'question', 모임|'meeting')
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /community/getReviewListMore:
+    post:
+      tags:
+        - community
+      summary: 관련 리뷰 더보기 5개
+      description: 관련 리뷰 더보기 5개
+      operationId: getReviewListMore
+      requestBody:
+        description: 요청 파라메터 (5개가 안되면 관심도 순서에 따라)
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - community_object_id
+              properties:
+                community_object_id:
+                  type: string
+                  description: 관련된 정보를 더 보기 위한 community_object_id
+                interests_city:
+                  type: string
+                  description: 필터 - 도, 광역시 (서울특별시,경기도,강원도 등등) - 값이 없으면 필드 보내지 말 것!
+                interests_district:
+                  type: string
+                  description: 필터 - 시군구 (강동구, 강북구, 강서구 등등) - 값이 없으면 필드 보내지 말 것!
+                interests_trip:
+                  type: array
+                  description: 필터 - 관심도 - 여행.숙박.까페 ('관광지' | '펫 까페' | '펫 숙소' 등등) - 값이 없으면 필드 보내지 말 것!
+                  items:
+                    type: string
+                    description: 필터 - 관심도 - 여행.숙박.까페 ('관광지' | '펫 까페' | '펫 숙소' 등등) - 값이 없으면 필드 보내지 말 것!
+                interests_hospital:
+                  type: array
+                  description: 필터 - 관심도 - 병원.건강 ('사료' | '병원' | '간식' 등등) - 값이 없으면 필드 보내지 말 것!
+                  items:
+                    type: string
+                    description: 필터 - 관심도 - 병원.건강 ('사료' | '병원' | '간식' 등등) - 값이 없으면 필드 보내지 말 것!
+                interests_interior:
+                  type: array
+                  description: 필터 - 관심도 - 인테리어.놀이 ('가구' | '집 · 방석' | '노즈워크/장난감' 등등) - 값이 없으면 필드 보내지 말 것!
+                  items:
+                    type: string
+                    description: 필터 - 관심도 - 인테리어.놀이 ('가구' | '집 · 방석' | '노즈워크/장난감' 등등) - 값이 없으면 필드 보내지 말 것!
+                interests_etc:
+                  type: array
+                  description: 필터 - 관심도 - 기타 ('의류' | '청결 용품' | '기타' 등등) - 값이 없으면 필드 보내지 말 것!
+                  items:
+                    type: string
+                    description: 필터 - 관심도 - 기타 ('의류' | '청결 용품' | '기타' 등등) - 값이 없으면 필드 보내지 말 것!
+                interests_review:
+                  type: array
+                  description: 필터 - 관심도 - 후기 ('훈련 경험' | '치료 경험' | '다이어트 경험' 등등) - 값이 없으면 필드 보내지 말 것!
+                  items:
+                    type: string
+                    description: 필터 - 관심도 - 후기 ('훈련 경험' | '치료 경험' | '다이어트 경험' 등등) - 값이 없으면 필드 보내지 말 것!
       responses:
         '200':
           $ref: '#/components/responses/200'
