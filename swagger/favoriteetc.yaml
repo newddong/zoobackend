@@ -84,6 +84,12 @@ paths:
                 - userobject_id
                 - collectionName
               properties:
+                page:
+                  type: integer
+                  description: 페이지
+                limit:
+                  type: integer
+                  description: 한번에 불러올 게시글 갯수
                 userobject_id:
                   type: string
                   description: 조회할 userobject_id
