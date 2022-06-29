@@ -353,7 +353,6 @@ router.post('/updateComment', uploadS3.single('comment_photo_uri'), (req, res) =
 
 		comments.comment_update_date = Date.now();
 		comments = await comments.save();
-		console.log('comments=>', comments);
 		res.json({status: 200, msg: comments});
 	});
 });

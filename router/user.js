@@ -12,6 +12,7 @@ const NoticeUser = require('../schema/noticeuser');
 const FavoriteEtc = require('../schema/favoriteetc');
 const ShelterProtect = require('../schema/shelterProtectAnimal');
 const Community = require('../schema/community');
+const ProtectRequest = require('../schema/protectrequest');
 
 const {controller, controllerLoggedIn} = require('./controller');
 const {
@@ -204,18 +205,27 @@ router.post('/getUserProfile', (req, res) => {
 			.count()
 			.lean();
 
+		console.time();
+		let protectRequestCount = await ProtectRequest.model
+			.find({protect_request_writer_id: mongoose.Types.ObjectId(req.body.userobject_id)})
+			.where('protect_request_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+
 		let communityCount = await Community.model
 			.find({community_writer_id: req.body.userobject_id})
 			.where('community_is_delete')
 			.ne(true)
 			.count()
 			.lean();
-		let totalCount = feedCount + communityCount;
+		let totalCount = feedCount + protectRequestCount + communityCount;
 
 		let followList = await Follow.model
 			.find({follow_id: req.body.userobject_id, follow_is_delete: false})
 			.populate({path: 'follower_id', select: '_id'})
 			.lean();
+
 		let followerList = await Follow.model
 			.find({follower_id: req.body.userobject_id, follow_is_delete: false})
 			.populate({path: 'follow_id', select: '_id'})
