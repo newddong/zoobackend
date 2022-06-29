@@ -220,12 +220,12 @@ router.post('/getCommentListByProtectId', (req, res) => {
 		}
 
 		let likedCommentList = [];
-		if (req.body.login_userobject_id) {
-			likedCommentList = await LikeComment.model.find({like_comment_user_id: req.body.login_userobject_id, like_comment_is_delete: false}).lean();
+		if (req.session.loginUser) {
+			likedCommentList = await LikeComment.model.find({like_comment_user_id: req.session.loginUser, like_comment_is_delete: false}).lean();
 		}
 
 		commentList = commentList.map(comment => {
-			if (likedCommentList.find(likedComment => likedComment.like_comment_id == comment._id)) {
+			if (likedCommentList.find(likedComment => mongoose.Types.ObjectId(likedComment.like_comment_id).equals(comment._id))) {
 				return {...comment, comment_is_like: true};
 			} else {
 				return {...comment, comment_is_like: false};
@@ -353,7 +353,7 @@ router.post('/updateComment', uploadS3.single('comment_photo_uri'), (req, res) =
 
 		comments.comment_update_date = Date.now();
 		comments = await comments.save();
-
+		console.log('comments=>', comments);
 		res.json({status: 200, msg: comments});
 	});
 });
@@ -410,7 +410,7 @@ router.post('/getCommentListByCommunityId', (req, res) => {
 		}
 
 		commentList = commentList.map(comment => {
-			if (likedCommentList.find(likedComment => likedComment.like_comment_id == comment._id)) {
+			if (likedCommentList.find(likedComment => mongoose.Types.ObjectId(likedComment.like_comment_id).equals(comment._id))) {
 				return {...comment, comment_is_like: true};
 			} else {
 				return {...comment, comment_is_like: false};
