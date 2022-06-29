@@ -7,6 +7,7 @@ const ProtectActivity = require('../schema/protectionActivityApplicant');
 const Community = require('../schema/community');
 const CommonCode = require('../schema/commoncode');
 const Publicdatabyscheduler = require('../schema/publicdatabyscheduler');
+const Feed = require('../schema/feed');
 const {controller, controllerLoggedIn} = require('./controller');
 const {ALERT_NOT_VALID_OBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MATCHING} = require('./constants');
 const mongoose = require('mongoose');
@@ -374,6 +375,32 @@ async function makeDocAndInsertDB(data, userobject_id) {
 	await qeury_ProtectRequest.save();
 }
 
+async function machingUploadNumber(userObjectId) {
+	//업로드 게시물 개수 업데이트
+	let feedCount = await Feed.model.find({feed_writer_id: userObjectId}).where('feed_is_delete').ne(true).count();
+	let communityCount = await Community.model.find({community_writer_id: userObjectId}).where('community_is_delete').ne(true).count();
+	let protectRequestCount = await ProtectRequest.model
+		.find({protect_request_writer_id: userObjectId})
+		.where('protect_request_is_delete')
+		.ne(true)
+		.count();
+	let totalCount = feedCount + communityCount + protectRequestCount;
+	let countUpdate = await User.model
+		.findOneAndUpdate(
+			{
+				_id: userObjectId,
+			},
+			{
+				$set: {
+					user_upload_count: totalCount,
+				},
+				$currentDate: {feed_update_date: true},
+			},
+			{new: true, upsert: true},
+		)
+		.lean();
+}
+
 async function insertPetDataIntoDB(petDataItems) {
 	let data = petDataItems.item;
 	let dataLength = petDataItems.item.length;
@@ -474,6 +501,18 @@ async function insertPetDataIntoDB(petDataItems) {
 	if (change_endNumber == change_totalCount) {
 		console.log('최대 페이지------------', change_endNumber, ' crolling_totalCount------------', crolling_totalCount);
 		// console.log('crolling_totalCount------------', crolling_totalCount);
+
+		//보호소 계정만 불러와 machingUploadNumber 함수 인자로 넣어준다.
+		let targetUser = await User.model.find({user_type: 'shelter'}).lean();
+		let totalLen = targetUser.length;
+		try {
+			for (let i = 0; i < totalLen; i++) {
+				await machingUploadNumber(targetUser[i]._id);
+			}
+		} catch (error) {
+			console.log('error=>', error);
+		}
+		console.log('---보호소 업로드 개수 일치시키기---', totalLen, '개 완료!');
 	}
 }
 
