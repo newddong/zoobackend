@@ -47,7 +47,7 @@ let task = cron.schedule(
 );
 
 //공공데이터 포털 데이터 가져오기(오늘만 진행)
-let publicData = cron.schedule('0 23,0-11 * * *', function () {
+let publicData = cron.schedule('0 23,1,2,4,5,7,8,10,11,13 * * *', function () {
 	let now = new Date(); // 오늘
 	nowformat = new Date(+now + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
 	console.log('nowformat=>', nowformat);
@@ -60,7 +60,7 @@ let publicData = cron.schedule('0 23,0-11 * * *', function () {
 });
 
 //공공데이터 포털 데이터 가져오기(WANT_END_DAY 전부터 어제 날짜까지 진행)
-let publicData_pre = cron.schedule('20 0,3,6,8-12 * * *', function () {
+let publicData_pre = cron.schedule('0 21,0,3,6,9,12 * * *', function () {
 	let now = new Date(); // 오늘
 	nowformat = new Date(+now + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
 	console.log('nowformat=>', nowformat);
@@ -401,6 +401,21 @@ async function machingUploadNumber(userObjectId) {
 		.lean();
 }
 
+async function insertPublicdatabyscheduler(start_date, end_date, crolling_totalCount, insert_totalCount, update_totalCount) {
+	//수집 컬렉션에 insert 한다.
+	let statistics = await Publicdatabyscheduler.makeNewdoc({
+		process_date: new Date(),
+		sdate: start_date,
+		edate: end_date,
+		type: 'report',
+		totalCount_on_date: crolling_totalCount,
+		count_new_data: insert_totalCount,
+		count_update_data: update_totalCount,
+	});
+	await statistics.save();
+	console.log('---Publicdatabyscheduler--- 컬렉션 insert 완료');
+}
+
 async function insertPetDataIntoDB(petDataItems) {
 	let data = petDataItems.item;
 	let dataLength = petDataItems.item.length;
@@ -483,20 +498,6 @@ async function insertPetDataIntoDB(petDataItems) {
 		'  현재 페이지------------',
 		change_totalCount,
 	);
-	// console.log('insert 된 데이터 count------------', insert_totalCount);
-	// console.log('현재 페이지------------', change_totalCount);
-
-	//수집 컬렉션에 insert 한다.
-	let statistics = await Publicdatabyscheduler.makeNewdoc({
-		process_date: new Date(),
-		sdate: start_date,
-		edate: end_date,
-		type: 'report',
-		totalCount_on_date: crolling_totalCount,
-		count_new_data: insert_totalCount,
-		count_update_data: update_totalCount,
-	});
-	await statistics.save();
 
 	if (change_endNumber == change_totalCount) {
 		console.log('최대 페이지------------', change_endNumber, ' crolling_totalCount------------', crolling_totalCount);
@@ -514,6 +515,8 @@ async function insertPetDataIntoDB(petDataItems) {
 		}
 		console.log('---보호소 업로드 개수 일치시키기---', totalLen, '개 완료!');
 	}
+
+	await insertPublicdatabyscheduler(start_date, end_date, crolling_totalCount, insert_totalCount, update_totalCount);
 }
 
 async function insertSidoDataIntoDB(dataItems) {
