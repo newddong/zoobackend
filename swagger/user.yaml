@@ -533,6 +533,9 @@ paths:
                 pet_weight:
                   type: string
                   description: 반려동물 몸무게
+                user_is_delete:
+                  type: boolean
+                  description: 반려동물 삭제 (true 이면 삭제, false로 변경한다고 해서 계정이 다시 살아나진 않음. 삭제한 계정을 다시 살리는 것은 추후 재논의 필요)
       responses:
         '200':
           $ref: '#/components/responses/200'

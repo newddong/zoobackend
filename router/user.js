@@ -391,6 +391,11 @@ router.post('/updatePetDetailInformation', (req, res) => {
 			return;
 		}
 
+		if (query.user_is_delete != undefined) {
+			//해당 반려동물을 가지고 있는 모든 주인 계정에서 반려동물을 삭제한다.
+			await User.model.updateMany({}, {$pull: {user_my_pets: mongoose.Types.ObjectId(req.body.userobject_id)}}).lean();
+		}
+
 		res.json({status: 200, msg: result});
 	});
 });
@@ -484,7 +489,7 @@ router.post('/getUserInfoById', (req, res) => {
 		follow = follow != null && !follow.follow_is_delete;
 
 		user = {...user, is_follow: follow};
-
+		console.log('user=>', user);
 		res.json({status: 200, msg: user});
 	});
 });
