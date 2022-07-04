@@ -13,6 +13,7 @@ const FavoriteEtc = require('../schema/favoriteetc');
 const Community = require('../schema/community');
 const uploadS3 = require('../common/uploadS3');
 const Follow = require('../schema/follow');
+const ProtectRequest = require('../schema/protectrequest');
 const {controller, controllerLoggedIn} = require('./controller');
 const {USER_NOT_FOUND, ALERT_NOT_VALID_USEROBJECT_ID, ALERT_NO_RESULT, ALERT_NO_MEDIA_INFO, ALERT_NOT_VALID_OBJECT_ID} = require('./constants');
 const mongoose = require('mongoose');
@@ -80,7 +81,7 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 
 		let report_missingCount = await Feed.model
 			.find({
-				$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_writer_id: req.session.loginUser}],
+				$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_writer_id: writer_id}],
 			})
 			.where('feed_is_delete')
 			.ne(true)
@@ -88,19 +89,19 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 			.lean();
 
 		let protectRequestCount = await ProtectRequest.model
-			.find({protect_request_writer_id: req.session.loginUser})
+			.find({protect_request_writer_id: writer_id})
 			.where('protect_request_is_delete')
 			.ne(true)
 			.count()
 			.lean();
 
-		let communityCount = await Community.model.find({community_writer_id: req.session.loginUser}).where('community_is_delete').ne(true).count();
+		let communityCount = await Community.model.find({community_writer_id: writer_id}).where('community_is_delete').ne(true).count();
 		let totalCount = feedCount + report_missingCount + protectRequestCount + communityCount;
 
 		let countUpdate = await User.model
 			.findOneAndUpdate(
 				{
-					_id: req.session.loginUser,
+					_id: writer_id,
 				},
 				{
 					$set: {
@@ -520,13 +521,38 @@ router.post('/getFeedListByUserId', (req, res) => {
 						break;
 				}
 			} else {
+				let query = {};
+				let feed_public_type_array = [];
+				//로그인을 안하면 전체공개 혹은 설정값이 없는 데이터만 확인 가능.
+				if (!req.session.loginUser) {
+					feed_public_type_array = ['public', undefined];
+				}
+				//로그인하고 작성자와 그 정보가 같으면 모든 정보 확인
+				else if (req.session.loginUser && req.body.userobject_id == req.session.loginUser) {
+					feed_public_type_array = ['public', 'private', 'follow', undefined];
+				}
+				//로그인하고 작성자 정보와 다르면 전체 공개와 설정값이 없는 데이터만 확인 가능.
+				else if (req.session.loginUser && req.body.userobject_id != req.session.loginUser) {
+					feed_public_type_array = ['public', undefined];
+					//로그인하고 작성자 정보와 다르고 팔로우일 경우 팔로우 공개정보까지 확인 가능.
+
+					let follow = false;
+					follow = await Follow.model
+						.findOne({follow_id: req.body.userobject_id, follower_id: req.session.loginUser, follow_is_delete: false})
+						.lean();
+
+					follow = follow != null && !follow.follow_is_delete;
+					if (follow) {
+						feed_public_type_array.push('follow');
+					}
+				}
+				query['feed_public_type'] = {$in: feed_public_type_array};
+				query['$or'] = [
+					{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
+					{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_writer_id: req.body.userobject_id}]},
+				];
 				userFeeds = await Feed.model
-					.find({
-						$or: [
-							{$and: [{feed_type: 'feed'}, {feed_writer_id: req.body.userobject_id}]},
-							{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
-						],
-					})
+					.find(query)
 					.where('feed_writer_id', req.body.userobject_id)
 					.where('feed_is_delete')
 					.ne(true)
@@ -542,11 +568,12 @@ router.post('/getFeedListByUserId', (req, res) => {
 					return;
 				}
 			}
+
 			let total_count = await Feed.model
 				.find({
 					$or: [
 						{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
-						{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
+						{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_writer_id: req.body.userobject_id}]},
 					],
 				})
 				.where('feed_writer_id', req.body.userobject_id)
@@ -791,6 +818,8 @@ router.post('/getSuggestFeedList', (req, res) => {
 	controller(req, res, async () => {
 		const limit = parseInt(req.body.limit) * 1 || 30;
 		let feed;
+		console.log('req.body.order_value=>', req.body.order_value);
+		console.log('req.body.target_object_id=>', req.body.target_object_id);
 		if (req.body.order_value != undefined) {
 			switch (req.body.order_value) {
 				//앞의 데이터 가져오기
@@ -846,6 +875,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 					break;
 			}
 		} else {
+			console.log('--이곳에 진인--');
 			feed = await Feed.model
 				.find()
 				.where('feed_is_delete')

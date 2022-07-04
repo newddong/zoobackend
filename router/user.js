@@ -492,7 +492,6 @@ router.post('/getUserInfoById', (req, res) => {
 		follow = follow != null && !follow.follow_is_delete;
 
 		user = {...user, is_follow: follow};
-		console.log('user=>', user);
 		res.json({status: 200, msg: user});
 	});
 });
