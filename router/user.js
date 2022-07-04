@@ -194,18 +194,21 @@ router.post('/getUserProfile', (req, res) => {
 		//사용자 업로드,팔로워,팔로잉 개수 카운트
 		let feedCount = await Feed.model
 			.find({
-				$or: [
-					{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}]},
-					{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
-				],
+				$and: [{feed_type: 'feed'}, {feed_avatar_id: req.body.userobject_id}],
 			})
-			.where('feed_writer_id', req.body.userobject_id)
+			.where('feed_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+		let report_missingCount = await Feed.model
+			.find({
+				$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_writer_id: req.body.userobject_id}],
+			})
 			.where('feed_is_delete')
 			.ne(true)
 			.count()
 			.lean();
 
-		console.time();
 		let protectRequestCount = await ProtectRequest.model
 			.find({protect_request_writer_id: mongoose.Types.ObjectId(req.body.userobject_id)})
 			.where('protect_request_is_delete')
@@ -219,7 +222,7 @@ router.post('/getUserProfile', (req, res) => {
 			.ne(true)
 			.count()
 			.lean();
-		let totalCount = feedCount + protectRequestCount + communityCount;
+		let totalCount = feedCount + report_missingCount + protectRequestCount + communityCount;
 
 		let followList = await Follow.model
 			.find({follow_id: req.body.userobject_id, follow_is_delete: false})

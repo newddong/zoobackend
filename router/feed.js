@@ -63,20 +63,39 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 		// await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_upload_count: 1}});
 
 		//업로드 게시물 개수 업데이트
+		let writer_id;
+		if (req.body.feed_avatar_id) {
+			writer_id = req.body.feed_avatar_id;
+		} else {
+			writer_id = req.session.loginUser;
+		}
 		let feedCount = await Feed.model
 			.find({
-				$or: [
-					{$and: [{feed_type: 'feed'}, {feed_avatar_id: req.session.loginUser}]},
-					{$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_avatar_id: undefined}]},
-				],
+				$and: [{feed_type: 'feed'}, {feed_avatar_id: writer_id}],
 			})
-			.where('feed_writer_id', req.session.loginUser)
 			.where('feed_is_delete')
 			.ne(true)
-			.count();
+			.count()
+			.lean();
+
+		let report_missingCount = await Feed.model
+			.find({
+				$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_writer_id: req.session.loginUser}],
+			})
+			.where('feed_is_delete')
+			.ne(true)
+			.count()
+			.lean();
+
+		let protectRequestCount = await ProtectRequest.model
+			.find({protect_request_writer_id: req.session.loginUser})
+			.where('protect_request_is_delete')
+			.ne(true)
+			.count()
+			.lean();
 
 		let communityCount = await Community.model.find({community_writer_id: req.session.loginUser}).where('community_is_delete').ne(true).count();
-		let totalCount = feedCount + communityCount;
+		let totalCount = feedCount + report_missingCount + protectRequestCount + communityCount;
 
 		let countUpdate = await User.model
 			.findOneAndUpdate(
