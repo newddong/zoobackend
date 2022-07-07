@@ -820,26 +820,44 @@ router.post('/getSuggestFeedList', (req, res) => {
 		let feed;
 		console.log('req.body.order_value=>', req.body.order_value);
 		console.log('req.body.target_object_id=>', req.body.target_object_id);
+		query = {};
+
+		if (!req.session.loginUser) {
+			query['feed_public_type'] = {$in: ['public', undefined]};
+		}
+
 		if (req.body.order_value != undefined) {
 			switch (req.body.order_value) {
 				//앞의 데이터 가져오기
 				case 'pre':
+					// query['_id'] = {$gt: mongoose.Types.ObjectId(req.body.target_object_id)};
+					// feed = await Feed.model
+					// 	.find(query)
+					// 	.where('feed_is_delete')
+					// 	.ne(true)
+					// 	.populate('feed_writer_id')
+					// 	.populate('feed_avatar_id')
+					// 	.sort('_id')
+					// 	.limit(limit)
+					// 	.lean();
+					// feed = feed.reverse();
+					console.log('--pre--');
 					feed = await Feed.model
-						.find({_id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.find(query)
 						.where('feed_is_delete')
 						.ne(true)
 						.populate('feed_writer_id')
 						.populate('feed_avatar_id')
-						.sort('_id')
+						.sort('-_id')
 						.limit(limit)
 						.lean();
-					feed = feed.reverse();
 					break;
 
 				//바로 게시물을 찾을 경우
 				case 'interrupt':
+					query['_id'] = {$gt: mongoose.Types.ObjectId(req.body.target_object_id)};
 					feedList1 = await Feed.model
-						.find({_id: {$gt: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.find(query)
 						.where('feed_is_delete')
 						.ne(true)
 						.populate('feed_writer_id')
@@ -849,8 +867,11 @@ router.post('/getSuggestFeedList', (req, res) => {
 						.lean();
 					console.log('feedList1=>', feedList1.reverse());
 
+					query['_id'] = undefined;
+					query['_id'] = {$lte: mongoose.Types.ObjectId(req.body.target_object_id)};
+
 					feedList2 = await Feed.model
-						.find({_id: {$lte: mongoose.Types.ObjectId(req.body.target_object_id)}})
+						.find(query)
 						.where('feed_is_delete')
 						.ne(true)
 						.populate('feed_writer_id')
@@ -863,6 +884,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 					break;
 				//뒤의 데이터 가져오기
 				case 'next':
+					query['_id'] = {$lt: mongoose.Types.ObjectId(req.body.target_object_id)};
 					feed = await Feed.model
 						.find({_id: {$lt: mongoose.Types.ObjectId(req.body.target_object_id)}})
 						.where('feed_is_delete')
@@ -877,7 +899,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 		} else {
 			console.log('--이곳에 진인--');
 			feed = await Feed.model
-				.find()
+				.find(query)
 				.where('feed_is_delete')
 				.ne(true)
 				.populate('feed_writer_id')
@@ -886,7 +908,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 				.limit(limit)
 				.lean();
 		}
-
+		// console.log('query=>', query);
 		if (!feed) {
 			res.json({status: 404, msg: ALERT_NO_RESULT});
 			return;
@@ -908,6 +930,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 				}
 			});
 		}
+		// console.log('feed=>', feed);
 		if (req.session.loginUser) {
 			let tempFeed = Array();
 			//로그인 한 ID로 팔로워 리스트 가져옴. (로그인 사용자 기준으로 누군가 나를 팔로우 한 리스트임.)
