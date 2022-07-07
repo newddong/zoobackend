@@ -247,6 +247,7 @@ router.post('/getUserProfile', (req, res) => {
 				follwerCount++;
 			}
 		}
+
 		//게시물 업로드 개수, 팔로워 개수, 팔로잉 개수 사용자 컬렉션에 최종 업로드
 		let countUpdate = await User.model
 			.findOneAndUpdate(
@@ -799,6 +800,17 @@ router.post('/unFollowUser', (req, res) => {
 		// targetUser.user_interests = new Object();
 		// await targetUser.save();
 		// await User.model.findOneAndUpdate({_id: req.session.loginUser}, {$inc: {user_follow_count: -1}});
+
+		//팔로우 취소시 유저 즐겨찾기도 자동으로 취소되어야 한다.
+		//데이터가 여러개 있을 수 있는 경우를 대비해서 반드시 updatemany로 해야 문제가 생기지 않음.
+		let favoriteEtc = await FavoriteEtc.model
+			.find({
+				favorite_etc_target_object_id: req.body.follow_userobject_id,
+				favorite_etc_user_id: req.session.loginUser,
+				favorite_etc_collection_name: 'userobjects',
+			})
+			.updateMany({$set: {favorite_etc_update_date: Date.now(), favorite_etc_is_delete: true}})
+			.lean();
 
 		//알림 내역에 댓글 관련 insert
 		//알림 내역 중 팔로우 알림 'true' 여부 확인
