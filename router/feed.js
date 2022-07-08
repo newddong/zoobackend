@@ -723,14 +723,29 @@ router.post('/getMissingReportList', (req, res) => {
 		const page = parseInt(req.body.page) * 1 || 1;
 		const limit = parseInt(req.body.limit) * 1 || 30;
 		const skip = (page - 1) * limit;
+		let reportMissingList;
 
-		let reportMissingList = Feed.model
-			.find({feed_type: {$ne: 'feed'}})
-			.where('feed_is_delete')
-			.ne(true)
-			.skip(skip)
-			.limit(limit)
-			.populate('feed_writer_id');
+		//main에서 나오는 실종/제보는 빠른 출력을 위해 쿼리 쿼리 개선
+		if (req.body.main_type == true) {
+			reportMissingList = Feed.model
+				.find(
+					{feed_type: {$ne: 'feed'}},
+					{_id: 1, report_witness_date: 1, report_witness_location: 1, feed_thumbnail: 1, feed_type: 1, feed_type: 1, feed_content: 1},
+				)
+				.where('feed_is_delete')
+				.ne(true)
+				.skip(skip)
+				.limit(limit);
+		} else {
+			reportMissingList = Feed.model
+				.find({feed_type: {$ne: 'feed'}})
+				.where('feed_is_delete')
+				.ne(true)
+				.skip(skip)
+				.limit(limit)
+				.populate('feed_writer_id');
+		}
+
 		if (req.body.city) {
 			reportMissingList.find({
 				$or: [{missing_animal_lost_location: {$regex: req.body.city}}, {report_witness_location: {$regex: req.body.city}}],
