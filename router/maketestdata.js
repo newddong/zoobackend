@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../schema/user');
 const Community = require('../schema/community');
+const Feed = require('../schema/feed');
 const {controller, controllerLoggedIn} = require('./controller');
 const mongoose = require('mongoose');
 const uploadS3 = require('../common/uploadS3');
@@ -48,7 +49,7 @@ router.post('/createCommunityFree', (req, res) => {
 	});
 });
 
-//커뮤니티 자유글 생성
+//커뮤니티 자유글 삭제
 router.post('/deleteCommunityFree', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		await Community.model.deleteMany({community_title: {$regex: req.body.community_title_for_delete}}).lean();
@@ -160,6 +161,100 @@ router.post('/doTest', (req, res) => {
 		// });
 
 		res.json({status: 200, msg: ''});
+	});
+});
+
+async function randomNum(min, max) {
+	let randNum = Math.floor(Math.random() * (max - min + 1)) + min;
+	return randNum;
+}
+
+//실종/제보글 생성
+router.post('/createMissingReport', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let query = {};
+		let making_query = {};
+		for (let filed in req.body) {
+			req.body[filed] !== '' ? (query[filed] = req.body[filed]) : null;
+		}
+		let FEED_TYPE_MISSING = 1;
+		let FEED_TYPE_REPORT = 2;
+		let ran_feed_type;
+
+		dataNumber = query.data_number;
+		writer = req.session.loginUser;
+		title = query.feed_content;
+		feed_type_create = query.feed_type_create;
+		feed_location = '과천시';
+		qeuryArray = Array();
+		for (let i = 0; i < dataNumber; i++) {
+			making_query = {};
+			making_query.feed_writer_id = writer;
+			let feedMedia = Array();
+			mediaobject = {};
+			ran_feed_type = 0;
+			switch (feed_type_create) {
+				case 'random':
+					ran_feed_type = await randomNum(1, 2);
+					break;
+				case 'missing':
+					ran_feed_type = 1;
+					break;
+				case 'report':
+					ran_feed_type = 2;
+					break;
+			}
+			if (ran_feed_type == FEED_TYPE_MISSING) {
+				feed_type = 'missing';
+				making_query.missing_animal_age = 1;
+				making_query.missing_animal_features = '털이 많음';
+				making_query.missing_animal_contact = '01012341234';
+				making_query.missing_animal_lost_location = '{"city":"강원도","district":"고성군","detail":"ㅣ"}';
+				making_query.missing_animal_sex = 'female';
+				making_query.missing_animal_species = '개';
+				making_query.missing_animal_species_detail = '꼴불견';
+				making_query.missing_animal_date = new Date();
+				mediaobject.media_uri = 'https://pinetreegy.s3.ap-northeast-2.amazonaws.com/upload/1652333325744_C9976EF8-1558-4FE6-99AA-C930CDA95E24.jpg';
+				feedMedia.push(mediaobject);
+				making_query['feed_medias'] = feedMedia;
+			} else {
+				feed_type = 'report';
+				making_query.report_animal_species = '개';
+				making_query.report_animal_features = '착하게 생김';
+				making_query.report_witness_date = new Date();
+				making_query.report_witness_location = '경기도 수원시 권선구';
+				mediaobject.media_uri = 'https://pinetreegy.s3.ap-northeast-2.amazonaws.com/upload/1652333325744_C9976EF8-1558-4FE6-99AA-C930CDA95E24.jpg';
+				feedMedia.push(mediaobject);
+				making_query['feed_medias'] = feedMedia;
+			}
+
+			making_query.feed_thumbnail =
+				'https://pinetreegy.s3.ap-northeast-2.amazonaws.com/upload/1652333325744_C9976EF8-1558-4FE6-99AA-C930CDA95E24.jpg';
+			making_query.feed_date = new Date();
+			making_query.feed_type = feed_type;
+
+			if (i == dataNumber - 1) {
+				making_query.feed_content = title + ' -' + feed_type + ' ' + i + '-end';
+				making_query.feed_content = title + ' -' + feed_type + ' ' + i + '-end';
+			} else {
+				making_query.feed_content = title + ' -' + feed_type + ' ' + i;
+				making_query.feed_content = title + ' -' + feed_type + ' ' + i;
+			}
+			making_query.feed_date = Date.now();
+			qeuryArray.push(making_query);
+		}
+
+		await Feed.model.insertMany(qeuryArray);
+
+		res.json({status: 200, msg: 'ok'});
+	});
+});
+
+//실종/제보글 삭제
+router.post('/deleteMissingReport', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		await Feed.model.deleteMany({feed_content: {$regex: req.body.feed_content_for_delete}}).lean();
+		res.json({status: 200, msg: 'ok'});
 	});
 });
 

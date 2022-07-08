@@ -135,3 +135,68 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /maketestdata/createMissingReport:
+    post:
+      tags:
+        - maketestdata
+      summary: 실종/제보 생성
+      description: 실종/제보 생성
+      operationId: createMissingReport
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - data_number
+                - feed_type_create
+                - feed_content
+              type: object
+              properties:
+                data_number:
+                  type: integer
+                  description: 데이터 insert 개수
+                feed_type_create:
+                  type: string
+                  enum: ['random', 'missing', 'report']
+                  description: 게시글의 타입 (랜덤|'random', 실종|'missing', 제보|'report')
+                feed_content:
+                  type: string
+                  description: 내용
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /maketestdata/deleteMissingReport:
+    post:
+      tags:
+        - maketestdata
+      summary: 실종/제보 삭제
+      description: 실종/제보 삭제
+      operationId: deleteissingReport
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - feed_content_for_delete
+              type: object
+              properties:
+                feed_content_for_delete:
+                  type: string
+                  description: 삭제할 제목
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

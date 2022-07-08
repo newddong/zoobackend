@@ -727,6 +727,7 @@ router.post('/getMissingReportList', (req, res) => {
 
 		//main에서 나오는 실종/제보는 빠른 출력을 위해 쿼리 쿼리 개선
 		if (req.body.main_type == true) {
+			console.time();
 			reportMissingList = Feed.model
 				.find(
 					{feed_type: {$ne: 'feed'}},
@@ -736,7 +737,9 @@ router.post('/getMissingReportList', (req, res) => {
 				.ne(true)
 				.skip(skip)
 				.limit(limit);
+			console.timeEnd();
 		} else {
+			console.time();
 			reportMissingList = Feed.model
 				.find({feed_type: {$ne: 'feed'}})
 				.where('feed_is_delete')
@@ -744,6 +747,7 @@ router.post('/getMissingReportList', (req, res) => {
 				.skip(skip)
 				.limit(limit)
 				.populate('feed_writer_id');
+			console.timeEnd();
 		}
 
 		if (req.body.city) {
