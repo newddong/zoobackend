@@ -160,7 +160,9 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 			},
 		]);
 
-		total_count = total_count[0].total_count;
+		if (total_count.length > 0) {
+			total_count = total_count[0].total_count;
+		} else total_count = 0;
 		console.timeEnd();
 
 		let followList = [];
