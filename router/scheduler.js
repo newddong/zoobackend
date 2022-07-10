@@ -441,67 +441,60 @@ async function insertPetDataIntoDB(petDataItems) {
 		} else {
 			let changedValue = await parseDataForDB('checkProcessState', protectRequestInfo.protect_request_status);
 			//값이 다를 경우 상태 업데이트
+
 			if (changedValue.status != data[i].processState) {
 				update_totalCount++;
-				let statusValue;
+				console.log('changedValue.status != data[i].processState =>', changedValue.status, ' ', data[i].processState);
 				try {
 					//공공데이터포털 값을 코드값으로 변경
 					shelterAnimalInfo = await ShelterAnimal.model.findById(protectRequestInfo.protect_animal_id).exec();
-					statusValue = await parseDataForDB('processState', data[i].processState);
+					let protect_animal_status = await parseDataForDB('processState', data[i].processState);
+
+					{
+						//수집 컬렉션에 insert 한다. (보호 동물 상태값 관련 insert)
+						let qeury_ShelterAnimal = await Publicdatabyscheduler.makeNewdoc({
+							process_date: new Date(),
+							noticeNo: data[i].noticeNo,
+							type: 'update_shelteranimal',
+							target_collection: 'shelterprotectanimalobjects',
+							target_id: shelterAnimalInfo._id,
+							old_status: shelterAnimalInfo.protect_animal_status,
+							new_status: protect_animal_status.animal,
+						});
+						await qeury_ShelterAnimal.save();
+					}
+
 					//보호소의 보호중인 동물의 상태 업데이트
-					shelterAnimalInfo.protect_animal_status = statusValue.animal;
-					await shelterAnimalInfo.save();
-
-					//수집 컬렉션에 insert 한다. (보호 동물 상태값 관련 insert)
-					let qeury_ShelterAnimal = await Publicdatabyscheduler.makeNewdoc({
-						process_date: new Date(),
-						noticeNo: data[i].noticeNo,
-						type: 'update_shelteranimal',
-						target_collection: 'shelterprotectanimalobjects',
-						target_id: shelterAnimalInfo._id,
-						old_status: shelterAnimalInfo.protect_animal_status,
-						new_status: statusValue.animal,
-					});
-					await qeury_ShelterAnimal.save();
-				} catch (error) {
-					console.log('error=>', error);
-				}
-
-				try {
-					//공공데이터포털 값을 코드값으로 변경 (위에서 한번만 받아와도 되므로 주석처리)
-					// let protect_request_status = await parseDataForDB('processState', data[i].processState);
-
-					//보호 요청글 상태 업데이트
-					// protectRequestInfo.protect_request_status = statusValue.status;
-
-					await ProtectRequest.model
-						.findOneAndUpdate(
-							{
-								_id: protectRequestInfo._id,
-							},
-							{
-								$set: {
-									protect_request_status: statusValue.status,
-								},
-								$currentDate: {feed_update_date: true},
-							},
-							{new: true, upsert: true},
-						)
+					shelterAnimalInfo.protect_animal_status = protect_animal_status.animal;
+					// await shelterAnimalInfo.save();
+					let shelterAnimalresult = await ShelterAnimal.model
+						.findOneAndUpdate({_id: shelterAnimalInfo._id}, {$set: {protect_animal_status: protect_animal_status.animal}}, {new: true})
 						.exec();
 
+					//공공데이터포털 값을 코드값으로 변경
+					let protect_request_status = await parseDataForDB('processState', data[i].processState);
+
+					{
+						//수집 컬렉션에 insert 한다.  (보호 요청 글 상태값 관련 insert)
+						let qeury_ProtectRequest = await Publicdatabyscheduler.makeNewdoc({
+							process_date: new Date(),
+							noticeNo: data[i].noticeNo,
+							type: 'update_request',
+							target_collection: 'protectrequestobjects',
+							target_id: protectRequestInfo._id,
+							old_status: protectRequestInfo.protect_request_status,
+							new_status: protect_request_status.status,
+						});
+						await qeury_ProtectRequest.save();
+					}
+
+					//보호 요청글 상태 업데이트
+					protectRequestInfo.protect_request_status = protect_request_status.status;
 					// await protectRequestInfo.save();
 
-					//수집 컬렉션에 insert 한다.  (보호 요청 글 상태값 관련 insert)
-					let qeury_ProtectRequest = await Publicdatabyscheduler.makeNewdoc({
-						process_date: new Date(),
-						noticeNo: data[i].noticeNo,
-						type: 'update_request',
-						target_collection: 'protectrequestobjects',
-						target_id: protectRequestInfo._id,
-						old_status: protectRequestInfo.protect_request_status,
-						new_status: statusValue.status,
-					});
-					await qeury_ProtectRequest.save();
+					let protectRequestresult = await ProtectRequest.model
+						.findOneAndUpdate({_id: protectRequestInfo._id}, {$set: {protect_request_status: protect_request_status.status}}, {new: true})
+						.exec();
 				} catch (error) {
 					console.log('error=>', error);
 				}
