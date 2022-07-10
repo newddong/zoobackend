@@ -702,6 +702,44 @@ router.post('/getUserTaggedFeedList', (req, res) => {
 			return;
 		}
 
+		let taggedFeedsArray = Array();
+		for (let j = 0; j < taggedFeeds.length; j++) {
+			if (taggedFeeds[j].usertag_feed_id != null) {
+				taggedFeedsArray.push(taggedFeeds[j]);
+			}
+		}
+		taggedFeeds = JSON.parse(JSON.stringify(taggedFeedsArray));
+
+		//로그인 상태에서만 is_favorite 표출
+		if (req.session.loginUser) {
+			//내가 즐겨찾기를 누른 데이터 불러오기
+			favoritedFeedList = await FavoriteFeed.model.find({favorite_feed_user_id: req.session.loginUser, favorite_feed_is_delete: false}).lean();
+			taggedFeeds = taggedFeeds.map(taggedFeeds => {
+				//null값 제외.
+				if (taggedFeeds.usertag_feed_id == null) {
+					return {...taggedFeeds};
+				}
+				//taggedFeeds._id가 아니라 taggedFeeds.usertag_feed_id._id 임. depth 잘 확인할 것.
+				else if (favoritedFeedList.find(favoritedFeed => favoritedFeed.favorite_feed_id == taggedFeeds.usertag_feed_id._id)) {
+					return {...taggedFeeds, is_favorite: true};
+				} else {
+					return {...taggedFeeds, is_favorite: false};
+				}
+			});
+
+			//좋아요 출력
+			let likedFeedList = [];
+			likedFeedList = await LikeFeed.model.find({like_feed_user_id: req.session.loginUser, like_feed_is_delete: false}).lean();
+			if (likedFeedList != null && likedFeedList.length > 0) {
+				taggedFeeds = taggedFeeds.map(taggedFeeds => {
+					if (likedFeedList.find(likedFeed => likedFeed.like_feed_id == taggedFeeds.usertag_feed_id._id)) {
+						return {...taggedFeeds, feed_is_like: true};
+					} else {
+						return {...taggedFeeds, feed_is_like: false};
+					}
+				});
+			}
+		}
 		total_count = await FeedUserTag.model
 			.find({usertag_user_id: user._id})
 			.where('usertag_is_delete')
@@ -731,7 +769,16 @@ router.post('/getMissingReportList', (req, res) => {
 			reportMissingList = Feed.model
 				.find(
 					{feed_type: {$ne: 'feed'}},
-					{_id: 1, report_witness_date: 1, report_witness_location: 1, feed_thumbnail: 1, feed_type: 1, feed_type: 1, feed_content: 1},
+					{
+						_id: 1,
+						report_witness_date: 1,
+						report_witness_location: 1,
+						feed_thumbnail: 1,
+						feed_type: 1,
+						feed_type: 1,
+						feed_content: 1,
+						missing_animal_lost_location: 1,
+					},
 				)
 				.where('feed_is_delete')
 				.ne(true)
@@ -1274,6 +1321,36 @@ router.post('/getFavoriteFeedListByUserId', (req, res) => {
 				.lean();
 		}
 
+		//로그인 상태에서만 is_favorite 표출
+		if (req.session.loginUser) {
+			//내가 즐겨찾기를 누른 데이터 불러오기
+			favoritedFeedList = await FavoriteFeed.model.find({favorite_feed_user_id: req.session.loginUser, favorite_feed_is_delete: false}).lean();
+			feedlist = feedlist.map(feedlist => {
+				//null값 제외.
+				if (feedlist.favorite_feed_id == null) {
+					return {...feedlist};
+				}
+				//feedlist._id가 아니라 feedlist.favorite_feed_id._id 임. depth 잘 확인할 것.
+				else if (favoritedFeedList.find(favoritedFeed => favoritedFeed.favorite_feed_id == feedlist.favorite_feed_id._id)) {
+					return {...feedlist, is_favorite: true};
+				} else {
+					return {...feedlist, is_favorite: false};
+				}
+			});
+
+			//좋아요 출력
+			let likedFeedList = [];
+			likedFeedList = await LikeFeed.model.find({like_feed_user_id: req.session.loginUser, like_feed_is_delete: false}).lean();
+			if (likedFeedList != null && likedFeedList.length > 0) {
+				feedlist = feedlist.map(feedlist => {
+					if (likedFeedList.find(likedFeed => likedFeed.like_feed_id == feedlist.favorite_feed_id._id)) {
+						return {...feedlist, feed_is_like: true};
+					} else {
+						return {...feedlist, feed_is_like: false};
+					}
+				});
+			}
+		}
 		let total_count = await FavoriteFeed.model
 			.find({
 				favorite_feed_user_id: user._id,
