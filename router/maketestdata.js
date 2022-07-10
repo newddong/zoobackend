@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../schema/user');
 const Community = require('../schema/community');
 const Feed = require('../schema/feed');
+const FavoriteFeed = require('../schema/favoritefeed');
 const {controller, controllerLoggedIn} = require('./controller');
 const mongoose = require('mongoose');
 const uploadS3 = require('../common/uploadS3');
@@ -254,6 +255,74 @@ router.post('/createMissingReport', (req, res) => {
 router.post('/deleteMissingReport', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		await Feed.model.deleteMany({feed_content: {$regex: req.body.feed_content_for_delete}}).lean();
+		res.json({status: 200, msg: 'ok'});
+	});
+});
+
+//즐겨찾기 한 게시물이 존재하는 데이터 출력
+router.post('/findFavoriteDataDeleted', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let feedlist = await FavoriteFeed.model.find({}).lean();
+		let match_query = {};
+		match_query['favorite_feed_id'] = {$ne: []};
+
+		favoritefeedlist = await FavoriteFeed.model.aggregate([
+			//데이터가 ObjectId로 안되어 있고 단순 string 일때 반드시 addFields를 통해 toObjectId를 진행하도록 한다.
+			{$addFields: {favorite_feed_id: {$toObjectId: '$favorite_feed_id'}}},
+			{
+				$lookup: {
+					from: 'feedobjects',
+					localField: 'favorite_feed_id',
+					foreignField: '_id',
+					as: 'favorite_feed_id',
+				},
+			},
+			{
+				$unwind: '$favorite_feed_id',
+			},
+			{
+				$match: match_query,
+			},
+		]);
+
+		console.log('favoritefeedlist=>', favoritefeedlist);
+
+		res.json({status: 200, msg: 'ok'});
+	});
+});
+
+//즐겨찾기한 게시물이 존재하지 않을 경우 삭제
+router.post('/deleteFavoriteDataDleted', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let feedlist = await FavoriteFeed.model.find({}).lean();
+		let match_query = {};
+		match_query['favorite_feed_id'] = {$ne: []};
+
+		favoritefeedlist = await FavoriteFeed.model.aggregate([
+			//데이터가 ObjectId로 안되어 있고 단순 string 일때 반드시 addFields를 통해 toObjectId를 진행하도록 한다.
+			{$addFields: {favorite_feed_id: {$toObjectId: '$favorite_feed_id'}}},
+			{
+				$lookup: {
+					from: 'feedobjects',
+					localField: 'favorite_feed_id',
+					foreignField: '_id',
+					as: 'favorite_feed_id',
+				},
+			},
+			{
+				$unwind: '$favorite_feed_id',
+			},
+			{
+				$match: match_query,
+			},
+		]);
+
+		let tempArray = Array();
+		for (let i = 0; i < favoritefeedlist.length; i++) {
+			tempArray.push(favoritefeedlist[i]._id);
+		}
+		console.log(tempArray);
+		await FavoriteFeed.model.deleteMany({_id: {$nin: tempArray}}).lean();
 		res.json({status: 200, msg: 'ok'});
 	});
 });

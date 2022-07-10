@@ -200,3 +200,47 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /maketestdata/findFavoriteDataDeleted:
+    post:
+      tags:
+        - maketestdata
+      summary: 삭제된 피드 게시물을 즐겨찾기한 데이터 찾기
+      description: 삭제된 피드 게시물을 즐겨찾기한 데이터 찾기
+      operationId: findFavoriteDataDeleted
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /maketestdata/deleteFavoriteDataDleted:
+    post:
+      tags:
+        - maketestdata
+      summary: 삭제된 피드 게시물을 즐겨찾기한 데이터 삭제
+      description: 삭제된 피드 게시물을 즐겨찾기한 데이터 삭제
+      operationId: deleteFavoriteDataDleted
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
