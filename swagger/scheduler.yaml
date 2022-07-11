@@ -124,3 +124,25 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /scheduler/startMachingUploadNumber:
+    post:
+      tags:
+        - scheduler
+      summary: 사용자 업로드 수 매칭 시키기
+      description: 사용자 업로드 수 매칭 시키기
+      operationId: startMachingUploadNumber
+      requestBody:
+        description: 사용자 업로드 수 매칭 시키기
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'

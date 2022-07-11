@@ -60,7 +60,7 @@ let publicData = cron.schedule('0 23,1,2,4,5,7,8,10,11,13 * * *', function () {
 });
 
 //공공데이터 포털 데이터 가져오기(WANT_END_DAY 전부터 어제 날짜까지 진행)
-let publicData_pre = cron.schedule('0 21,0,3,6,9,12 * * *', function () {
+let publicData_pre = cron.schedule('0 21,3,6,9,12 * * *', function () {
 	let now = new Date(); // 오늘
 	nowformat = new Date(+now + 3240 * 10000).toISOString().split('T')[0].replace(/[-]/g, '');
 	console.log('nowformat=>', nowformat);
@@ -77,6 +77,11 @@ let publicData_pre = cron.schedule('0 21,0,3,6,9,12 * * *', function () {
 	} else {
 		console.log('3개월치 데이터 스케줄러 실행 ------------------------------');
 	}
+});
+
+//사용자 업로드 개수 매칭 시키기
+let machingUpload = cron.schedule('40 * * * *', function () {
+	userMachingUploadNumber();
 });
 
 //request 모듈을 통해 데이터를 공공데이터 포털로부터 가져옴.
@@ -377,18 +382,63 @@ async function makeDocAndInsertDB(data, userobject_id) {
 
 async function machingUploadNumber(userObjectId) {
 	//업로드 게시물 개수 업데이트
-	let feedCount = await Feed.model.find({feed_writer_id: userObjectId}).where('feed_is_delete').ne(true).count();
-	let communityCount = await Community.model.find({community_writer_id: userObjectId}).where('community_is_delete').ne(true).count();
+	// let feedCount = await Feed.model.find({feed_writer_id: userObjectId}).where('feed_is_delete').ne(true).count();
+	// let communityCount = await Community.model.find({community_writer_id: userObjectId}).where('community_is_delete').ne(true).count();
+	// let protectRequestCount = await ProtectRequest.model
+	// 	.find({protect_request_writer_id: userObjectId})
+	// 	.where('protect_request_is_delete')
+	// 	.ne(true)
+	// 	.count();
+	// let totalCount = feedCount + communityCount + protectRequestCount;
+	// let countUpdate = await User.model
+	// 	.findOneAndUpdate(
+	// 		{
+	// 			_id: userObjectId,
+	// 		},
+	// 		{
+	// 			$set: {
+	// 				user_upload_count: totalCount,
+	// 			},
+	// 			$currentDate: {feed_update_date: true},
+	// 		},
+	// 		{new: true, upsert: true},
+	// 	)
+	// 	.lean();
+
+	let writer_id = userObjectId;
+
+	let feedCount = await Feed.model
+		.find({
+			$and: [{feed_type: 'feed'}, {feed_avatar_id: writer_id}],
+		})
+		.where('feed_is_delete')
+		.ne(true)
+		.count()
+		.lean();
+
+	let report_missingCount = await Feed.model
+		.find({
+			$and: [{feed_type: {$in: ['report', 'missing']}}, {feed_writer_id: writer_id}],
+		})
+		.where('feed_is_delete')
+		.ne(true)
+		.count()
+		.lean();
+
 	let protectRequestCount = await ProtectRequest.model
-		.find({protect_request_writer_id: userObjectId})
+		.find({protect_request_writer_id: writer_id})
 		.where('protect_request_is_delete')
 		.ne(true)
-		.count();
-	let totalCount = feedCount + communityCount + protectRequestCount;
+		.count()
+		.lean();
+
+	let communityCount = await Community.model.find({community_writer_id: writer_id}).where('community_is_delete').ne(true).count();
+	let totalCount = feedCount + report_missingCount + protectRequestCount + communityCount;
+
 	let countUpdate = await User.model
 		.findOneAndUpdate(
 			{
-				_id: userObjectId,
+				_id: writer_id,
 			},
 			{
 				$set: {
@@ -966,5 +1016,26 @@ async function scheduler_getProtectRequestFromPublicData(bgnde_str, endde_str) {
 		}
 	}
 }
+
+async function userMachingUploadNumber() {
+	let targetUser = await User.model.find({}).lean();
+	let totalLen = targetUser.length;
+	console.log('totalLen=>', totalLen);
+	try {
+		for (let i = 0; i < totalLen; i++) {
+			await machingUploadNumber(targetUser[i]._id);
+		}
+	} catch (error) {
+		console.log('error=>', error);
+	}
+	console.log('---사용자 업로드 개수 일치시키기---', totalLen, '개 완료!');
+}
+
+router.post('/startMachingUploadNumber', (req, res) => {
+	controller(req, res, async () => {
+		await userMachingUploadNumber();
+		res.json({status: 200, msg: '실행 =>'});
+	});
+});
 
 module.exports = router;
