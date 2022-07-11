@@ -765,7 +765,7 @@ router.post('/getSearchResultProtectRequestImprovingV1', (req, res) => {
 			// send_query['protect_animal_noticeNo'] = {$gt: req.body.target_protect_animal_noticeNo};
 		}
 		send_query['protect_request_is_delete'] = {$ne: true};
-		console.log('send_query=>', send_query);
+		// console.log('send_query=>', send_query);
 		result = await ProtectRequest.model.aggregate([
 			{$match: send_query},
 			{$sort: {protect_request_date: -1, protect_animal_noticeNo: 1}},

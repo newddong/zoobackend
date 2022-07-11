@@ -184,7 +184,7 @@ router.post('/getCommunityList', (req, res) => {
 		}
 
 		query['community_type'] = 'review';
-		console.log('query=>', query);
+		// console.log('query=>', query);
 		console.time();
 		community = await Community.model
 			.find(query, {community_is_temporary: 0, type: 0})
@@ -613,7 +613,7 @@ router.post('/getReviewListMore', (req, res) => {
 		}
 
 		query['community_type'] = 'review';
-		console.log('query=>', query);
+		// console.log('query=>', query);
 		let communiuty_more_list1;
 		let communiuty_more_list2;
 		let communiuty_more_list3;

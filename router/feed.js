@@ -963,7 +963,6 @@ router.post('/getSuggestFeedList', (req, res) => {
 					break;
 			}
 		} else {
-			console.log('--이곳에 진인--');
 			feed = await Feed.model
 				.find(query)
 				.where('feed_is_delete')
