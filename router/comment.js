@@ -101,11 +101,12 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 		if (checkNotice != null && checkNotice.notice_my_post != null && checkNotice.notice_my_post) {
 			//부모 댓글과 대댓글을 남긴 사람이 같을 경우 게시물에 대한 알림 메세지를 담지 않는다.
 			if (
-				parentComment != undefined &&
-				parentComment._id != req.session.loginUser &&
-				req.body.commentobject_id != null &&
-				!mongoose.Types.ObjectId(parentComment.comment_writer_id).equals(mongoose.Types.ObjectId(req.session.loginUser))
+				parentComment != undefined && //부모댓글이 있다는 뜻 (현재 대댓글임)
+				parentComment._id != req.session.loginUser && //로그인 아이디가 부모 댓글 아이디가 아니라 뜻. (같은 사람이 댓글을 쓰고 대댓글을 쓴게 아니란 뜻)
+				req.body.commentobject_id != null && //댓글 아이디가 존재한다는 뜻
+				!mongoose.Types.ObjectId(parentComment.comment_writer_id).equals(mongoose.Types.ObjectId(req.session.loginUser)) //부모 댓글 아이디와 현재 로그인한 아이디(대댓글 아이디)가 같지 않을 경우
 			) {
+				console.log('1111111111111111111');
 				let select_opponent = await User.model.findById(parentComment.comment_writer_id);
 				let select_loginUser = await User.model.findById(req.session.loginUser);
 				let noticeUser = NoticeUser.makeNewdoc({
@@ -132,7 +133,7 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 			}
 			//게시글을 작성한 사용자와 댓글을 남기는 사람이 같을 경우 게시물에 대한 알림 메세지를 담지 않는다.
 			if (
-				(writer_id != req.session.loginUser && parentComment == undefined) ||
+				(writer_id != req.session.loginUser && parentComment == undefined) || //게시물 작성자와 댓글을 남기는 사용자가 같지 않을 경우 && 대댓글이 아닌 경우
 				(parentComment != undefined &&
 					parentComment.comment_writer_id != req.session.loginUser &&
 					!mongoose.Types.ObjectId(writer_id).equals(mongoose.Types.ObjectId(parentComment.comment_writer_id)))
@@ -141,8 +142,7 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 
 				let select_opponent = await User.model.findById(writer_id);
 				let select_loginUser = await User.model.findById(req.session.loginUser);
-				if (comment.comment_is_secure == true) {
-					console.log('비밀댓글 진행 ---');
+				if (comment.comment_is_secure == true && writer_id != req.session.loginUser && parentComment != undefined) {
 					contents_kor = select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + '님의 게시물에 비밀댓글을 남겼습니다.';
 				} else {
 					contents_kor =
