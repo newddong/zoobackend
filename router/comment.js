@@ -106,7 +106,6 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 				req.body.commentobject_id != null && //댓글 아이디가 존재한다는 뜻
 				!mongoose.Types.ObjectId(parentComment.comment_writer_id).equals(mongoose.Types.ObjectId(req.session.loginUser)) //부모 댓글 아이디와 현재 로그인한 아이디(대댓글 아이디)가 같지 않을 경우
 			) {
-				console.log('1111111111111111111');
 				let select_opponent = await User.model.findById(parentComment.comment_writer_id);
 				let select_loginUser = await User.model.findById(req.session.loginUser);
 				let noticeUser = NoticeUser.makeNewdoc({
