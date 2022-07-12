@@ -914,6 +914,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 						.ne(true)
 						.populate('feed_writer_id')
 						.populate('feed_avatar_id')
+						.populate('feed_recent_comment.comment_id')
 						.sort('-_id')
 						.limit(limit)
 						.lean();
@@ -928,6 +929,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 						.ne(true)
 						.populate('feed_writer_id')
 						.populate('feed_avatar_id')
+						.populate('feed_recent_comment.comment_id')
 						.sort('_id')
 						.limit(limit)
 						.lean();
@@ -942,6 +944,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 						.ne(true)
 						.populate('feed_writer_id')
 						.populate('feed_avatar_id')
+						.populate('feed_recent_comment.comment_id')
 						.sort('-_id')
 						.limit(limit + 1)
 						.lean();
@@ -957,6 +960,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 						.ne(true)
 						.populate('feed_writer_id')
 						.populate('feed_avatar_id')
+						.populate('feed_recent_comment.comment_id')
 						.sort('-_id')
 						.limit(limit)
 						.lean();
@@ -969,6 +973,7 @@ router.post('/getSuggestFeedList', (req, res) => {
 				.ne(true)
 				.populate('feed_writer_id')
 				.populate('feed_avatar_id')
+				.populate('feed_recent_comment.comment_id')
 				.sort('-_id')
 				.limit(limit)
 				.lean();
@@ -1030,22 +1035,34 @@ router.post('/getSuggestFeedList', (req, res) => {
 			});
 
 			feed = Array();
-			feed = JSON.parse(JSON.stringify(tempFeed));
+			feed = JSON.parse(JSON.stringify(tempFeed)); //배열깊은복사
 		}
 
-		//로그인 상태에서만 is_favorite 표출
+		//로그인 상태에서만 is_favorite 표출 & 비밀 댓글일 경우 안보이게 하기
 		if (req.session.loginUser) {
 			let favoritedFeedList = [];
 			//내가 즐겨찾기를 누른 데이터 불러오기
 			favoritedFeedList = await FavoriteFeed.model.find({favorite_feed_user_id: req.session.loginUser, favorite_feed_is_delete: false}).lean();
 
 			feed = feed.map(feed => {
+				//비밀 댓글이고, 게시물 작성자와 댓글 작성자가 같으면 보여줌
+				//비밀 댓글이고, 로그인 아이디와 댓글 작성자가 같으면 보여줌
+				//비밀 댓글이고, 대댓글이 아닐 경우
+
 				if (favoritedFeedList.find(favoritedFeed => favoritedFeed.favorite_feed_id == feed._id)) {
 					return {...feed, is_favorite: true};
 				} else {
 					return {...feed, is_favorite: false};
 				}
 			});
+		} else {
+			//로그인을 안했을 경우 비밀 댓글은 모두 보이지 않도록 한다.
+			let feedLength = feed.length;
+			for (let i = 0; i < feedLength; i++) {
+				if (feed[i].feed_recent_comment != undefined) {
+					feed[i].feed_recent_comment = undefined;
+				}
+			}
 		}
 
 		feed = feed.map(feed => {
