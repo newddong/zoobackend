@@ -142,6 +142,7 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 				let select_opponent = await User.model.findById(writer_id);
 				let select_loginUser = await User.model.findById(req.session.loginUser);
 				if (comment.comment_is_secure == true) {
+					console.log('비밀댓글 진행 ---');
 					contents_kor = select_loginUser.user_nickname + '님이 ' + select_opponent.user_nickname + '님의 게시물에 비밀댓글을 남겼습니다.';
 				} else {
 					contents_kor =
