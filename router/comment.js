@@ -45,9 +45,10 @@ router.post('/createComment', uploadS3.single('comment_photo_uri'), (req, res) =
 			let targetFeed = await Feed.model.findById(req.body.feedobject_id);
 			let comment_cnt = await Comment.model.find({comment_feed_id: req.body.feedobject_id}).where('comment_is_delete').ne(true).count();
 			if (targetFeed) {
-				targetFeed.feed_recent_comment.comment_id = comment._id; //게시물에 달린 최신 댓글 설정(1개까지)
-				targetFeed.feed_recent_comment.comment_user_nickname = req.session.user_nickname; //코멘트 작성자의 닉네임
-				targetFeed.feed_recent_comment.comment_contents = comment.comment_contents; //코멘트 내용
+				//피드에서 최신 댓글 노출은 없애도록 협의(20220714-비밀댓글 및 작성자와의 관계에 따른 로직 복잡이유)
+				// targetFeed.feed_recent_comment.comment_id = comment._id; //게시물에 달린 최신 댓글 설정(1개까지)
+				// targetFeed.feed_recent_comment.comment_user_nickname = req.session.user_nickname; //코멘트 작성자의 닉네임
+				// targetFeed.feed_recent_comment.comment_contents = comment.comment_contents; //코멘트 내용
 				targetFeed.feed_comment_count = comment_cnt + 1;
 				comment.comment_feed_writer_id = targetFeed.feed_writer_id; //댓글이 달린 피드의 작성자를 설정(Secure기능을 이용하기 위함)
 				writer_id = targetFeed.feed_writer_id;
