@@ -327,4 +327,12 @@ router.post('/deleteFavoriteDataDleted', (req, res) => {
 	});
 });
 
+//피드에서 최신 댓글 노출
+router.post('/deleteRecentComment', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let result = await Feed.model.update({}, {$unset: {feed_recent_comment: true}}).exec();
+		res.json({status: 200, msg: 'ok'});
+	});
+});
+
 module.exports = router;
