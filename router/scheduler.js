@@ -80,9 +80,9 @@ let publicData_pre = cron.schedule('0 21,3,6,9,12 * * *', function () {
 });
 
 //사용자 업로드 개수 매칭 시키기
-let machingUpload = cron.schedule('40 * * * *', function () {
-	userMachingUploadNumber();
-});
+// let machingUpload = cron.schedule('40 * * * *', function () {
+// 	userMachingUploadNumber();
+// });
 
 //request 모듈을 통해 데이터를 공공데이터 포털로부터 가져옴.
 async function getAbandonedPetFromPublicData(options) {
