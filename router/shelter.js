@@ -242,6 +242,9 @@ router.post('/getProtectRequestListByShelterId', (req, res) => {
 			return;
 		}
 
+		let favorited_cnt = await ProtectRequest.model.find(filterObj).where('protect_request_is_delete').ne(true).count().exec();
+
+		let total_count = favorited_cnt;
 		let favoritedProtectRequestList = [];
 		if (req.session.loginUser) {
 			favoritedProtectRequestList = await FavoriteEtc.model.find({favorite_etc_user_id: req.session.loginUser, favorite_etc_is_delete: false}).lean();
@@ -256,7 +259,7 @@ router.post('/getProtectRequestListByShelterId', (req, res) => {
 			});
 		}
 
-		res.json({status: 200, msg: protectRequestList});
+		res.json({status: 200, total_count: total_count, msg: protectRequestList});
 	});
 });
 
