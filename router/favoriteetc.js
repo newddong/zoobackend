@@ -103,6 +103,7 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 		send_query['favorite_etc_collection_name'] = collectionName;
 
 		//favorite_etc_target_object_id 값이 [] 라는 것은 조인했을때 해당되는 _id값이 없다는 것(즉, 삭제된 데이터)
+		//조인하기 전에는 _id값에 해당하는 값이 null인지 알 수 없기 때문에 이와 같은 방법을 진행
 		match_query['favorite_etc_target_object_id'] = {$ne: []};
 
 		//즐겨찾기 목록이 커뮤니티 컬렉션이고 community_type 값이 정의 되어 있을때 진행
@@ -110,31 +111,41 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 			match_query['favorite_etc_target_object_id.community_type'] = req.body.community_type;
 		}
 
-		feedEtclist = await FavoriteEtc.model.aggregate([
-			{
-				$match: send_query,
-			},
-			{$sort: {favorite_etc_update_date: -1}},
-			//데이터가 ObjectId로 안되어 있고 단순 string 일때 반드시 addFields를 통해 toObjectId를 진행하도록 한다.
-			{$addFields: {favorite_etc_target_object_id: {$toObjectId: '$favorite_etc_target_object_id'}}},
-			{
-				$lookup: {
-					from: collectionName,
-					localField: 'favorite_etc_target_object_id',
-					foreignField: '_id',
-					as: 'favorite_etc_target_object_id',
-				},
-			},
-			{
-				$unwind: '$favorite_etc_target_object_id',
-			},
-			{
-				$match: match_query,
-			},
-			{$skip: skip},
-			{$limit: limit},
-		]);
+		// feedEtclist = await FavoriteEtc.model.aggregate([
+		// 	{
+		// 		$match: send_query,
+		// 	},
+		// 	{$sort: {favorite_etc_update_date: -1}},
+		// 	//데이터가 ObjectId로 안되어 있고 단순 string 일때 반드시 addFields를 통해 toObjectId를 진행하도록 한다.
+		// 	{$addFields: {favorite_etc_target_object_id: {$toObjectId: '$favorite_etc_target_object_id'}}},
+		// 	{
+		// 		$lookup: {
+		// 			from: collectionName,
+		// 			localField: 'favorite_etc_target_object_id',
+		// 			foreignField: '_id',
+		// 			as: 'favorite_etc_target_object_id',
+		// 		},
+		// 	},
+		// 	{
+		// 		$unwind: '$favorite_etc_target_object_id',
+		// 	},
+		// 	{
+		// 		$match: match_query,
+		// 	},
+		// 	{$skip: skip},
+		// 	{$limit: limit},
+		// ]);
+
 		console.time();
+		//이중 populate 때문에 구문 변경
+		feedEtclist = await FavoriteEtc.model
+			.find(send_query)
+			.populate({path: 'favorite_etc_target_object_id', model: Schema.model.modelName, populate: {path: 'protect_request_writer_id'}})
+			.skip(skip)
+			.limit(limit)
+			.sort('-_id')
+			.lean();
+
 		let total_count = await FavoriteEtc.model.aggregate([
 			{
 				$match: send_query,
@@ -163,6 +174,7 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 		if (total_count.length > 0) {
 			total_count = total_count[0].total_count;
 		} else total_count = 0;
+
 		console.timeEnd();
 
 		let followList = [];
@@ -217,6 +229,7 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 				}
 			});
 		}
+
 		res.json({status: 200, total_count: total_count, msg: feedEtclist});
 	});
 });
