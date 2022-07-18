@@ -38,21 +38,22 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 		if (req.files && req.files.length > 0) {
 			let feedMedia = typeof req.body.feed_medias == 'string' ? JSON.parse(req.body.feed_medias) : req.body.feed_medias;
 
-			feed.feed_medias = req.files.map((v, i) => {
-				if(i>feedMedia.length-1)return false;
-				let result = feedMedia[i];
-				if(result){
-					result.media_uri = v.location;
-				}
-				return result;
-			}).filter(v=>v);
-			
-			if(req.files.length>feed.feed_medias.length){
-				feed.feed_thumbnail = req.files[req.files.length-1].location;
-			}else{
+			feed.feed_medias = req.files
+				.map((v, i) => {
+					if (i > feedMedia.length - 1) return false;
+					let result = feedMedia[i];
+					if (result) {
+						result.media_uri = v.location;
+					}
+					return result;
+				})
+				.filter(v => v);
+
+			if (req.files.length > feed.feed_medias.length) {
+				feed.feed_thumbnail = req.files[req.files.length - 1].location;
+			} else {
 				feed.feed_thumbnail = feed.feed_medias[0].media_uri;
 			}
-			
 
 			feed.feed_medias.forEach(v => {
 				v.tags.forEach(v => {
@@ -127,13 +128,21 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 });
 
 async function createHash(hashKeyword, documentId) {
+	//키워드로 hash_id를 얻어온다.
+	let hash_id = await Hash.model.findOne({hashtag_keyword: hashKeyword}).select('_id').lean();
+	//얻어온 hash_id로 개수를 알아냄.
+	let hashCnt = await HashFeed.model.find({hashtag_id: hash_id}).where('hashtag_is_delete').ne(true).count().lean();
+	// let hash = await Hash.model
+	// 	.findOneAndUpdate(
+	// 		{hashtag_keyword: hashKeyword},
+	// 		{$set: {hashtag_keyword: hashKeyword}, $inc: {hashtag_feed_count: 1}},
+	// 		{new: true, upsert: true},
+	// 	)
+	// 	.exec();
 	let hash = await Hash.model
-		.findOneAndUpdate(
-			{hashtag_keyword: hashKeyword},
-			{$set: {hashtag_keyword: hashKeyword}, $inc: {hashtag_feed_count: 1}},
-			{new: true, upsert: true},
-		)
+		.findOneAndUpdate({hashtag_keyword: hashKeyword}, {$set: {hashtag_keyword: hashKeyword, hashtag_feed_count: hashCnt}}, {new: true, upsert: true})
 		.exec();
+
 	let hashfeed = await HashFeed.makeNewdoc({
 		hashtag_id: hash._id,
 		hashtag_feed_id: documentId,
@@ -1151,16 +1160,15 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 		 * 업데이트 요청에는 없으나 db상의 hashtag리스트에 있을때 - hashtag를 db에서 삭제
 		 * 요청과 db에 모두 존재할때 - db에서 hashtag정보를 변경하지 않음
 		 */
-		if(req.files && req.files.length > 0){
-			console.log('수정 썸네일',req.files)
-			let isVideoThumb = !targetFeed.feed_medias.some(media=>media.media_uri == req.files[req.files.length-1].originalname)
-			if(isVideoThumb){
-				
-				targetFeed.feed_thumbnail = req.files[req.files.length-1].location;
-				console.log('썸네일 수정함',targetFeed.feed_thumbnail)
-			}else{
+		if (req.files && req.files.length > 0) {
+			console.log('수정 썸네일', req.files);
+			let isVideoThumb = !targetFeed.feed_medias.some(media => media.media_uri == req.files[req.files.length - 1].originalname);
+			if (isVideoThumb) {
+				targetFeed.feed_thumbnail = req.files[req.files.length - 1].location;
+				console.log('썸네일 수정함', targetFeed.feed_thumbnail);
+			} else {
 				targetFeed.feed_thumbnail = targetFeed.feed_medias[0].media_uri;
-				console.log('썸네일 수정 안함',targetFeed.feed_thumbnail)
+				console.log('썸네일 수정 안함', targetFeed.feed_thumbnail);
 			}
 		}
 		//피드 썸네일을 피드의 이미지 리스트중 가장 먼저인 이미지로 설정
