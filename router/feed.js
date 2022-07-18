@@ -130,7 +130,16 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 async function createHash(hashKeyword, documentId) {
 	//키워드로 hash_id를 얻어온다.
 	let hash_id = await Hash.model.findOne({hashtag_keyword: hashKeyword}).select('_id').lean();
-	//얻어온 hash_id로 개수를 알아냄.
+
+	//HashTagFeedObject 컬렉션에 키워드에 해당되는 hash insert 함.
+	let hashfeed = await HashFeed.makeNewdoc({
+		hashtag_id: hash_id._id,
+		hashtag_feed_id: documentId,
+		hashtag_protect_request_id: documentId,
+	});
+	await hashfeed.save();
+
+	//hash_id로 현재 추가된 개수까지 카운트 해옴.
 	let hashCnt = await HashFeed.model.find({hashtag_id: hash_id}).where('hashtag_is_delete').ne(true).count().lean();
 	// let hash = await Hash.model
 	// 	.findOneAndUpdate(
@@ -139,16 +148,11 @@ async function createHash(hashKeyword, documentId) {
 	// 		{new: true, upsert: true},
 	// 	)
 	// 	.exec();
+
+	//올바르게 카운트한 값을 업데이트 시킴
 	let hash = await Hash.model
 		.findOneAndUpdate({hashtag_keyword: hashKeyword}, {$set: {hashtag_keyword: hashKeyword, hashtag_feed_count: hashCnt}}, {new: true, upsert: true})
 		.exec();
-
-	let hashfeed = await HashFeed.makeNewdoc({
-		hashtag_id: hash._id,
-		hashtag_feed_id: documentId,
-		hashtag_protect_request_id: documentId,
-	});
-	await hashfeed.save();
 }
 
 async function deleteHash(hashKeyword, documentId) {
@@ -1530,6 +1534,34 @@ router.post('/deleteFeed', (req, res) => {
 			)
 			.lean();
 
+		//내용에 해시태그가 추가되어 있다면 모두 '삭제'로 변경
+		let hashTagsresult = await HashFeed.model
+			.updateMany(
+				{
+					hashtag_feed_id: req.body.feed_object_id,
+				},
+				{$set: {hashtag_is_delete: true, hashtag_feed_update_date: Date.now()}},
+				{new: true, upsert: true, setDefaultsOnInsert: true},
+			)
+			.lean();
+		//피드게시물에 게시된 해시태그 리스트 불러오기
+		let hasgTagList = await HashFeed.model.find({hashtag_feed_id: req.body.feed_object_id}).lean();
+
+		//삭제대상 게시물에 해시태그가 존재할 경우 해당 해시태그의 카운트를 수정한다.
+		if (hasgTagList.length > 0) {
+			for (let i = 0; i < hasgTagList.length; i++) {
+				//hashtagfeedobjects 컬렉션에서 hashtag_id에 해당되는 개수를 얻어
+				console.log('hasgTagList[i].hashtag_id=>', hasgTagList[i].hashtag_id);
+				let count = await HashFeed.model.find({hashtag_id: hasgTagList[i].hashtag_id}).where('hashtag_is_delete').ne(true).count().lean();
+				// console.log('count=>', count);
+				let countresut = await Hash.model.findOneAndUpdate(
+					{_id: hasgTagList[i].hashtag_id},
+					{$set: {hashtag_feed_count: count}},
+					{new: true, upsert: true, setDefaultsOnInsert: true},
+				);
+				// console.log('countresut=>', countresut);
+			}
+		}
 		res.json({status: 200, msg: feedResult});
 	});
 });
