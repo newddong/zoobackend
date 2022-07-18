@@ -140,7 +140,7 @@ async function createHash(hashKeyword, documentId) {
 	await hashfeed.save();
 
 	//hash_id로 현재 추가된 개수까지 카운트 해옴.
-	let hashCnt = await HashFeed.model.find({hashtag_id: hash_id}).where('hashtag_is_delete').ne(true).count().lean();
+	let hashCnt = await HashFeed.model.find({hashtag_id: hash_id}).where('hashtag_is_delete').ne(true).count().exec();
 	// let hash = await Hash.model
 	// 	.findOneAndUpdate(
 	// 		{hashtag_keyword: hashKeyword},
