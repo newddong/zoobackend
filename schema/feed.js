@@ -147,6 +147,9 @@ const FeedObject = {
 
 	/** @type { String} 게시글 공개여부 */
 	feed_public_type: {type: String, default: 'public'},
+
+	/** @type {Array.<String>} 피드 내용에 있는 해시 리스트 */
+	feed_hashtag_member: [{type: Schema.Types.ObjectId, ref: 'HashTagObject'}],
 };
 
 /** @type {mongoose.Schema} */
