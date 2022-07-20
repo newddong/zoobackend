@@ -335,7 +335,7 @@ async function dateFormatForBetween(str) {
 	return year + '-' + month + '-' + day;
 }
 
-//동물보호 수집 날짜별 카운트 진행
+//동물보호 수집 날짜별 카운트 진행 - 작성중s
 router.post('/deleteMissingReport', (req, res) => {
 	controllerLoggedIn(req, res, async () => {
 		date_notice_sdt = new Date(await dateFormatForBetween(notice_sdt));
@@ -346,6 +346,13 @@ router.post('/deleteMissingReport', (req, res) => {
 			.find({user_register_date: {$gte: ISODate('2022-07-12'), $lt: ISODate('2022-07-11')}})
 			.count()
 			.lean();
+	});
+});
+
+//피드에서 최신 댓글 노출
+router.post('/deleteRecentComment', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		let result = await Feed.model.update({}, {$unset: {feed_recent_comment: true}}).exec();
 		res.json({status: 200, msg: 'ok'});
 	});
 });
