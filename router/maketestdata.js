@@ -10,6 +10,7 @@ const uploadS3 = require('../common/uploadS3');
 var s3config = require('../common/awsconfig');
 var AWS = require('aws-sdk');
 var mime = require('mime-types');
+const ProtectRequest = require('../schema/protectrequest');
 
 //커뮤니티 자유글 생성
 router.post('/createCommunityFree', (req, res) => {
@@ -323,6 +324,28 @@ router.post('/deleteFavoriteDataDleted', (req, res) => {
 		}
 		console.log(tempArray);
 		await FavoriteFeed.model.deleteMany({_id: {$nin: tempArray}}).lean();
+		res.json({status: 200, msg: 'ok'});
+	});
+});
+
+async function dateFormatForBetween(str) {
+	let year = str.substr(0, 4);
+	let month = str.substr(4, 2);
+	let day = str.substr(6);
+	return year + '-' + month + '-' + day;
+}
+
+//동물보호 수집 날짜별 카운트 진행
+router.post('/deleteMissingReport', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		date_notice_sdt = new Date(await dateFormatForBetween(notice_sdt));
+		date_notice_edt = new Date(await dateFormatForBetween(notice_edt));
+		send_query['protect_request_date'] = {$gte: date_notice_sdt, $lte: date_notice_edt};
+
+		await ProtectRequest.model
+			.find({user_register_date: {$gte: ISODate('2022-07-12'), $lt: ISODate('2022-07-11')}})
+			.count()
+			.lean();
 		res.json({status: 200, msg: 'ok'});
 	});
 });
