@@ -140,7 +140,7 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 		//이중 populate 때문에 구문 변경
 		feedEtclist = await FavoriteEtc.model
 			.find(send_query)
-			.populate({path: 'favorite_etc_target_object_id', model: Schema.model.modelName, populate: {path: 'protect_request_writer_id'}})
+			.populate({path: 'favorite_etc_target_object_id', model: Schema.model.modelName, populate: {path: writer_id}})
 			.skip(skip)
 			.limit(limit)
 			.sort('-_id')
