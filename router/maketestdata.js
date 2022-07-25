@@ -357,4 +357,45 @@ router.post('/deleteRecentComment', (req, res) => {
 	});
 });
 
+//사용자 비밀번호 암호화 진행
+router.post('/passwordEncrypt', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		const crypto = require('crypto');
+		let loginUser = await User.model.find({}).where('user_is_delete').ne(true).lean();
+
+		for (let i = 0; i < loginUser.length; i++) {
+			// const pw = req.body.login_password;
+			const pw = loginUser[i].user_password + JSON.stringify(loginUser[i].user_register_date);
+			console.log('pw=>', pw);
+
+			const hash = {
+				sha256_base64: crypto.createHash('sha256').update(pw).digest('base64'),
+			};
+
+			let key = Object.keys(hash);
+			// for (key in hash) {
+			// 	console.log(`${key} \t : \t ${hash[key]}`);
+			// }
+			console.log(`hash[key]=>`, hash[key]);
+
+			let countUpdate = await User.model
+				.findOneAndUpdate(
+					{
+						_id: loginUser[i]._id,
+					},
+					{
+						$set: {
+							user_password: hash[key],
+						},
+						$currentDate: {feed_update_date: true},
+					},
+					{new: true, upsert: true},
+				)
+				.lean();
+		}
+
+		res.json({status: 200, msg: 'ok'});
+	});
+});
+
 module.exports = router;

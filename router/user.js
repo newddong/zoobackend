@@ -44,13 +44,27 @@ router.post('/userLogin', (req, res) => {
 		// 	return;
 		// }
 
-		let loginUser = await User.model.findOne().where('user_phone_number').equals(req.body.login_id);
+		let loginUser = await User.model.findOne().where('user_phone_number').equals(req.body.login_id).where('user_is_delete').ne(true).exec();
 
 		if (!loginUser) {
 			res.json({status: 404, msg: USER_NOT_FOUND});
 			return;
 		}
-		let isValidPassword = loginUser.user_password == req.body.login_password;
+
+		const crypto = require('crypto');
+		const pw = req.body.login_password + JSON.stringify(loginUser.user_register_date);
+
+		const hash = {
+			sha256_base64: crypto.createHash('sha256').update(pw).digest('base64'),
+		};
+
+		let key = Object.keys(hash);
+		for (key in hash) {
+			console.log(`${key} \t : \t ${hash[key]}`);
+		}
+
+		let isValidPassword = loginUser.user_password == hash[key];
+
 		if (!isValidPassword) {
 			res.json({status: 404, msg: USER_PASSWORD_NOT_VALID});
 			return;
