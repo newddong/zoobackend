@@ -100,7 +100,6 @@ router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 			res.json({status: 200, msg: ALERT_DUPLICATE_NICKNAME});
 			return;
 		}
-
 		const user = await User.makeNewdoc({
 			user_agreement: typeof req.body.user_agreement == 'string' ? JSON.parse(req.body.user_agreement) : req.body.user_agreement,
 			user_address: typeof req.body.user_address == 'string' ? JSON.parse(req.body.user_address) : req.body.user_address,
@@ -114,6 +113,34 @@ router.post('/assignUser', uploadS3.single('user_profile_uri'), (req, res) => {
 			user_interests: new Object(),
 		});
 		const newUser = await user.save();
+
+		//패스워드 암호화 진행
+		const crypto = require('crypto');
+		let loginUser = await User.model.findOne({user_phone_number: newUser.user_phone_number}).where('user_is_delete').ne(true).lean();
+		const pw = newUser.user_password + JSON.stringify(loginUser.user_register_date);
+
+		const hash = {
+			sha256_base64: crypto.createHash('sha256').update(pw).digest('base64'),
+		};
+
+		let key = Object.keys(hash);
+
+		let countUpdate = await User.model
+			.findOneAndUpdate(
+				{
+					user_phone_number: newUser.user_phone_number,
+				},
+				{
+					$set: {
+						user_password: hash[key],
+					},
+					$currentDate: {feed_update_date: true},
+				},
+				{new: true, upsert: true},
+			)
+			.where('user_is_delete')
+			.ne(true)
+			.lean();
 
 		res.json({status: 200, msg: newUser});
 	});
@@ -1322,12 +1349,24 @@ router.post('/getSMSimpcode', (req, res) => {
 //비밀번호 변경
 router.post('/updateUserPassword', (req, res) => {
 	controller(req, res, async () => {
+		const crypto = require('crypto');
+		let phone_number = req.body.user_phone_number;
+		let new_password = req.body.new_password;
+		let loginUser = await User.model.findOne({user_phone_number: phone_number}).where('user_is_delete').ne(true).lean();
+
+		// const pw = req.body.login_password;
+		const pw = new_password + JSON.stringify(loginUser.user_register_date);
+
+		const hash = {
+			sha256_base64: crypto.createHash('sha256').update(pw).digest('base64'),
+		};
+
+		let key = Object.keys(hash);
+
 		let user = await User.model
-			.findOneAndUpdate(
-				{user_phone_number: req.body.user_phone_number},
-				{$set: {user_password: req.body.new_password}},
-				{new: true, setDefaultsOnInsert: true},
-			)
+			.findOneAndUpdate({user_phone_number: req.body.user_phone_number}, {$set: {user_password: hash[key]}}, {new: true, setDefaultsOnInsert: true})
+			.where('user_is_delete')
+			.ne(true)
 			.exec();
 
 		if (!user) {
@@ -1375,7 +1414,7 @@ router.post('/getAlarmStatus', (req, res) => {
 //사용자 가입 계정 개수
 router.post('/getUserAccountCount', (req, res) => {
 	controller(req, res, async () => {
-		let userCount = await User.model.find({user_phone_number: req.body.user_phone_number}).count();
+		let userCount = await User.model.find({user_phone_number: req.body.user_phone_number}).where('user_is_delete').ne(true).count();
 		res.json({status: 200, msg: userCount + ''});
 	});
 });

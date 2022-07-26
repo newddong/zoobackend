@@ -398,4 +398,47 @@ router.post('/passwordEncrypt', (req, res) => {
 	});
 });
 
+//사용자 비밀번호 암호화 테슽
+router.post('/passwordEncrypt_TEST', (req, res) => {
+	controllerLoggedIn(req, res, async () => {
+		const crypto = require('crypto');
+		let phone_number = req.body.user_phone_number;
+		let new_password = req.body.new_password;
+		let loginUser = await User.model.findOne({user_phone_number: phone_number}).where('user_is_delete').ne(true).lean();
+
+		// const pw = req.body.login_password;
+		const pw = new_password + JSON.stringify(loginUser.user_register_date);
+		console.log('pw=>', pw);
+
+		const hash = {
+			sha256_base64: crypto.createHash('sha256').update(pw).digest('base64'),
+		};
+
+		let key = Object.keys(hash);
+		// for (key in hash) {
+		// 	console.log(`${key} \t : \t ${hash[key]}`);
+		// }
+		console.log(`hash[key]=>`, hash[key]);
+
+		let countUpdate = await User.model
+			.findOneAndUpdate(
+				{
+					user_phone_number: phone_number,
+				},
+				{
+					$set: {
+						user_password: hash[key],
+					},
+					$currentDate: {feed_update_date: true},
+				},
+				{new: true, upsert: true},
+			)
+			.where('user_is_delete')
+			.ne(true)
+			.lean();
+
+		res.json({status: 200, msg: 'ok'});
+	});
+});
+
 module.exports = router;

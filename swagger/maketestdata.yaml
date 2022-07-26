@@ -288,3 +288,35 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /maketestdata/passwordEncrypt_TEST:
+    post:
+      tags:
+        - maketestdata
+      summary: 사용자 비밀번호 암호화 테스트
+      description: 사용자 비밀번호 암호화 테스트
+      operationId: passwordEncrypt_TEST
+      requestBody:
+        description: 요청정보
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - user_phone_number
+                - new_password
+              type: object
+              properties:
+                user_phone_number:
+                  type: string
+                  description: 사용자 폰 번호
+                new_password:
+                  type: string
+                  description: 사용자 패스워드
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
