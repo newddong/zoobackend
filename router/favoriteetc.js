@@ -87,13 +87,15 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 		let writer_id = '';
 
 		//모델 이름에 따른 게시물 작성자 populate 설정 변수 지정
-
 		switch (Schema.model.modelName) {
 			case 'CommunityObject':
 				writer_id = 'community_writer_id';
 				break;
 			case 'ProtectRequestObject':
 				writer_id = 'protect_request_writer_id';
+				break;
+			case 'UserObject':
+				writer_id = '_id';
 				break;
 		}
 
@@ -145,7 +147,6 @@ router.post('/getFavoriteEtcListByUserId', (req, res) => {
 			.limit(limit)
 			.sort('-_id')
 			.lean();
-
 		let total_count = await FavoriteEtc.model.aggregate([
 			{
 				$match: send_query,
