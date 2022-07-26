@@ -1141,10 +1141,14 @@ router.post('/deleteMemoBoxWithUserObjectID', (req, res) => {
 		addDelete.deleted_date = Date.now();
 		memobox_delete_info.push(addDelete);
 
-		//속성에 대입 및 업데이트
+		//쪽지 삭제시 해당되는 알림에 쪽지가 삭제되었음을 전달해야 함. 해당건은 notice_is_delete로 전달
+		//target_object_type는 MemoBoxObject 이며, target_object는 삭제되어야할 쪽지 _id. 해당건의 알림들을 notice_is_delete를 true로 변경.
 		for (let j = 0; j < tempObject.length; j++) {
 			tempObject[j].memobox_delete_info = memobox_delete_info;
 			tempObject[j].save();
+			result = await NoticeUser.model
+				.findOneAndUpdate({target_object: tempObject[j]._id}, {$set: {notice_is_delete: true}}, {new: true, upsert: true, setDefaultsOnInsert: true})
+				.where({target_object_type: 'MemoBoxObject'});
 		}
 
 		res.json({status: 200, msg: tempObject});

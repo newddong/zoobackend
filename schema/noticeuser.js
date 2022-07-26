@@ -27,6 +27,9 @@ const NoticeUserObject = {
 
 	/** @type { Date} 소식 업데이트 날짜 */
 	notice_user_date: {type: Date, default: Date.now()},
+
+	/** @type { Boolean} 소식 삭제 여부 */
+	notice_is_delete: {type: Boolean, default: false},
 };
 
 /** @type {mongoose.Schema} */
