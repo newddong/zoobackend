@@ -1235,13 +1235,16 @@ router.post('/getMemoBoxAllList', (req, res) => {
 				}
 			}
 		}
-
+		resultCheckComplete = Array();
 		for (let i = 0; i < checkComplete.length; i++) {
 			userinfo = await User.model.findById(checkComplete[i].opponent).select('user_nickname user_profile_uri');
+			if (userinfo == null) continue;
 			checkComplete[i].opponent_user_nickname = userinfo.user_nickname;
 			checkComplete[i].opponent_user_profile_uri = userinfo.user_profile_uri;
+			resultCheckComplete.push(checkComplete[i]);
 		}
-
+		checkComplete = Array();
+		checkComplete = JSON.parse(JSON.stringify(resultCheckComplete));
 		res.json({status: 200, msg: checkComplete});
 	});
 });
