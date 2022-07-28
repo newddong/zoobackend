@@ -289,6 +289,12 @@ router.post('/deleteComment', (req, res) => {
 			{new: true, upsert: true, setDefaultsOnInsert: true},
 		);
 
+		//댓글 삭제에 대한 알람 컬렉션의 필드 변경
+		resultNoticeUser = await NoticeUser.model
+			.findOneAndUpdate({notice_object: req.body.commentobject_id}, {$set: {notice_is_delete: true}})
+			.where({notice_object_type: 'CommentObject'})
+			.where({notice_user_related_id: req.session.loginUser});
+
 		if (result.comment_protect_request_id != undefined) {
 			let comment_cnt = await Comment.model
 				.find({comment_protect_request_id: result.comment_protect_request_id})
