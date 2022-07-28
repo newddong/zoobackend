@@ -1148,10 +1148,10 @@ router.post('/deleteMemoBoxWithUserObjectID', (req, res) => {
 			// tempObject[j].memobox_delete_info = memobox_delete_info;
 			// tempObject[j].save();
 			//삭제한 리스트를 메모 데이터에서 추가한다. (기존에는 이미 삭제한 유저 정보를 덮어씌우는 형식이라 로직상 문제가 있었음)
-			await MemoBox.model.updateMany({_id: tempObject[j]._id}, {$push: {memobox_delete_info: addDelete}}).lean();
+			await MemoBox.model.findOneAndUpdate({_id: tempObject[j]._id}, {$push: {memobox_delete_info: addDelete}}).lean();
 
 			result = await NoticeUser.model
-				.findOneAndUpdate({target_object: tempObject[j]._id}, {$set: {notice_is_delete: true}}, {new: true, upsert: true})
+				.findOneAndUpdate({target_object: tempObject[j]._id}, {$set: {notice_is_delete: true}})
 				.where({target_object_type: 'MemoBoxObject'})
 				.where({notice_user_receive_id: req.session.loginUser});
 		}
