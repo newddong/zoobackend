@@ -1204,7 +1204,7 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 			typeof req.body.hashtag_keyword == 'string' ? req.body.hashtag_keyword.replace(/[\[\]\"]/g, '').split(',') : req.body.hashtag_keyword;
 		let previousHashes = await HashFeed.model.find({hashtag_feed_id: targetFeed._id}).populate('hashtag_id').exec();
 
-		let hashMemberLenth = targetFeed.feed_hashtag_member.length;
+		// let hashMemberLenth = targetFeed.feed_hashtag_member.length;
 		// let hasgTagsExists = Array();
 		let keyword_exists = false;
 		let deleted_id;

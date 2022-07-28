@@ -359,7 +359,7 @@ router.post('/deleteRecentComment', (req, res) => {
 
 //사용자 비밀번호 암호화 진행
 router.post('/passwordEncrypt', (req, res) => {
-	controllerLoggedIn(req, res, async () => {
+	controller(req, res, async () => {
 		const crypto = require('crypto');
 		let loginUser = await User.model.find({}).where('user_is_delete').ne(true).lean();
 
