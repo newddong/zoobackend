@@ -138,29 +138,46 @@ router.post('/createFeed', uploadS3.array('media_uri'), (req, res) => {
 async function createHash(hashKeyword, documentId) {
 	//키워드로 hash_id를 얻어온다.
 	let hash_id = await Hash.model.findOne({hashtag_keyword: hashKeyword}).select('_id').lean();
+	let hashfeed;
+	if (hash_id != null) {
+		//HashTagFeedObject 컬렉션에 키워드에 해당되는 hash insert 함.
+		hashfeed = await HashFeed.makeNewdoc({
+			hashtag_id: hash_id._id,
+			hashtag_feed_id: documentId,
+			hashtag_protect_request_id: documentId,
+		});
 
-	//HashTagFeedObject 컬렉션에 키워드에 해당되는 hash insert 함.
-	let hashfeed = await HashFeed.makeNewdoc({
-		hashtag_id: hash_id._id,
-		hashtag_feed_id: documentId,
-		hashtag_protect_request_id: documentId,
-	});
+		//hash_id로 현재 추가된 개수까지 카운트 해옴.
+		let hashCnt = await HashFeed.model.find({hashtag_id: hash_id}).where('hashtag_is_delete').ne(true).count().exec();
+		console.log('hashCnt=>', hashCnt);
+		// let hash = await Hash.model
+		// 	.findOneAndUpdate(
+		// 		{hashtag_keyword: hashKeyword},
+		// 		{$set: {hashtag_keyword: hashKeyword}, $inc: {hashtag_feed_count: 1}},
+		// 		{new: true, upsert: true},
+		// 	)
+		// 	.exec();
 
-	//hash_id로 현재 추가된 개수까지 카운트 해옴.
-	let hashCnt = await HashFeed.model.find({hashtag_id: hash_id}).where('hashtag_is_delete').ne(true).count().exec();
-	console.log('hashCnt=>', hashCnt);
-	// let hash = await Hash.model
-	// 	.findOneAndUpdate(
-	// 		{hashtag_keyword: hashKeyword},
-	// 		{$set: {hashtag_keyword: hashKeyword}, $inc: {hashtag_feed_count: 1}},
-	// 		{new: true, upsert: true},
-	// 	)
-	// 	.exec();
-
-	//올바르게 카운트한 값을 업데이트 시킴
-	let hash = await Hash.model
-		.findOneAndUpdate({hashtag_keyword: hashKeyword}, {$set: {hashtag_keyword: hashKeyword, hashtag_feed_count: hashCnt}}, {new: true, upsert: true})
-		.exec();
+		//올바르게 카운트한 값을 업데이트 시킴
+		let hash = await Hash.model
+			.findOneAndUpdate({hashtag_keyword: hashKeyword}, {$set: {hashtag_keyword: hashKeyword, hashtag_feed_count: hashCnt}}, {new: true})
+			.exec();
+	} else {
+		//기존에 Hash가 존재하지 않을 경우 새롭게 insert 시킨다.
+		let hash = await Hash.model
+			.findOneAndUpdate(
+				{hashtag_keyword: hashKeyword},
+				{$set: {hashtag_keyword: hashKeyword, $inc: {hashtag_feed_count: 1}}},
+				{new: true, upsert: true},
+			)
+			.exec();
+		//HashTagFeedObject 컬렉션에 키워드에 해당되는 hash insert 함.
+		hashfeed = await HashFeed.makeNewdoc({
+			hashtag_id: hash._id,
+			hashtag_feed_id: documentId,
+			hashtag_protect_request_id: documentId,
+		});
+	}
 
 	//결과값을 내보내기 위해 Promise와 resolve를 이용
 	let resultHashFeed = await hashfeed.save();
@@ -170,9 +187,33 @@ async function createHash(hashKeyword, documentId) {
 }
 
 async function deleteHash(hashKeyword, documentId) {
+	// let hash = await Hash.model
+	// 	.findOneAndUpdate({hashtag_keyword: hashKeyword}, {$set: {hashtag_keyword: hashKeyword}, $inc: {hashtag_feed_count: -1}}, {new: true})
+	// 	.exec();
+
+	await HashFeed.model.deleteOne({
+		hashtag_id: hash._id,
+		hashtag_feed_id: documentId,
+	});
+}
+async function deleteHashArray(hashKeyword, documentId, deleteHashList) {
+	// let hash = await Hash.model
+	// 	.findOneAndUpdate({hashtag_keyword: hashKeyword}, {$set: {hashtag_keyword: hashKeyword}, $inc: {hashtag_feed_count: -1}}, {new: true})
+	// 	.exec();
+
+	//삭제된 해시태그에 대해서 HashTagFeedObject 컬렉션에서 해당 피드에 존재하는 해시태그 삭제필드를 true로 변경
+	await HashFeed.model
+		.find({_id: {$in: deleteHashList}})
+		.updateMany({$set: {hashtag_is_delete: true}})
+		.lean();
+
+	let hashCnt = await HashFeed.model.find({hashtag_feed_id: documentId}).where('hashtag_is_delete').ne(true).count().exec();
+
+	//올바르게 카운트한 값을 업데이트 시킴
 	let hash = await Hash.model
-		.findOneAndUpdate({hashtag_keyword: hashKeyword}, {$set: {hashtag_keyword: hashKeyword}, $inc: {hashtag_feed_count: -1}}, {new: true})
+		.findOneAndUpdate({hashtag_keyword: hashKeyword}, {$set: {hashtag_keyword: hashKeyword, hashtag_feed_count: hashCnt}}, {new: true, upsert: true})
 		.exec();
+
 	await HashFeed.model.deleteOne({
 		hashtag_id: hash._id,
 		hashtag_feed_id: documentId,
@@ -1166,7 +1207,7 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 		let hashMemberLenth = targetFeed.feed_hashtag_member.length;
 		let hasgTagsExists = Array();
 		let keyword_exists = false;
-
+		let id_delete;
 		//피드에 현재 쓰여진 hashTags 단어가 수정 전의 해시태그 목록에 없을 경우 추가
 		for (let i = 0; i < hashTags.length; i++) {
 			for (let j = 0; j < previousHashes.length; j++) {
@@ -1192,8 +1233,8 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 		for (let i = 0; i < previousHashes.length; i++) {
 			for (let j = 0; j < hashTags.length; j++) {
 				if (
-					hashTags[i] == previousHashes[j].hashtag_id.hashtag_keyword &&
-					mongoose.Types.ObjectId(targetFeed.feed_hashtag_member[j]).equals(previousHashes[j]._id)
+					hashTags[j] == previousHashes[i].hashtag_id.hashtag_keyword &&
+					mongoose.Types.ObjectId(targetFeed.feed_hashtag_member[j]).equals(previousHashes[i]._id)
 				) {
 					console.log('해시태그가 일치하기 때문에 삭제 하지 않음.=>', hashTags[i]);
 					hasgTagsExists.push(true);
@@ -1201,6 +1242,7 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 					break;
 				} else {
 					keyword_exists = false;
+					id_delete = previousHashes[j]._id;
 				}
 			}
 			if (!keyword_exists) {
@@ -1209,17 +1251,17 @@ router.post('/editFeed', uploadS3.array('media_uri'), (req, res) => {
 			}
 		}
 
-		hashTags.forEach(hash => {
-			if (!previousHashes.find(prev => prev.hashtag_id.hashtag_keyword == hash)) {
-				createHash(hash, targetFeed._id);
-			}
-		});
+		// hashTags.forEach(hash => {
+		// 	if (!previousHashes.find(prev => prev.hashtag_id.hashtag_keyword == hash)) {
+		// 		createHash(hash, targetFeed._id);
+		// 	}
+		// });
 
-		previousHashes.forEach(prev => {
-			if (!hashTags.find(hash => prev.hashtag_id.hashtag_keyword == hash)) {
-				deleteHash(prev.hashtag_id.hashtag_keyword, targetFeed._id);
-			}
-		});
+		// previousHashes.forEach(prev => {
+		// 	if (!hashTags.find(hash => prev.hashtag_id.hashtag_keyword == hash)) {
+		// 		deleteHash(prev.hashtag_id.hashtag_keyword, targetFeed._id);
+		// 	}
+		// });
 		/*FeedContent에 담긴 해시 태그의 정보를 바탕으로 피드의 해시태그 정보를 업데이트
 		 * 업데이트 요청의 hashtag와 db상의 hashtag리스트를 가공하여
 		 * 업데이트 요청에는 존재하나 db상의 hashtag리스트에 없을때 - hashtag를 db에 새로 생성
@@ -1622,6 +1664,13 @@ router.post('/deleteFeed', (req, res) => {
 				);
 			}
 		}
+
+		//피드
+		resultNoticeUser = await NoticeUser.model
+			.findOneAndUpdate({notice_object: req.body.commentobject_id}, {$set: {notice_is_delete: true}})
+			.where({notice_object_type: 'CommentObject'})
+			.where({notice_user_related_id: req.session.loginUser});
+
 		res.json({status: 200, msg: feedResult});
 	});
 });
